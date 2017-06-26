@@ -1,0 +1,18 @@
+@subsection Overview of matchsticks
+
+Here is a very basic game called matchsticks.  The idea is to control
+the gold ball and hit the light wood boxes encapsulating the blue balls.
+If a blue ball hits the floor it is deleted.  You need to make all blue
+balls disappear before you run out of time.
+
+You can interfere with the gold ball by pressing the mouse left and
+right buttons.  If the ball hits the triangles it gains a small amount
+of velocity.  All other collisions are very slightly inelastic.
+
+@subsection Interesting aspects of the matchsticks implementation
+
+It uses timers to coordinate the time left and it uses event callbacks
+to handle mouse presses.  The blue balls initially are free moving and
+they quickly change internally to the stationary state.  Once they are
+hit or a matchstick is deleted all objects in the stationary state
+become free moving again.

@@ -1,0 +1,36 @@
+#!/bin/bash
+
+VERSION=2.0
+PGE=pge-${VERSION}
+PGE=pge
+
+function compile () {
+   cd $HOME/Sandpit/${PGE}
+   automake  --add-missing
+   autoreconf
+
+   cd $HOME/Sandpit
+   rm -rf build-pge
+   mkdir build-pge
+
+   cd build-pge
+   # ../${PGE}/configure --enable-langc
+   ../${PGE}/configure --enable-langm2 --enable-maintainer
+   make
+   ./localrun.sh ../${PGE}/examples/springs/simple.py
+   # ./localrun.sh ../${PGE}/examples/trapped/trapped.py
+   # ./localrun.sh ../${PGE}/examples/test/test.py
+   # make pge-maintainer && make && make trapped
+}
+
+if [ -d ${HOME}/Sandpit/${PGE} ] ; then
+   echo "you are currently in: `pwd`"
+   echo "this script assumes that you are inside ${PGE}"
+   echo "it will destroy $HOME/Sandpit/build-pge"
+   echo "press enter to continue or ^C to abort"
+   read ans
+   compile
+else
+   echo "this script assumes that you are inside ${PGE}"
+   echo "and that the directory $HOME/Sandpit/${PGE} exists"
+fi

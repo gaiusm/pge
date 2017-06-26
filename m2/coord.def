@@ -1,0 +1,109 @@
+(* Copyright (C) 2011 Free Software Foundation, Inc. *)
+(* This file is part of GNU Modula-2.
+
+GNU Modula-2 is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free
+Software Foundation; either version 3, or (at your option) any later
+version.
+
+GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License along
+with gm2; see the file COPYING.  If not, write to the Free Software
+Foundation, 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA. *)
+
+DEFINITION MODULE coord ;
+
+(*
+    Title      : coord
+    Author     : Gaius Mulley
+    System     : GNU Modula-2
+    Date       : Wed Oct 24 12:25:11 2012
+    Revision   : $Version$ 
+    Description: provides a set a primitives for manipulating coordinate pairs.
+*)
+
+TYPE
+   Coord = RECORD
+              x, y: REAL ;
+           END ;
+
+(*
+   initCoord - initialises a coordinate pair.
+*)
+
+PROCEDURE initCoord (x, y: REAL) : Coord ;
+
+
+(*
+   normaliseCoord - return a Coord whose length is 1.
+*)
+
+PROCEDURE normaliseCoord (c: Coord) : Coord ;
+
+
+(*
+   perpendiculars - fill in c1 and c2 which are the two perpendicular values to, c.
+                    c1 is the one defined by Hill 1994 where c is rotated
+                    90 degrees anticlockwise.
+*)
+
+PROCEDURE perpendiculars (c: Coord; VAR c1, c2: Coord) ;
+
+
+(*
+   perpendicular - return the perpendicular of, c.
+                   This is the one defined by Hill 1994 where c is rotated
+                   90 degrees anticlockwise.
+*)
+
+PROCEDURE perpendicular (c: Coord) : Coord ;
+
+
+(*
+   scaleCoord - scale the coord, c, by, s.
+*)
+
+PROCEDURE scaleCoord (c: Coord; s: REAL) : Coord ;
+
+
+(*
+   subCoord - returns a - b.
+*)
+
+PROCEDURE subCoord (a, b: Coord) : Coord ;
+
+
+(*
+   addCoord - returns a + b.
+*)
+
+PROCEDURE addCoord (a, b: Coord) : Coord ;
+
+
+(*
+   lengthCoord - returns sqrt(c.x*c.x + c.y*c.y)
+*)
+
+PROCEDURE lengthCoord (c: Coord) : REAL ;
+
+
+(*
+   rotateCoord - rotate point, c, about the origin at theta radians.
+*)
+
+PROCEDURE rotateCoord (c: Coord; theta: REAL) : Coord ;
+
+
+(*
+   dotProd - performs a dot product of, a, and, b.
+*)
+
+PROCEDURE dotProd (a, b: Coord) : REAL ;
+
+
+END coord.

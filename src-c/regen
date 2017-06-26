@@ -1,0 +1,56 @@
+#!/bin/bash
+
+MC="${HOME}/GM2/graft-5.2.0/build-5.2.0/gcc/gm2/boot-bin/mc --h-file-prefix=G "
+PIMLIBS=${HOME}/GM2/graft-5.2.0/gcc-5.2.0/gcc/gm2/gm2-libs
+ISOLIBS=${HOME}/GM2/graft-5.2.0/gcc-5.2.0/gcc/gm2/gm2-libs-iso
+MCLIBS=${HOME}/GM2/graft-5.2.0/gcc-5.2.0/gcc/gm2/mc-boot-ch
+
+rm *.[cho]
+
+for i in ../*.def ; do
+    echo "compiling: ${i}"
+    if ! ${MC} -I${PIMLIBS} -I${ISOLIBS} -I../ -o=G`basename $i .def`.h $i ; then
+	echo "compilation failed: " ${MC} -I${PIMLIBS} -I${ISOLIBS} -I../ -o=`basename $i .mod`.c $i
+    fi
+done
+
+for i in ../*.mod ; do
+    echo "compiling: ${i}"
+    if ! ${MC} -I${PIMLIBS} -I${ISOLIBS} -I../ -o=`basename $i .mod`.c $i ; then
+	echo "compilation failed: " ${MC} -I${PIMLIBS} -I${ISOLIBS} -I../ -o=`basename $i .mod`.c $i
+    fi
+done
+
+mkdir -p libs
+cd libs
+
+cp ${MCLIBS}/*.[ch] .
+
+for i in ${PIMLIBS}/*.def ; do
+    echo "compiling: ${i}"
+    if ! ${MC} -I${PIMLIBS} -I${ISOLIBS} -I../ -o=G`basename $i .def`.h $i ; then
+	echo "compilation failed: " ${MC} -I${PIMLIBS} -I${ISOLIBS} -I../ -o=G`basename $i .def`.h $i
+    fi
+done
+for i in ${ISOLIBS}/*.def ; do
+    echo "compiling: ${i}"
+    if ! ${MC} -I${PIMLIBS} -I${ISOLIBS} -I../ -o=G`basename $i .def`.h $i ; then
+	echo "compilation failed: " ${MC} -I${PIMLIBS} -I${ISOLIBS} -I../ -o=G`basename $i .def`.h $i
+    fi
+done
+
+cd ..
+
+${MC} --extended-opaque -I${PIMLIBS} -I${ISOLIBS} -I../ -o=coord.c ../coord.mod
+${MC} --extended-opaque -I${PIMLIBS} -I${ISOLIBS} -I../ -o=popWorld.c ../popWorld.mod
+# ${MC} --extended-opaque -I${PIMLIBS} -I${ISOLIBS} -I../ -o=twoDsim.c ../twoDsim.mod
+# echo ${MC} --extended-opaque -I${PIMLIBS} -I${ISOLIBS} -I../ -o=twoDsim.c ../twoDsim.mod
+
+for i in *.c ; do
+    if gcc -I${MCLIBS} -Ilibs -g -c $i ; then
+	echo " built $i"
+    else
+	echo " failed to build $i"
+	echo " failed command: gcc -I${MCLIBS} -Ilibs -g -c $i"
+    fi
+done

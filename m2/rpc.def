@@ -1,0 +1,91 @@
+(* Copyright (C) 2012 Free Software Foundation, Inc. *)
+(* This file is part of GNU Modula-2.
+
+GNU Modula-2 is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free
+Software Foundation; either version 3, or (at your option) any later
+version.
+
+GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License along
+with gm2; see the file COPYING.  If not, write to the Free Software
+Foundation, 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA. *)
+
+DEFINITION MODULE rpc ;
+
+(*
+    Title      : rpc
+    Author     : Gaius Mulley
+    System     : GNU Modula-2
+    Date       : Fri Nov  2 17:34:57 2012
+    Revision   : $Version$ 
+    Description: provides a simple rpc mechanism into PyGame.
+*)
+
+FROM SeqFile IMPORT ChanId ;
+
+TYPE
+   cc = RECORD
+           x, y: CARDINAL ;
+        END ;
+
+   rpcStatus = (ready, problem) ;
+
+
+(*
+   initcc - initialises a, cc, structure.
+*)
+
+PROCEDURE initcc (x, y: CARDINAL) : cc ;
+
+
+(*
+   colour - registers a colour with pygame and cid is assigned with the python colour, id.
+*)
+
+PROCEDURE colour (file: ChanId; r, g, b: CARDINAL; VAR cid: CARDINAL) : rpcStatus ;
+
+
+(*
+   polygon - writes a filled polygon to the pygame display.
+             Polygon to be filled with colour, cid.
+*)
+
+PROCEDURE polygon (file: ChanId; cid: CARDINAL; n: CARDINAL; p: ARRAY OF cc) : rpcStatus ;
+
+
+(*
+   circle - writes a filled circle to the pygame display.
+            Circle to be filled with colour, cid.
+*)
+
+PROCEDURE circle (file: ChanId; cid: CARDINAL; center: cc; radius: CARDINAL) : rpcStatus ;
+
+
+(*
+   drawLine - draw a line on the pygame screen from p1 to p2 with thickness and colour, id.
+*)
+
+PROCEDURE drawLine (file: ChanId; cid: CARDINAL; p1, p2: cc; thickness: CARDINAL) : rpcStatus ;
+
+
+(*
+   resolution - sets the resolution of Pygame.
+*)
+
+PROCEDURE resolution (file: ChanId; res: cc) : rpcStatus ;
+
+
+(*
+   flipbuffer - flips the pygame frame buffer.
+*)
+
+PROCEDURE flipbuffer (file: ChanId) : rpcStatus ;
+
+
+END rpc.

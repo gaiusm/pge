@@ -1,0 +1,182 @@
+(* Copyright (C) 2011 Free Software Foundation, Inc. *)
+(* This file is part of GNU Modula-2.
+
+GNU Modula-2 is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free
+Software Foundation; either version 3, or (at your option) any later
+version.
+
+GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License along
+with gm2; see the file COPYING.  If not, write to the Free Software
+Foundation, 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA. *)
+
+DEFINITION MODULE macroObjects ;
+
+(*
+    Title      : macroObjects
+    Author     : Gaius Mulley
+    System     : GNU Modula-2
+    Date       : Fri Oct  5 20:09:34 2012
+    Revision   : $Version$ 
+    Description: 
+*)
+
+FROM Points IMPORT Point ;
+FROM Fractions IMPORT Fract ;
+FROM deviceIf IMPORT Colour ;
+
+TYPE
+   Macro ;
+   pProc = PROCEDURE (CARDINAL, ARRAY OF Point, BOOLEAN, Fract, Colour) ;
+   cProc = PROCEDURE (Point, BOOLEAN, Fract, Fract, Colour) ;
+
+
+(*
+   initMacro - creates and returns a macro.
+*)
+
+PROCEDURE initMacro () : Macro ;
+
+
+(*
+   moveTo - assign the internal position in macro, m, to, p.
+*)
+
+PROCEDURE moveTo (m: Macro; p: Point) : Macro ;
+
+
+(*
+   right - move right relatively by, f, units.
+*)
+
+PROCEDURE right (m: Macro; f: Fract) : Macro ;
+
+
+(*
+   left - move left relatively by, f, units.
+*)
+
+PROCEDURE left (m: Macro; f: Fract) : Macro ;
+
+
+(*
+   up - move up relatively by, f, units.
+*)
+
+PROCEDURE up (m: Macro; f: Fract) : Macro ;
+
+
+(*
+   down - move down relatively by, f, units.
+*)
+
+PROCEDURE down (m: Macro; f: Fract) : Macro ;
+
+
+(*
+   rectangle - draw a rectangle at current position which is length, height, units, and is
+               filled and has colour, c.
+*)
+
+PROCEDURE rectangle (m: Macro; fill: BOOLEAN; thick: Fract; c: Colour; length, height: Fract) : Macro ;
+
+
+(*
+   circle - draw a circle at current position of, colour, and radius.
+*)
+
+PROCEDURE circle (m: Macro; fill: BOOLEAN; thick: Fract; c: Colour; rad: Fract) : Macro ;
+
+
+(*
+   angledRect - add angled rectangle to macro, m.  The angled rectangle four points are defined
+                by the current position, cp, cp+v1, cp+v1+v2, cp+v2.
+*)
+
+PROCEDURE angledRect (m: Macro; fill: BOOLEAN; thick: Fract; c: Colour; v1: Point; v2: Point) : Macro ;
+
+
+(*
+   triangle - the triangle is defined by the current position:  cp, cp+v1, cp+v1+v2.
+*)
+
+PROCEDURE triangle (m: Macro; fill: BOOLEAN; thick: Fract; c: Colour; v1, v2: Point) : Macro ;
+
+
+(*
+   append - returns a new macro which is the result of appending, b, onto the end of, a.
+*)
+
+PROCEDURE append (a, b: Macro) : Macro ;
+
+
+(*
+   rotate - rotate macro, m, about point, p, with angle, r.
+            It returns a new macro.
+*)
+
+PROCEDURE rotate (m: Macro; p: Point; r: Fract) : Macro ;
+
+
+(*
+   translate - translates macro, m, along, vector.
+               It returns a new macro.
+*)
+
+PROCEDURE translate (m: Macro; vector: Point) : Macro ;
+
+
+(*
+   scale - scale macro, m, in the x and y axis.  A new
+           macro is returned.
+*)
+
+PROCEDURE scale (m: Macro; s: Point) : Macro ;
+
+
+(*
+   dup - duplicates and returns a new macro.
+*)
+
+PROCEDURE dup (m: Macro) : Macro ;
+
+
+(*
+   runCallBacks - for each
+                           polygon call p 
+                           circle call c
+                                         in macro, m.
+*)
+
+PROCEDURE runCallBacks (m: Macro; p: pProc; c: cProc) ;
+
+
+(*
+   rootMacro - register macro, m, with the roots of the garbage collector.
+*)
+
+PROCEDURE rootMacro (m: Macro) : Macro ;
+
+
+(*
+   unRootMacro - unroots macro, m, from the garbage collector.
+                 Macro, m, can still be used until the garbage collector is called.
+*)
+
+PROCEDURE unRootMacro (m: Macro) : Macro ;
+
+
+(*
+   markMacro - marks macro, m, and marks everything.
+*)
+
+PROCEDURE markMacro (m: Macro) ;
+
+
+END macroObjects.

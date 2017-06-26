@@ -1,0 +1,12 @@
+@subsection Overview of breakout
+
+Here is a very basic version of upside down breakout.  You can interfere
+with the gold ball by pressing the mouse left and right buttons.  If the
+ball hits the triangles it gains a small amount of velocity.  All other
+collisions are very slightly inelastic.
+
+@subsection Interesting aspects of the breakout implementation
+
+It uses timers to coordinate the time left and it uses event callbacks
+to handle mouse presses.  Each blue box is deleted with a callback upon
+collision.

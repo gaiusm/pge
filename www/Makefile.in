@@ -1,0 +1,113 @@
+#   Copyright (C) 2006, 2007, 2008, 2009, 2010
+#                 Free Software Foundation, Inc.
+
+# This file is part of GNU Modula-2.
+
+# GNU Modula-2 is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3, or (at your option)
+# any later version.
+
+# GNU Modula-2 is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with GNU Modula-2; see the file COPYING.  If not, write to
+# the Free Software Foundation, 51 Franklin Street, Fifth Floor,
+# Boston, MA 02110-1301, USA.
+
+objdir = @objdir@
+srcdir = @srcdir@
+
+WWWDIR=../../../../../www/gm2
+
+TEXISRC = $(srcdir)/../../gm2/gm2.texi
+
+TEXI2HTML=python $(srcdir)/tools/texi2tr/src/texi2tr.py
+
+OUTPUTS=download.html homepage.html license.html platforms.html \
+        about.html release.html users.html texi2tr.css \
+        news.html development.html community.html index.html \
+        gm2-logo.png gm2.html
+
+PNGS=debian-swirl48x48.png develop.png install.png library.png menu-left-tab.png \
+     menu-right-tab.png menu-selected-left-tab.png menu-selected-right-tab.png \
+     next.png note.png prev.png release.png snapshot.png terminal.png users.png \
+     200px-Heckert_GNU_white.png
+
+all: $(OUTPUTS)
+	for i in $(PNGS) ; do \
+           cp ${srcdir}/tools/texi2tr/png/$${i} . ; \
+        done
+
+%.pdf: %.ps
+	gs -q -dBATCH -dNOPAUSE -sDEVICE=pdfwrite -sOutputFile=$@ $<
+
+%.ps: %.ms
+	groff -s -e -t -Tps -ms -mwww $< > $@
+
+gm2-logo.png: gm2-logo.eps
+	pstopnm -nocrop -stdout $< | pnmcrop | pnmscale .4 | pnmrotate -90 | pnmtopng > $@
+
+gm2-logo.eps: $(srcdir)/gm2-logo.ms
+	groff -P-b16 $< > gm2-logo.ps
+	gs -dNOPAUSE -sDEVICE=bbox -- gm2-logo.ps 2> gm2-logo.bbox
+	cat gm2-logo.ps | sed -e '/%%Orientation/rgm2-logo.bbox' > gm2-logo.eps
+	rm gm2-logo.bbox
+
+download.html: $(srcdir)/tools/texi2tr/html/download.html
+	cp $< $@
+
+homepage.html: $(srcdir)/tools/texi2tr/html/homepage.html
+	cp $< $@
+
+license.html: $(srcdir)/tools/texi2tr/html/license.html
+	cp $< $@
+
+platforms.html: $(srcdir)/tools/texi2tr/html/platforms.html
+	cp $< $@
+
+release.html: $(srcdir)/tools/texi2tr/html/release.html
+	cp $< $@
+
+users.html: $(srcdir)/tools/texi2tr/html/users.html
+	cp $< $@
+
+about.html: $(srcdir)/tools/texi2tr/html/about.html
+	cp $< $@
+
+news.html: $(srcdir)/tools/texi2tr/html/news.html
+	cp $< $@
+
+development.html: $(srcdir)/tools/texi2tr/html/development.html
+	cp $< $@
+
+community.html: $(srcdir)/tools/texi2tr/html/community.html
+	cp $< $@
+
+index.html: $(srcdir)/tools/texi2tr/html/index.html
+	cp $< $@
+
+texi2tr.css: $(srcdir)/tools/texi2tr/html/texi2tr.css
+	cp $< $@
+
+gm2.html: $(TEXISRC)
+	$(TEXI2HTML) -T$(srcdir)/tools/texi2tr/html -n -I../../gm2:$(srcdir)/../../gm2 -b gm2-%d.html -r gm2.html gm2.texi
+
+install: all force
+	@if [ "$(WWWDIR)" = "" ] ; then \
+            echo "you must set WWWDIR" ; \
+            exit 1 ; \
+        fi
+	@if [ ! -d $(WWWDIR) ] ; then \
+            echo "you must set WWWDIR to point to a directory" ; \
+            exit 1 ; \
+        fi
+	cp *.html *.png *.css $(WWWDIR)
+
+clean: force
+	$(RM) *.eps *.ps *.html *.png *~
+
+force:

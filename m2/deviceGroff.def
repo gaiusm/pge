@@ -1,0 +1,147 @@
+(* Copyright (C) 2011 Free Software Foundation, Inc. *)
+(* This file is part of GNU Modula-2.
+
+GNU Modula-2 is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free
+Software Foundation; either version 3, or (at your option) any later
+version.
+
+GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License along
+with gm2; see the file COPYING.  If not, write to the Free Software
+Foundation, 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA. *)
+
+DEFINITION MODULE deviceGroff ;
+
+(*
+    Title      : deviceGroff
+    Author     : Gaius Mulley
+    System     : GNU Modula-2
+    Date       : Mon Jun 18 15:00:23 2012
+    Revision   : $Version$ 
+    Description: provides an interface to a groff pseudo display.
+*)
+
+FROM Points IMPORT Point ;
+FROM Fractions IMPORT Fract ;
+
+TYPE
+   Colour = CARDINAL ;
+
+
+(*
+   configDevice - configure the output device to have outMax resolution and whether
+                  it should produce a sequence of individual troff files which
+                  can be combined to make a mpeg movie.  Or alternatively whether
+                  each frame should be dynamically rendered into a postscript
+                  file displayed by 'gv'.
+*)
+
+PROCEDURE configDevice (inMax, outMax: Point; fps: CARDINAL;
+                        separateFiles, mpeg, ps, gv: BOOLEAN) ;
+
+
+(*
+   white - returns the colour, white.
+*)
+
+PROCEDURE white () : CARDINAL ;
+
+
+(*
+   black - returns the colour, black.
+*)
+
+PROCEDURE black () : CARDINAL ;
+
+
+(*
+   red - returns the colour, red.
+*)
+
+PROCEDURE red () : CARDINAL ;
+
+
+(*
+   green - returns the colour, green.
+*)
+
+PROCEDURE green () : CARDINAL ;
+
+
+(*
+   blue - returns the colour, blue.
+*)
+
+PROCEDURE blue () : CARDINAL ;
+
+
+(*
+   yellow - returns the colour, yellow.
+*)
+
+PROCEDURE yellow () : CARDINAL ;
+
+
+(*
+   purple - returns the colour, purple.
+*)
+
+PROCEDURE purple () : CARDINAL ;
+
+
+(*
+   glyphLine - draw a line between:  start and end of, thick, thickness and colour, c.
+*)
+
+PROCEDURE glyphLine (start, end: Point; thick: Fract; c: Colour) ;
+
+
+(*
+   glyphPolygon - draw a polygon given n absolute points.
+                  If fill then it is filled with colour, c, else it is drawn with
+                  thickness in outline using colour, c.
+*)
+
+PROCEDURE glyphPolygon (n: CARDINAL; p: ARRAY OF Point; fill: BOOLEAN; thick: Fract; c: Colour) ;
+
+
+(*
+   glyphCircle - draw a circle at point, pos.  If fill then it is filled by colour, c,
+                 otherwise it is drawn in outline with a thickness, thick, in colour, c.
+*)
+
+PROCEDURE glyphCircle (pos: Point; fill: BOOLEAN; thick: Fract; rad: Fract; c: Colour) ;
+
+
+(*
+   flipBuffer - renders the current buffer and then sets up a new buffer to be
+                populated by new glyphs.
+*)
+
+PROCEDURE flipBuffer ;
+
+
+(*
+   defineColour - defines a colour by: r, g, b.  The fracts
+                  are given to the colour and a colour index
+                  is returned.  Colours live for ever and are
+                  never freed.
+*)
+
+PROCEDURE defineColour (r, g, b: Fract) : CARDINAL ;
+
+
+(*
+   Init - initialise this module.
+*)
+
+PROCEDURE Init ;
+
+
+END deviceGroff.

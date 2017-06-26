@@ -1,0 +1,27 @@
+.de www-begin-SH
+.   HTML</p> "<table><tr><td valign=top width=30% bgcolor=""#eeeeee"">"
+.   LK
+.   HTML</p> "</td><td valign=top width=70%>"
+..
+.de www-end-SH
+.   HTML</p> </td></tr></table>
+.   HR
+..
+.nr SH-open 0
+.nr needs-begin 0
+.rn @SH @SH-old
+.de @SH
+.  if (\\n[SH-open] == 1) .www-end-SH
+.  nr needs-begin 1
+.  @SH-old
+..
+.rn @LP @LP-old
+.de @LP
+.  @LP-old
+.  if (\\n[needs-begin] == 1) \{\
+.     nr SH-open 1
+.     HR
+.     www-begin-SH
+.  \}
+.  nr needs-begin 0
+..

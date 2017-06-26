@@ -1,0 +1,71 @@
+(* Copyright (C) 2011 Free Software Foundation, Inc. *)
+(* This file is part of GNU Modula-2.
+
+GNU Modula-2 is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free
+Software Foundation; either version 3, or (at your option) any later
+version.
+
+GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License along
+with gm2; see the file COPYING.  If not, write to the Free Software
+Foundation, 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA. *)
+
+DEFINITION MODULE popWorld ;
+
+(*
+    Title      : popWorld
+    Author     : Gaius Mulley
+    System     : GNU Modula-2
+    Date       : Fri Oct 19 13:29:06 2012
+    Revision   : $Version$ 
+    Description: provides a mechanism to populate the two2sim
+                 world with objects created by objectMacro.
+*)
+
+FROM Fractions IMPORT Fract ;
+FROM Points IMPORT Point ;
+FROM macroObjects IMPORT Macro ;
+
+
+(*
+   populate - populate the 2D world with the contents of macro, m.
+*)
+
+PROCEDURE populate (m: Macro; fixed, solid: BOOLEAN) ;
+
+
+(*
+   mass - sets the default mass for a movable object.
+*)
+
+PROCEDURE mass (m: Fract) ;
+
+
+(*
+   velocity - sets the default velocity for a movable object.
+*)
+
+PROCEDURE velocity (v: Point) ;
+
+
+(*
+   rotate - sets the default angular velocity for a movable object.
+*)
+
+PROCEDURE rotate (r: Fract) ;
+
+
+(*
+   init - initialise the 2D world and configure the device to be groff or pygame.
+*)
+
+PROCEDURE init (groff: BOOLEAN) ;
+
+
+END popWorld.

@@ -1,0 +1,19 @@
+
+add invisibility colour for objects.
+
+introduce suspended state, which stops an object from moving either
+until it is hit by another object or it is resumed by the python script.
+
+allow Python to change state of an object (fixed -> moving),
+(moving -> suspended), (moving -> stationary) and visa versa.
+
+allow fixed objects to be repositioned by Python.
+
+introduce the concept of an object moving along a vector.
+Use object.constain (vector)
+
+per object elasticity.
+
+per object gravity.
+
+[complete rotation prediction].

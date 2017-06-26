@@ -1,0 +1,85 @@
+//
+//  equations of motion for a point rotating at a constant angular
+//  velocity along the Y axis.
+//
+//  When does this point collide with a rotating line?
+//  We solve this by asking when the Y position of the point and Y
+//  position of the line are the same.
+//
+//  Then we compare the X position of the point and whether this intersects
+//  the line.  This is used to solve (iii) and (iv) in
+//  findCollisionCircleLineOrbiting.  Note that to solve (i) and (ii)
+//  we need rotating-circles.mxm.
+//
+//  GM  2012, 2013, 2014, 2015
+//
+
+polynomial terms 5
+
+//  Modula-2 declaration for the terms and smallest positive root value.
+
+initialise {
+
+}
+
+//  where max2code must place each polynomial term
+
+term 0 {   a[0] := }    //  * t^0
+term 1 {   a[1] := }    //  * t^1
+term 2 {   a[2] := }    //  * t^2
+term 3 {   a[3] := }    //  * t^3
+term 4 {   a[4] := }    //  * t^4
+
+//  how Modula-2 solves the quartic root.
+
+finalise {
+
+}
+
+// and lastly the maxima code.
+
+{
+/* cos taylors expansion up to the 3rd term.  */
+
+O(X) := ''1 - X^2/2 + X^4/4 ;
+
+/* define sin using cos, as it uses smaller powers.  */
+
+S(X) := ''O(%pi/2-X) ;
+
+/*
+ *
+ *   variables relating to one end of the line
+ *
+ *   a    is the initial y position
+ *   b    is the initial y velocity
+ *   c    is the y acceleration
+ *   d    is the orbit radius of the line
+ *   e    is the angular velocity
+ *   f    is the angular offset (relative to the c of g).
+ *
+ *   (a + b*t + c*t^2/2 + d * S(e * t + f))
+ *
+ *   variables relating to the point.
+ *
+ *   g    is the initial y position of the point.
+ *   h    is the initial y velocity.
+ *   i    is the y acceleration of the point.
+ *   j    is the orbit radius of the point to its (c of g).
+ *   k    is the angular velocity.
+ *   l    is the angular offset (relative to the c of g).
+ *
+ *   (g + h * t + i * t^2/2 + j * S(k*t+l))
+ */
+
+load(format)$
+
+/* we multiply the equation by 64 on both sides to remove a division.  */
+
+((a + b*t + c*t^2/2 + d * S(e*t+f)) -
+ (g + h*t + i*t^2/2 + j * S(k*t+l))) * 64 ;
+
+expand(%);
+ratsimp(%);
+format(%, %poly(t));
+}

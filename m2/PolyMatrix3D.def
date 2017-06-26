@@ -1,0 +1,116 @@
+DEFINITION MODULE PolyMatrix3D ;
+
+(*
+    Title      : PolyMatrix3D
+    Author     : Gaius Mulley
+    System     : GNU Modula-2
+    Date       : Mon Jun 18 14:27:40 2012
+    Revision   : $Version$ 
+    Description: Provides a 3D polymorphic types matrix package.
+*)
+
+FROM Fractions IMPORT Fract ;
+
+CONST
+   MaxDimension = 3 ;
+
+TYPE
+   Matrix ;
+   MatrixValue = ARRAY [1..MaxDimension], [1..MaxDimension] OF Fract ;
+
+
+(*
+   init - creates a matrix and returns the matrix object.
+*)
+
+PROCEDURE init () : Matrix ;
+
+
+(*
+   mark - marks the matrix as used.
+*)
+
+PROCEDURE mark (m: Matrix) : Matrix ;
+
+
+(*
+   root - grafts matrix into the roots of the garbage tree.
+*)
+
+PROCEDURE root (m: Matrix) : Matrix ;
+
+
+(*
+   kill - removes, m, from the roots of the garbage tree.
+*)
+
+PROCEDURE kill (m: Matrix) : Matrix ;
+
+
+(*
+   set - sets the elements of a Matrix with the values.
+*)
+
+PROCEDURE set (m: Matrix; v: MatrixValue) : Matrix ;
+
+
+(*
+   get - gets the elements of a Matrix into value MatrixValues.
+*)
+
+PROCEDURE get (m: Matrix; VAR v: MatrixValue) : Matrix ;
+
+
+(*
+   add - adds a and b together and returns the result in a new
+         Matrix.  a and b will be garbage collected if they
+         are marked.
+*)
+
+PROCEDURE add (a, b: Matrix) : Matrix ;
+
+
+(*
+   mult - multiplies a and b together and returns the result
+          in a new Matrix.
+          a and b will be garbage collected if they are marked.
+*)
+
+PROCEDURE mult (a, b: Matrix) : Matrix ;
+
+
+(*
+   mult3 - performs a * (b * c) returns the result.
+*)
+
+PROCEDURE mult3 (a, b, c: Matrix) : Matrix ;
+
+
+(*
+   dup - returns another copy of matrix, m.
+*)
+
+PROCEDURE dup (m: Matrix) : Matrix ;
+
+
+(*
+   to easily debug an application using this library one could use
+   use the following macro processing defines:
+
+   #define Init(X) InitDB(X, __FILE__, __LINE__)
+   #define Mult(X,Y) MultDB(X, Y, __FILE__, __LINE__)
+   #define Add(X,Y) AddDB(X, Y, __FILE__, __LINE__)
+   #define Dup(X) DupDB(X, __FILE__, __LINE__)
+
+   and then invoke gm2 with the -fcpp flag.
+*)
+
+
+(*
+   eval - returns, m, after all values have been simplified.
+*)
+
+PROCEDURE eval (m: Matrix) : Matrix ;
+
+
+END PolyMatrix3D.

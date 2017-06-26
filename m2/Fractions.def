@@ -1,0 +1,349 @@
+(* Copyright (C) 2012 Free Software Foundation, Inc. *)
+(* This file is part of GNU Modula-2.
+
+GNU Modula-2 is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free
+Software Foundation; either version 3, or (at your option) any later
+version.
+
+GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License along
+with gm2; see the file COPYING.  If not, write to the Free Software
+Foundation, 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA. *)
+
+DEFINITION MODULE Fractions ;
+
+(*
+    Title      : Fractions
+    Author     : Gaius Mulley
+    System     : GNU Modula-2
+    Date       : Fri Sep 21 16:03:21 2012
+    Revision   : $Version$ 
+    Description: provides a fractional type and procedural functions.
+*)
+
+TYPE
+   Fract ;
+
+
+(*
+   root - grafts fract into the roots of the garbage tree.
+*)
+
+PROCEDURE root (f: Fract) : Fract ;
+
+
+(*
+   unroot - removes, f, from the roots of the garbage tree.
+*)
+
+PROCEDURE unroot (f: Fract) : Fract ;
+
+
+(*
+   pi - returns the approximation of pi as a Fract.
+*)
+
+PROCEDURE pi () : Fract ;
+
+
+(*
+   zero - returns the fraction, 0.
+*)
+
+PROCEDURE zero () : Fract ;
+
+
+(*
+   one - returns the fraction, 1/1.
+*)
+
+PROCEDURE one () : Fract ;
+
+
+(*
+   two - returns the value 2 as a fraction.
+*)
+
+PROCEDURE two () : Fract ;
+
+
+(*
+   half - returns 1/2.
+*)
+
+PROCEDURE half () : Fract ;
+
+
+(*
+   quarter - returns 1/4.
+*)
+
+PROCEDURE quarter () : Fract ;
+
+
+(*
+   oneOverN - returns 1/n.
+*)
+
+PROCEDURE oneOverN (n: LONGCARD) : Fract ;
+
+
+(*
+   root2 - returns 2^.5
+*)
+
+PROCEDURE root2 () : Fract ;
+
+
+(*
+   root3 - returns 3^.5
+*)
+
+PROCEDURE root3 () : Fract ;
+
+
+(*
+   root6 - returns 6^.5
+*)
+
+PROCEDURE root6 () : Fract ;
+
+
+(*
+   integer - return, i, as a fraction.
+*)
+
+PROCEDURE integer (i: LONGINT) : Fract ;
+
+
+(*
+   cardinal - returns a cardinal as a fraction.
+*)
+
+PROCEDURE cardinal (i: LONGCARD) : Fract ;
+
+
+(*
+   isZero - returns TRUE if the fraction is zero.
+*)
+
+PROCEDURE isZero (f: Fract) : BOOLEAN ;
+
+
+(*
+   isOne - returns TRUE if the fraction is one.
+*)
+
+PROCEDURE isOne (f: Fract) : BOOLEAN ;
+
+
+(*
+   isEqual - returns TRUE if Fracts, l, and, r, are equal.
+*)
+
+PROCEDURE isEqual (l, r: Fract) : BOOLEAN ;
+
+
+(*
+   isLess - returns TRUE if l < r.
+*)
+
+PROCEDURE isLess (l, r: Fract) : BOOLEAN ;
+
+
+(*
+   isGreater - returns TRUE if l > r.
+*)
+
+PROCEDURE isGreater (l, r: Fract) : BOOLEAN ;
+
+
+(*
+   negate - negate fraction, f.
+*)
+
+PROCEDURE negate (f: Fract) : Fract ;
+
+
+(*
+   power - return l^r.
+*)
+
+PROCEDURE power (l, r: Fract) : Fract ;
+
+
+(*
+   mult - return l * r.
+*)
+
+PROCEDURE mult (l, r: Fract) : Fract ;
+
+
+(*
+   div - return l / r.
+*)
+
+PROCEDURE div (l, r: Fract) : Fract ;
+
+
+(*
+   reciprocal - return 1/f.
+*)
+
+PROCEDURE reciprocal (f: Fract) : Fract ;
+
+
+(*
+   sub - returns the expression, l - r.
+*)
+
+PROCEDURE sub (l, r: Fract) : Fract ;
+
+
+(*
+   add - returns a new fraction of the result, l+r.
+*)
+
+PROCEDURE add (l, r: Fract) : Fract ;
+
+
+(*
+   inc - returns, l, after, r, has been added.
+*)
+
+PROCEDURE inc (l, r: Fract) : Fract ;
+
+
+(*
+   dec - returns, l, after, r, has been subtracted.
+*)
+
+PROCEDURE dec (l, r: Fract) : Fract ;
+
+
+(*
+   simplify - simplify the fraction or expression.
+*)
+
+PROCEDURE simplify (f: Fract) : Fract ;
+
+
+(*
+   initFract - initialise a fraction, which is expressed as:  w + n/d.
+*)
+
+PROCEDURE initFract (w: LONGCARD; n, d: LONGCARD) : Fract ;
+
+
+(*
+   add3 - returns a new fraction which contains the result of a+b+c.
+*)
+
+PROCEDURE add3 (a, b, c: Fract) : Fract ;
+
+
+(*
+   mult3 - returns a new fraction which contains the result of a * b * c.
+*)
+
+PROCEDURE mult3 (a, b, c: Fract) : Fract ;
+
+
+(*
+   mark - marks Fract, f, to be saved from garbage collection.
+*)
+
+PROCEDURE mark (f: Fract) ;
+
+
+(*
+   dup - returns a duplicate of Fract, f.
+*)
+
+PROCEDURE dup (f: Fract) : Fract ;
+
+
+(*
+   areEqual - return TRUE if l = r.
+*)
+
+PROCEDURE areEqual (l, r: Fract) : BOOLEAN ;
+
+
+(*
+   getReal - returns a REAL value of, f.
+*)
+
+PROCEDURE getReal (f: Fract) : REAL ;
+
+
+(*
+   getFract - returns the, whole, numerator and demonimator value of, f.
+*)
+
+PROCEDURE getFract (f: Fract; VAR w, n, d: LONGCARD) ;
+
+
+(*
+   getLongReal - returns a LONGREAL value of, f.
+*)
+
+PROCEDURE getLongReal (f: Fract) : LONGREAL ;
+
+
+(*
+   putReal - returns a fraction in the range whole number + x/10000
+*)
+
+PROCEDURE putReal (r: REAL) : Fract ;
+
+
+(*
+   writeFract - displays fraction, f.
+*)
+
+PROCEDURE writeFract (f: Fract) ;
+
+
+(*
+   isPositive - returns TRUE if, f, is positive.
+*)
+
+PROCEDURE isPositive (f: Fract) : BOOLEAN ;
+
+
+(*
+   isNegative - returns TRUE if the value is negative.
+*)
+
+PROCEDURE isNegative (f: Fract) : BOOLEAN ;
+
+
+(*
+   sin - return sin of angle, f.
+*)
+
+PROCEDURE sin (f: Fract) : Fract ;
+
+
+(*
+   cos - return cos of angle, f.
+*)
+
+PROCEDURE cos (f: Fract) : Fract ;
+
+
+(*
+   tan - return tan of angle, f.
+*)
+
+PROCEDURE tan (f: Fract) : Fract ;
+
+
+END Fractions.

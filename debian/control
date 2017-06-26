@@ -1,0 +1,35 @@
+Source: pge
+Section: python
+Priority: optional
+Maintainer: Gaius Mulley <gaius@gnu.org>
+Build-Depends:
+ debhelper (>= 9),
+ automake,
+ autoconf,
+ autotools-dev,
+ dh-python,
+ gcc,
+ g++,
+ gm2,
+ libpth-dev,
+ libtool,
+ maxima,
+ python-setuptools,
+ python-all-dev,
+ python,
+ python-pygame,
+ swig,
+ texinfo
+Standards-Version: 3.9.5
+X-Python-Version: >= 2.3
+
+Package: pge
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, python-pygame, gm2
+Suggests:
+Conflicts:
+Description: Physics Game Engine module for Python/Pygame.
+ A physics engine which is accessible from Python and it works with
+ PyGame or it can be run in batch mode.  The physics game engine works
+ by using collision prediction and allows primative objects to be
+ modelled.

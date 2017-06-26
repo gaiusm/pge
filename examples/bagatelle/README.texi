@@ -1,0 +1,12 @@
+@subsection Overview of bagatelle
+
+Here is a very basic game of bagatelle.
+
+If the ball hits the triangles it gains a small amount
+of velocity.  All other collisions are very slightly inelastic.
+
+@subsection Interesting aspects of the bagatelle implmentation
+
+This game uses the callbacks to give extra velocity to the ball.  It
+also uses the mouse position to provide the initial directional
+velocity.

@@ -1,0 +1,12 @@
+@subsection Overview of frozenbubble
+
+Here is a very basic game of frozebubble.
+
+You control the initial projection vector of the gold ball from the
+mouse position.  If the gold ball hits any other ball in a suspended
+state it becomes free moving.
+
+@subsection Interesting aspects of the frozenbubble implmentation
+
+This game uses the collision callbacks to resume movement for a
+suspended ball.

@@ -1,0 +1,108 @@
+//
+//  equations of motion for two circles rotating at a constant angular velocity
+//
+//  GM  2012
+//
+
+polynomial terms 9         // 9 terms
+
+//  Modula-2 declaration for the terms and smallest positive root value.
+
+initialise {
+   (* start of included code *)
+
+}
+
+//  where max2code must place each polynomial term
+
+term 0 {   array[0] := }    //  * t^0
+term 1 {   array[1] := }    //  * t^1
+term 2 {   array[2] := }    //  * t^2
+term 3 {   array[3] := }    //  * t^3
+term 4 {   array[4] := }    //  * t^4
+term 5 {   array[5] := }    //  * t^5
+term 6 {   array[6] := }    //  * t^6
+term 7 {   array[7] := }    //  * t^7
+term 8 {   array[8] := }    //  * t^8
+
+finalise {
+   (* end of included code *)
+}
+
+// and lastly the maxima code
+{
+//  cos taylors expansion up to the 3rd term.
+
+O(X) := ''1 - X^2/2 + X^4/4 ;
+
+//  define sin using cos, as it uses smaller powers.
+
+S(X) := ''O(%pi/2-X) ;
+
+//
+//   now compute the distance appart of the two circles and subtract the square of
+//   the sum of the radii.  When this is zero we have a collision.
+//
+//   (relative X position)^2 + (relative Y position)^2 = sum of radii ^2
+//                                                     = Z^2
+//   A^2 + B^2                                         = Z^2
+//   A^2 + B^2 - Z^2                                   = 0
+//
+//  x position for circle 1 is defined as:
+//
+//  C = (a + b*t + c*t^2/2 + d*O(e*t+f))
+//
+//  y position for circle 1 is defined as:
+//
+//  D = (m + n*t + o*t^2/2 + d*S(p*t+q))
+//
+//  x position for circle 2 is defined as:
+//
+//  E = (g + h*t + i*t^2/2 + j*O(k*t+l))
+//
+//  y position for circle 2 is defined as:
+//
+//  F = (r + s*t + u*t^2/2 + j*S(v*t+w))
+//
+//  A = (C - E)
+//  B = (D - F)
+//  Z = (x+y)
+//
+//  x and y are the radius of circle 1 and circle 2 respectively.
+//  d is the orbit radius of the rotating circle 1 (distance from end of line to c of g)
+//  j is the orbit radius of the rotating circle 2 (distance from end of line to c of g)
+//
+//  description of equation C  (D, E, F are obviously similar).
+//
+//  C = (a + b*t + c*t^2/2 + d*S(e*t+f))
+//
+//  a   is  initial x position
+//  b   is  initial x velocity
+//  c   is  x acceleration
+//  e   is  angular velocity
+//  f   is  the initial angular offset for the center of circle relative to the c of g.
+//          The c of g is the center of the orbit.
+//
+//  now expand for A^2 + B^2 - z^2
+//  and collect like terms of t
+//
+//
+//
+//  ((a + b*t + c*t^2/2 + d * O(e * t + f)) - (g + h * t + i * t^2/2 + d * S(j*t+k)))^2 +
+//  ((l + m*t + n*t^2/2 + o * O(p * t + q)) - (r + s * t + u * t^2/2 + o * S(v*t+w)))^2 - x^2 ;
+//
+
+C : (a + b*t + c*t^2/2 + d*O(e*t+f));
+D : (g + h*t + i*t^2/2 + d*S(j*t+k));
+E : (l + m*t + n*t^2/2 + o*O(p*t+q));
+F : (r + s*t + u*t^2/2 + o*S(v*t+w));
+A : (C - E);
+B : (D - F);
+Z : (x);
+
+  // put them all together.
+
+  A^2 + B^2 - Z^2;
+  ratsimp(%);
+  collectterms(%,t);
+}

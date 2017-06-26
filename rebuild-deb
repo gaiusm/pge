@@ -1,0 +1,13 @@
+#!/bin/bash
+
+if [ ! -f ./rebuild-deb ] ; then
+   echo "this must be run from within the directory pge"
+   echo "press enter to continue"
+   exit 1
+fi
+
+automake  --add-missing
+autoreconf
+
+cd .. ; tar zcf pge.tar.gz pge ; cd pge ; /home/gaius/SHELL/mypdebuild.sh
+dpkg --contents /usr/local/src/results/pge_2.0.0-1.0_amd64.deb

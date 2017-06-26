@@ -1,0 +1,39 @@
+pge (2.0.0-1.3) UNRELEASED; urgency=medium
+
+  * Release 2.0.0-1.3 generated.
+  * Another fix to history:addToPastQ.
+
+ -- Gaius Mulley <gaius@gnu.org>  Tue, 28 Feb 2017 19:57:42 +0000
+
+pge (2.0.0-1.2) UNRELEASED; urgency=medium
+
+  * Release 2.0.0-1.2 generated.
+  * Turn on purging history.
+
+ -- Gaius Mulley <gaius@gnu.org>  Tue, 28 Feb 2017 11:12:17 +0000
+
+pge (2.0.0-1.1) UNRELEASED; urgency=medium
+
+  * Release 2.0.0-1.1 generated.
+  * Fixes a bug when two objects collide at the same time.
+
+ -- Gaius Mulley <gaius@gnu.org>  Mon, 27 Feb 2017 16:23:17 +0000
+
+pge (2.0.0-1.0) stable; urgency=high
+
+  * Release 2.0 generated.
+
+ -- Gaius Mulley <gaius@gnu.org>  Fri, 20 Jan 2017 17:35:42 +0000
+
+pge (1.0.0-1.0) stable; urgency=high
+
+  * Release 1.0 generated.
+
+ -- Gaius Mulley <gaius@gnu.org>  Tue, 08 Nov 2016 09:45:35 +0000
+
+
+pge (0.0.1-1) unstable; urgency=low
+
+  * Initial release of GNU PGE.
+
+ -- Gaius Mulley <gaius@gnu.org>  Tue, 27 Oct 2016 14:23:24 +0100

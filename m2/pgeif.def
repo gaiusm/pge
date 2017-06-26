@@ -1,0 +1,486 @@
+(* Copyright (C) 2015 Free Software Foundation, Inc. *)
+(* This file is part of GNU Modula-2.
+
+GNU Modula-2 is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free
+Software Foundation; either version 3, or (at your option) any later
+version.
+
+GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License along
+with gm2; see the file COPYING.  If not, write to the Free Software
+Foundation, 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA. *)
+
+DEFINITION MODULE pgeif ;
+
+(*
+    Title      : pgeif
+    Author     : Gaius Mulley
+    System     : GNU Modula-2
+    Date       : Mon Oct 27 10:58:46 2014
+    Revision   : $Version$
+    Description: provides a swig interface to the pge 2D game engine.
+                 The parameters to the functions are deliberately chosen
+                 to be swig/python friendly.
+*)
+
+FROM SYSTEM IMPORT BYTE ;
+
+EXPORT UNQUALIFIED ExceptionKind,
+                   rgb, white, black, red, green, blue, purple, gravity,
+                   box, poly3, poly4, poly5, poly6, mass, fix,
+		   get_mass, set_gravity, get_gravity,
+		   circle, spring,
+                   velocity, accel, rotate, process_event,
+                   is_collision, is_frame, is_function,
+		   create_function_event,
+		   time_until, get_time, rm,
+                   batch, use_buffer, empty_cbuffer, empty_fbuffer,
+                   use_time_delay, dump_world, check_objects,
+                   draw_collision, l2h, h2l,
+		   set_collision_colour,
+                   get_xpos, get_ypos,
+		   get_xvel, get_yvel,
+                   get_xaccel, get_yaccel,
+   		   put_xvel, put_yvel,
+		   put_xaccel, put_yaccel,
+		   apply_impulse, moving_towards, set_colour,
+		   skip_until, fps ;
+
+
+TYPE
+   ExceptionKind = (IncorrectType, IdOutOfBounds, ValueOutOfRange) ;
+
+
+(*
+   rgb - make a colour object using red, blue and green components.
+         The colour object is returned.
+*)
+
+PROCEDURE rgb (r, g, b: REAL) : CARDINAL ;
+
+
+(*
+   white - returns the colour, white.
+*)
+
+PROCEDURE white () : CARDINAL ;
+
+
+(*
+   black - returns the colour, black.
+*)
+
+PROCEDURE black () : CARDINAL ;
+
+
+(*
+   red - returns the colour, red.
+*)
+
+PROCEDURE red () : CARDINAL ;
+
+
+(*
+   green - returns the colour, green.
+*)
+
+PROCEDURE green () : CARDINAL ;
+
+
+(*
+   blue - returns the colour, blue.
+*)
+
+PROCEDURE blue () : CARDINAL ;
+
+
+(*
+   yellow - returns the colour, yellow.
+*)
+
+PROCEDURE yellow () : CARDINAL ;
+
+
+(*
+   purple - returns the colour, purple.
+*)
+
+PROCEDURE purple () : CARDINAL ;
+
+
+(*
+   gravity - turn on gravity at: g m^2
+*)
+
+PROCEDURE gravity (g: REAL) ;
+
+
+(*
+   box - place a box in the world at (x0,y0),(x0+i,y0+j)
+*)
+
+PROCEDURE box (x0, y0, i, j: REAL; c: CARDINAL) : CARDINAL ;
+
+
+(*
+   poly3 - place a triangle in the world at:
+           (x0,y0), (x1,y1), (x2,y2)
+*)
+
+PROCEDURE poly3 (x0, y0, x1, y1, x2, y2: REAL; c: CARDINAL) : CARDINAL ;
+
+
+(*
+   poly4 - place a rectangle in the world at:
+           (x0,y0), (x1,y1), (x2,y2), (x3,y3)
+*)
+
+PROCEDURE poly4 (x0, y0, x1, y1, x2, y2, x3, y3: REAL; c: CARDINAL) : CARDINAL ;
+
+
+(*
+   poly5 - place a pentagon in the world at:
+           (x0,y0), (x1,y1), (x2,y2), (x3,y3), (x4,y4)
+*)
+
+PROCEDURE poly5 (x0, y0, x1, y1, x2, y2, x3, y3, x4, y4: REAL; c: CARDINAL) : CARDINAL ;
+
+
+(*
+   poly6 - place a hexagon in the world at:
+           (x0,y0), (x1,y1), (x2,y2), (x3,y3), (x4,y4), (x5,y5)
+*)
+
+PROCEDURE poly6 (x0, y0, x1, y1, x2, y2, x3, y3, x4, y4, x5, y5: REAL; c: CARDINAL) : CARDINAL ;
+
+
+(*
+   mass - specify the mass of an object and return the, id.
+*)
+
+PROCEDURE mass (id: CARDINAL; m: REAL) : CARDINAL ;
+
+
+(*
+   get_mass - returns the mass of a circle or polygon object.
+*)
+
+PROCEDURE get_mass (id: CARDINAL) : REAL ;
+
+
+(*
+   get_gravity - returns the gravity of a circle or polygon object.
+*)
+
+PROCEDURE get_gravity (id: CARDINAL) : REAL ;
+
+
+(*
+   set_gravity - sets the per object gravity, g, to a circle or
+                 polygon object.
+*)
+
+PROCEDURE set_gravity (id: CARDINAL; g: REAL) ;
+
+
+(*
+   fix - fix the object to the world.
+*)
+
+PROCEDURE fix (id: CARDINAL) : CARDINAL ;
+
+
+(*
+   spring - join object, id1, and, id2, with a string of defined
+            by hooks constant, k, the spring is at rest if it has
+            length, l.  If l < 0 then the game engine considers
+            the spring to naturally be at rest for the distance
+            between id1 and id2.
+*)
+
+PROCEDURE spring (id1, id2: CARDINAL; k, l: REAL) : CARDINAL ;
+
+
+(*
+   circle - adds a circle to the world.  Center
+            defined by: x0, y0 radius, radius.
+*)
+
+PROCEDURE circle (x0, y0, radius: REAL; c: CARDINAL) : CARDINAL ;
+
+
+(*
+   velocity - give an object, id, a velocity, vx, vy.
+*)
+
+PROCEDURE velocity (id: CARDINAL; vx, vy: REAL) : CARDINAL ;
+
+
+(*
+   accel - give an object, id, an acceleration, ax, ay.
+*)
+
+PROCEDURE accel (id: CARDINAL; ax, ay: REAL) : CARDINAL ;
+
+
+(*
+   rotate - rotates object with a angular velocity, angle.
+*)
+
+PROCEDURE rotate (id: CARDINAL; angle: REAL) : CARDINAL ;
+
+
+(*
+   is_collision - returns TRUE if next event is a collision event.
+*)
+
+PROCEDURE is_collision () : BOOLEAN ;
+
+
+(*
+   is_frame - returns TRUE if the next event is a redraw frame event.
+*)
+
+PROCEDURE is_frame () : BOOLEAN ;
+
+
+(*
+   is_function - returns TRUE if the next event is a function event.
+*)
+
+PROCEDURE is_function () : BOOLEAN ;
+
+
+(*
+   create_function_event - creates a function event at time, t,
+                           in the future.
+*)
+
+PROCEDURE create_function_event (t: REAL; id: CARDINAL) ;
+
+
+(*
+   time_until - returns the relative time from now until the next event.
+*)
+
+PROCEDURE time_until () : REAL ;
+
+
+(*
+   skip_until - advances time for, t, units or until the next event is reached.
+*)
+
+PROCEDURE skip_until (t: REAL) : REAL ;
+
+
+(*
+   process_event - advance time to the next event and then
+                   process the event.
+*)
+
+PROCEDURE process_event ;
+
+
+(*
+   get_time - return the current simulation time.
+*)
+
+PROCEDURE get_time () : REAL ;
+
+
+(*
+   rm - delete this object from the simulated world.
+        The same id is returned.
+*)
+
+PROCEDURE rm (id: CARDINAL) : CARDINAL ;
+
+
+(*
+   get_xpos - returns the first point, x, coordinate of object.
+*)
+
+PROCEDURE get_xpos (id: CARDINAL) : REAL ;
+
+
+(*
+   get_ypos - returns the first point, y, coordinate of object.
+*)
+
+PROCEDURE get_ypos (id: CARDINAL) : REAL ;
+
+
+(*
+   get_xvel - returns the X velocity of object.
+*)
+
+PROCEDURE get_xvel (id: CARDINAL) : REAL ;
+
+
+(*
+   get_yvel - returns the Y velocity of object.
+*)
+
+PROCEDURE get_yvel (id: CARDINAL) : REAL ;
+
+
+(*
+   get_xaccel - returns the X acceleration of object.
+*)
+
+PROCEDURE get_xaccel (id: CARDINAL) : REAL ;
+
+
+(*
+   get_yaccel - returns the Y acceleration of object.
+*)
+
+PROCEDURE get_yaccel (id: CARDINAL) : REAL ;
+
+
+(*
+   put_xvel - assigns the X velocity of object.
+*)
+
+PROCEDURE put_xvel (id: CARDINAL; r: REAL) ;
+
+
+(*
+   put_yvel - assigns the Y velocity of object.
+*)
+
+PROCEDURE put_yvel (id: CARDINAL; r: REAL) ;
+
+
+(*
+   put_xaccel - assigns the X acceleration of object.
+*)
+
+PROCEDURE put_xaccel (id: CARDINAL; r: REAL) ;
+
+
+(*
+   put_yaccel - assigns the Y acceleration of object.
+*)
+
+PROCEDURE put_yaccel (id: CARDINAL; r: REAL) ;
+
+
+(*
+   set_colour - sets colour of object, id, to, c.
+*)
+
+PROCEDURE set_colour (id: CARDINAL; c: CARDINAL) ;
+
+
+(*
+   apply_impulse - applies an impulse of magnitude along vector
+                   [x, y] for object, id.
+*)
+
+PROCEDURE apply_impulse (id: CARDINAL; x, y: REAL; m: REAL) ;
+
+
+(*
+   moving_towards - returns TRUE if object, id, is moving towards
+                    a point x, y.
+*)
+
+PROCEDURE moving_towards (id: CARDINAL; x, y: REAL) : BOOLEAN ;
+
+
+(*
+   batch - use the batch device to record the output frames.
+*)
+
+PROCEDURE batch ;
+
+
+(*
+   use_buffer - use the buffer device to record the output frames.
+*)
+
+PROCEDURE use_buffer ;
+
+
+(*
+   empty_cbuffer - empty the colour buffer.
+*)
+
+PROCEDURE empty_cbuffer ;
+
+
+(*
+   empty_fbuffer - empty the frame buffer.
+*)
+
+PROCEDURE empty_fbuffer ;
+
+
+(*
+   useTimeDelay - should the frame buffer include the time delay command?
+*)
+
+PROCEDURE use_time_delay (on: BOOLEAN) ;
+
+
+(*
+   draw_collision - turn on drawing of the actual collision frame
+                    and the prediction frame.
+*)
+
+PROCEDURE draw_collision (actual, predict: BOOLEAN) ;
+
+
+(*
+   set_collision_colour - when two objects collide they will both be draw using
+                          colour, c.
+*)
+
+PROCEDURE set_collision_colour (c: CARDINAL) ;
+
+
+(*
+   dump_world - dump a list of all objects and their characteristics.
+*)
+
+PROCEDURE dump_world ;
+
+
+(*
+   check_objects - perform a check to make sure that all non fixed
+                   objects have a mass and returns TRUE if this is the
+                   case.
+*)
+
+PROCEDURE check_objects () : BOOLEAN ;
+
+
+(*
+   l2h - translate a twoDsim, id, to the pgeid.
+*)
+
+PROCEDURE l2h (id: CARDINAL) : CARDINAL ;
+
+
+(*
+   h2l - translate a pgeif, id, to the twoDsim.
+*)
+
+PROCEDURE h2l (id: CARDINAL) : CARDINAL ;
+
+
+(*
+   fps - set frames per second.
+*)
+
+PROCEDURE fps (f: REAL) ;
+
+
+END pgeif.

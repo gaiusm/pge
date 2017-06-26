@@ -1,0 +1,119 @@
+(* Copyright (C) 2011 Free Software Foundation, Inc. *)
+(* This file is part of GNU Modula-2.
+
+GNU Modula-2 is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free
+Software Foundation; either version 3, or (at your option) any later
+version.
+
+GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License along
+with gm2; see the file COPYING.  If not, write to the Free Software
+Foundation, 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA. *)
+
+DEFINITION MODULE GC ;
+
+(*
+    Title      : GC
+    Author     : Gaius Mulley
+    System     : GNU Modula-2
+    Date       : Mon Oct 15 21:11:47 2012
+    Revision   : $Version$ 
+    Description: implements garbage collection.
+*)
+
+FROM SYSTEM IMPORT ADDRESS ;
+FROM DynamicStrings IMPORT String ;
+
+TYPE
+   garbage ;
+   entity ;
+   walkP = PROCEDURE (ADDRESS) ;
+   callP = PROCEDURE ;
+
+
+(*
+   initGarbage - initialises a garbage heap which manages a dynamically
+                 allocated data type of noOfBytes length.  It must be
+                 the same data structure which is walked by, walkP.
+*)
+
+PROCEDURE initGarbage (p: walkP; noOfBytes: CARDINAL; typeName: String) : garbage ;
+
+
+(*
+   collect - collect all used entities and place them onto the free list.
+*)
+
+PROCEDURE collect (g: garbage) ;
+
+
+(*
+   markEntity - sets the status of entity, e, to marked.
+*)
+
+PROCEDURE markEntity (e: entity) ;
+
+
+(*
+   allocate - returns allocated memory from, a.  It also
+              returns entity, e, which is associated with, a.
+*)
+
+PROCEDURE allocate (g: garbage; VAR e: entity; VAR a: ADDRESS) ;
+
+
+(*
+   rootAllocate - returns allocated memory from, a, with length, bytes.  It also
+                  returns entity, e, which is associated with, a.
+
+                  It registers this entity in the root of the garbage collection.
+*)
+
+PROCEDURE rootAllocate (g: garbage; VAR e: entity; VAR a: ADDRESS) ;
+
+
+(*
+   rootDeallocate - deallocates memory from, a, with length, bytes.
+                    It also unregisters entity, e, from the root.
+*)
+
+PROCEDURE rootDeallocate (g: garbage; VAR e: entity; VAR a: ADDRESS) ;
+
+
+(*
+   rootEntity - records data, a, to be part of the roots in heap, g.
+                Useful if an entity was created using, allocate,
+                and now needs to be remembered.
+*)
+
+PROCEDURE rootEntity (g: garbage; e: entity; a: ADDRESS) ;
+
+
+(*
+   getData - returns the address associated with entity, e.
+*)
+
+PROCEDURE getData (e: entity) : ADDRESS ;
+
+
+(*
+   registerCallback - call procedure, p, when the garbage collector is marking used entities.
+*)
+
+PROCEDURE registerCallback (g: garbage; p: callP) ;
+
+
+(*
+   collectAll - run the garbage collection on all heaps.
+*)
+
+PROCEDURE collectAll ;
+
+
+END GC.

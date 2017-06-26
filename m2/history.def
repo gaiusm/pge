@@ -1,0 +1,83 @@
+(* Copyright (C) 2011 Free Software Foundation, Inc. *)
+(* This file is part of GNU Modula-2.
+
+GNU Modula-2 is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free
+Software Foundation; either version 3, or (at your option) any later
+version.
+
+GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License along
+with gm2; see the file COPYING.  If not, write to the Free Software
+Foundation, 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA. *)
+
+DEFINITION MODULE history ;
+
+(*
+    Title      : history
+    Author     : Gaius Mulley
+    System     : GNU Modula-2
+    Date       : Wed Oct 24 12:43:32 2012
+    Revision   : $Version$
+    Description: provides a mechanism for maintaining a collision history.
+*)
+
+FROM coord IMPORT Coord ;
+
+
+TYPE
+   whereHit = (corner, edge) ;   (* where does a circle hit a polygon *)
+
+
+(*
+   isDuplicate - returns TRUE if the collision at, cp,
+                 and, time, has occurred before.
+                 The time (currentTime+relTime) must be the absolute
+                 time of the collision.
+*)
+
+PROCEDURE isDuplicate (currentTime, relTime: REAL;
+                       id1, id2: CARDINAL; w1, w2: whereHit; cp: Coord) : BOOLEAN ;
+
+
+(*
+   forgetFuture - destroy the anticipated future queue.
+*)
+
+PROCEDURE forgetFuture ;
+
+
+(*
+   occurred - mark the collision as having occurred at, currentTime, between, objects
+              id1 and id2 at position, cp.  This collision is placed onto the past queue.
+              If the event described by id1, id2 at, time, is also present
+              on the future queue it is removed.
+*)
+
+PROCEDURE occurred (currentTime: REAL; id1, id2: CARDINAL; cp: Coord) ;
+
+
+(*
+   anticipate - anticipate a collision at time, aTime, in the future at
+                position, cp.
+                A duplicate will ignored.  A non duplicate
+                collision will be placed onto the futureQ.
+*)
+
+PROCEDURE anticipate (aTime: REAL; id1, id2: CARDINAL; cp: Coord) ;
+
+
+(*
+   isPair - are (a, b) the same as (x, y) or
+             is (a, b) the same as (y, x)
+*)
+
+PROCEDURE isPair (a, b, x, y: CARDINAL) : BOOLEAN ;
+
+
+END history.

@@ -1,0 +1,67 @@
+(* Copyright (C) 2011 Free Software Foundation, Inc. *)
+(* This file is part of GNU Modula-2.
+
+GNU Modula-2 is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free
+Software Foundation; either version 3, or (at your option) any later
+version.
+
+GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License along
+with gm2; see the file COPYING.  If not, write to the Free Software
+Foundation, 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA. *)
+
+DEFINITION MODULE polar ;
+
+(*
+    Title      : polar
+    Author     : Gaius Mulley
+    System     : GNU Modula-2
+    Date       : Wed Nov 21 14:01:33 2012
+    Revision   : $Version$ 
+    Description: provides a set of primitives for manipulating polar coordinates.
+*)
+
+FROM coord IMPORT Coord ;
+
+TYPE
+   Polar = RECORD
+              r, w: REAL ;  (* w is the angle, r is the radius (or magnitude) *)
+           END ;
+
+
+(*
+   initPolar - initialises a polar coordinate, r, is the radius (magnitude)
+               and, w, is the angle.
+*)
+
+PROCEDURE initPolar (r, w: REAL) : Polar ;
+
+
+(*
+   polarToCoord - convert a polar coordinate into a cartesian coordinate.
+*)
+
+PROCEDURE polarToCoord (p: Polar) : Coord ;
+
+
+(*
+   coordToPolar - return a polar coordinate pair given a cartesian coordinate.
+*)
+
+PROCEDURE coordToPolar (c: Coord) : Polar ;
+
+
+(*
+   rotatePolar - return a polar coordinate after rotating it by, w, radians.
+*)
+
+PROCEDURE rotatePolar (p: Polar; w: REAL) : Polar ;
+
+
+END polar.

@@ -1,0 +1,278 @@
+\input texinfo   @c -*-texinfo-*-
+@c %**start of header
+@setfilename pge.info
+@set version-pge     0.1
+@set version-update  2016-10-27
+@settitle GNU PGE @value{version-pge}
+@c %**end of header
+
+@titlepage
+@sp 10
+@center @titlefont{GNU Physics Game Engine}
+@sp 10
+@center @titlefont{pge-@value{version-pge}}
+@c
+
+@page
+@setchapternewpage odd
+@sp 2
+@center Gaius Mulley
+@sp 3
+@center Last updated @value{version-update}
+
+@vskip 0pt plus 1filll
+Copyright @copyright{} 2016 Free Software Foundation, Inc.
+
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.1 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, with the Front-Cover Texts being ``A GNU Manual,''
+and with the Back-Cover Texts as in (a) below.  A copy of the
+license is included in the section entitled ``GNU Free Documentation
+License.''
+
+(a) The FSF's Back-Cover Text is: ``You have freedom to copy and modify
+this GNU Manual, like GNU software.  Copies published by the Free
+Software Foundation raise funds for GNU development.''
+@end titlepage
+
+@contents
+
+@ifinfo
+@node Top, , (dir), (dir)
+@top GNU PGE
+@end ifinfo
+
+@menu
+* About:: What is GNU PGE.
+* Obtaining:: Obtaining GNU PGE.
+* Dependencies:: Package dependencies.
+@c * Installing:: Installing PGE.
+* Building:: Building and configuring PGE.
+* Lab exercises:: Lab exercises using PGE.
+* Licence:: Licence of GNU PGE.
+* GNU Project:: The GNU Project and GNU/Linux.
+* Libraries:: Libraries available in PGE.
+* Indices:: Content and function indices.
+@end menu
+
+@menu
+* News:: News.
+* Development:: Development.
+* Community:: Community.
+@end menu
+
+@node News, Development, , (dir)
+@chapter News
+
+No news is good news.
+
+@node Development, Community, News, (dir)
+@section Development
+
+If you are interesting in contributing please contact
+@email{gaius@@gnu.org}.
+
+@node Community, , Development, (dir)
+
+
+@node About, Obtaining, (dir), (dir)
+@chapter About PGE
+
+
+@node Obtaining, Building, About, (dir)
+@chapter Obtaining PGE
+
+You can download a copy PGE from
+@uref{http://floppsie.comp.glam.ac.uk/download/pge/pge-@value{version-pge}.tar.gz}
+and extract the archive contents.  Both the download and extraction
+can be done from the command line:
+
+@example
+$ rm -f student-pge-@value{version-pge}.tar.gz
+$ wget http://floppsie.comp.glam.ac.uk/download/pge/student-pge-@value{version-pge}.tar.gz
+$ tar xvf student-pge-@value{version-pge}.tar.gz
+@end example
+
+@node Dependencies, Building, Obtaining, (dir)
+@section Dependencies
+
+PGE requires the following packages to be installed.  You do not need
+to perform any of these commands if you are using PGE in a laboratory
+at Glamorgan.
+
+The GNU C compiler @file{gcc}, GNU Modula-2 @file{gm2}, GNU make
+@file{make}, GNU binutils @file{binutils}, @file{x86-m2} and Bruce Evan's
+assembler (@file{bin86}).
+
+Assuming that you are on a Debian or Ubuntu based system you could
+obtain @file{gm2} and @file{x86-m2} by adding these entries to
+your @file{/etc/apt/sources.list}.
+
+@example
+#
+#  GNU Modula-2 repo
+#
+
+deb http://floppsie.comp.glam.ac.uk/debian/ squeeze main
+deb-src http://floppsie.comp.glam.ac.uk/debian/ squeeze main
+@end example
+
+Now they can be installed by using the following commands:
+
+@example
+$ sudo apt-get update
+$ sudo apt-get install bin86 libc6-dev-i386 gm2 gcc x86-m2
+@end example
+
+@node Building, Lab exercises, Dependencies, (dir)
+
+You can configure PGE by:
+
+@example
+$ mkdir -p build-pge $HOME/opt
+$ cd build-pge
+$ ../student-pge-@value{version-pge}/configure --prefix=/usr
+@end example
+
+The above must be done if any change in
+@file{student-pge-@value{version-pge}/Makefile.in} is made.  For example in
+order to undertake the various lab exercises you will need to set the
+@code{APPLICATION} variable inside @file{Makefile.in}.
+
+It would be sensible to now check which directory you are in via:
+
+@example
+$ pwd
+@end example
+
+Write down the output of @code{pwd} as you will need to come back to
+this directory next time to work on PGE.
+
+To build PGE type:
+
+@example
+$ make
+@end example
+
+Once this compiles cleanly the PGE image needs to be placed onto a usb
+memory stick.  Note that this will @strong{completely trash} the usb
+memory stick!  You can reuse the memory stick of course - but it will
+require reformatting.  Please use a spare memory stick and physically
+mark it to avoid any mistakes!
+
+To place the PGE image onto the usb memory stick you can either use an
+Ubuntu client (in J204/J202/J208/J210) or if you are in J203 switch to
+the console of the ltsp client.
+
+The ltsp console can be activated by pressing @code{<alt><ctrl><f1>}.
+You can switch back to the graphics mode via @code{<alt><f7>}.
+Assuming you are now at the console on the ltsp client, login and
+change to the correct directory.
+
+@example
+cd @file{build directory you wrote down}
+make bootusb
+@end example
+
+Notice that you will need to modify your @file{build-pge/Makefile}
+to reflect the usb device (most likely @file{/dev/sdb}).
+Open up @file{build-pge/Makefile} in your favourite editor and
+change the line:
+
+@example
+# set USBDEVICE to your usb device
+#
+USBDEVICE=/dev/rawusb
+@end example
+
+to
+
+@example
+# set USBDEVICE to your usb device
+#
+USBDEVICE=/dev/sdb
+@end example
+
+or the appropriate device.  You should be able to see the device by
+typing the following at the command line:
+
+@example
+$ df -h
+/dev/sdb      1424   1381    43  97% /media/foobar
+@end example
+
+which indicates the @file{/dev/sdb} is mounted onto @file{/media/foobar}.
+
+You will be prompted to press enter to confirm that you are about to
+trash the contents of the usb memory stick and then it will place PGE
+onto the device.  Now find an unused computer in and place the usb
+memory stick into the usb port and reboot the computer.  You should
+see some bios diagnostics and then some messages saying the micro
+kernel is coming to life.
+
+@node Lab exercises, Licence, News, (dir)
+@chapter Lab exercises
+
+The lab exercises are found under @file{student-pge-@value{version-pge}/lab}.
+For each lab exercise you will need to:
+
+@table @code
+@item (i)
+modify @file{student-pge-@value{version-pge}/Makefile.in} to reflect the
+exercise being undertaken.  This only needs to be done once.
+
+@item (ii)
+edit the appropriate file inside each lab directory and complete
+the code.  Now you need to go through the edit, compile, build, run
+cycle until the code is perfect!  Remember to @code{make bootdisk}
+every time you want to test your code!
+
+@end table
+
+Each sub section below corresponds to a sub directory under
+@file{student-pge-@value{version-pge}/lab}.
+
+@include examples/breakout/README.texi
+@include examples/matchsticks/README.texi
+@include examples/bagatelle/README.texi
+@include examples/frozenbubble/README.texi
+
+@page
+
+@node Licence, GNU Project, Lab exercises, (dir)
+
+@include gpl-3.0.texi
+
+@node GNU Project, Libraries, Licence, (dir)
+
+@c @include gnu.texi
+
+@node Libraries, Indices, GNU Project, (dir)
+
+@page
+@section Pge header files
+@include pge-api.texi
+
+@node Indices, , Libraries, (dir)
+@section Indices
+
+@ifhtml
+@menu
+* Contents::    Section and subsections.
+* Functions::   Function, constants, types, ebnf indices.
+@end menu
+
+@node Contents, Functions, ,
+@section Section and subsections
+@printindex cp
+
+@node Functions, , Contents,
+@section Function, constants, types, ebnf indices.
+@end ifhtml
+
+@printindex fn
+
+@summarycontents
+@contents
+@bye

@@ -1,0 +1,37 @@
+//
+//  circle/circle collision equations which form a 4 term polynomial.
+// 
+
+polynomial terms 5     // 5 terms if we consider t^0 t^1 t^2 t^3 and t^4
+
+//  Modula-2 declaration for the terms and smallest positive root value.
+
+initialise {
+   (* start of included code *)
+
+}
+
+//  where max2code must place each polynomial term
+
+term 0 {   array[0] := }    //  * t^0
+term 1 {   array[1] := }    //  * t^1
+term 2 {   array[2] := }    //  * t^2
+term 3 {   array[3] := }    //  * t^3
+term 4 {   array[4] := }    //  * t^4
+
+//  how Modula-2 solves the quartic root.
+
+finalise {
+   (* end of included code *)
+}
+
+
+// and lastly the maxima code
+{
+  ((a  + c   * t + e   * t^2 / 2.0) - (b  + d   * t +   f * t^2 / 2.0))^2 +
+  ((g  + k   * t + m   * t^2 / 2.0) - (h  + l   * t +   n * t^2 / 2.0))^2 -
+  (o+p)^2;
+   ratsimp(%);
+   collectterms(%,t);   //  put it into polynomial form
+   % * 4;               //  and lastly remove the divide by 4
+}

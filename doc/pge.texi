@@ -1,0 +1,453 @@
+\input texinfo   @c -*-texinfo-*-
+@c %**start of header
+@setfilename pge.info
+@set version-pge     1.0
+@set version-update  2016-11-07
+@settitle GNU PGE @value{version-pge}
+@c %**end of header
+
+@titlepage
+@sp 10
+@center @titlefont{GNU Physics Game Engine}
+@sp 10
+@center @titlefont{pge-@value{version-pge}}
+@c
+
+@page
+@setchapternewpage odd
+@sp 2
+@center Gaius Mulley
+@sp 3
+@center Last updated @value{version-update}
+
+@vskip 0pt plus 1filll
+Copyright @copyright{} 2016 Free Software Foundation, Inc.
+
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.1 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, with the Front-Cover Texts being ``A GNU Manual,''
+and with the Back-Cover Texts as in (a) below.  A copy of the
+license is included in the section entitled ``GNU Free Documentation
+License.''
+
+(a) The FSF's Back-Cover Text is: ``You have freedom to copy and modify
+this GNU Manual, like GNU software.  Copies published by the Free
+Software Foundation raise funds for GNU development.''
+@end titlepage
+
+@contents
+
+@ifinfo
+@node Top, , (dir), (dir)
+@top GNU PGE
+@end ifinfo
+
+@menu
+* About:: What is GNU PGE.
+* Obtaining:: Obtaining GNU PGE.
+* Dependencies:: Package dependencies.
+@c * Installing:: Installing PGE.
+* Building:: Building and configuring PGE.
+* Example Games:: Example Games using PGE.
+* Licence:: Licence of GNU PGE.
+* GNU Project:: The GNU Project and GNU/Linux.
+* Module:: Python API for PGE.
+* Indices:: Content and API indices.
+@end menu
+
+@menu
+* News:: News.
+* Development:: Development.
+* Community:: Community.
+@end menu
+
+@node News, Development, , (dir)
+@chapter News
+
+No news is good news.
+
+@node Development, Community, News, (dir)
+@section Development
+
+If you are interesting in contributing please contact
+@email{gaius@@gnu.org}.
+
+@node Community, , Development, (dir)
+
+
+@node About, Obtaining, (dir), (dir)
+@chapter About PGE
+
+PGE is a Physics Game Engine module for Python which can be combined
+with Pygame.
+
+The construction of the game engine module
+is based around the principle of discrete event simulation.
+Unusually this game engine uses a predictive time of collision rather than a
+frame based approach.
+
+The objects modelled in the game engine are rigid circles
+and polyhedra which may have a
+positional velocity and acceleration.
+
+@c
+@c an orbit rotational velocity, (to be enabled when it works!)
+@c
+
+More details about the implementation of this module can be found in this paper.
+@uref{http://floppsie.comp.glam.ac.uk/Papers/paper21/ieee.pdf}
+
+@node Obtaining, Building, About, (dir)
+@chapter Obtaining PGE
+
+Assuming that you are using Debian Jessie you could obtain @file{pge}
+adding these entries to your @file{/etc/apt/sources.list}.
+
+@example
+
+deb http://floppsie.comp.glam.ac.uk/debian/ jessie main
+deb-src http://floppsie.comp.glam.ac.uk/debian/ jessie main
+@end example
+
+Now they can be installed by using the following commands:
+
+@example
+$ sudo apt-get update
+$ sudo apt-get install dselect
+$ sudo dselect
+@end example
+
+In @file{dselect} you should choose option 1 update and then choose
+option 2 and select the package @file{pge}.  Then you should press
+@code{Q} and then select option 3 install.
+
+@node Dependencies, Building, Obtaining, (dir)
+@section Dependencies
+
+PGE requires the following packages to be installed:
+@file{automake},
+@file{autoconf},
+@file{autotools-dev},
+@file{dh-python},
+@file{gcc},
+@file{g++},
+@file{gm2},
+@file{libpth-dev},
+@file{libtool},
+@file{maxima},
+@file{python-setuptools},
+@file{python-all-dev},
+@file{python},
+@file{python-pygame},
+@file{swig}
+and
+@file{texinfo}.
+
+@footnote{
+You do not need
+to perform any of these commands if you are using PGE in a laboratory
+at the University of Southwales.
+}
+
+@node Building, Example Games, Dependencies, (dir)
+
+@chapter Building from source
+
+You can download a copy PGE from
+@uref{http://floppsie.comp.glam.ac.uk/download/pge/pge-@value{version-pge}.tar.gz}
+and extract the archive contents.  Both the download and extraction
+can be done from the command line:
+
+@example
+$ rm -f pge-@value{version-pge}.tar.gz
+$ wget http://floppsie.comp.glam.ac.uk/download/pge/pge-@value{version-pge}.tar.gz
+$ tar xvf pge-@value{version-pge}.tar.gz
+@end example
+
+You can configure PGE by:
+
+@example
+$ mkdir -p build-pge
+$ cd build-pge
+$ ../pge-@value{version-pge}/configure
+@end example
+
+and @file{pge} can be built by typing:
+
+@example
+$ make
+@end example
+
+The breakout example game can be run by:
+
+@example
+$ make breakout
+@end example
+
+The matchsticks example game can be run by:
+
+@example
+$ make matchsticks
+@end example
+
+@node Example Games, Licence, News, (dir)
+@chapter Example Games
+
+The example game source code can be found under @file{pge-@value{version-pge}/examples}.
+
+Each game corresponds to a sub directory under
+@file{student-pge-@value{version-pge}/lab}.  Currently there is source code
+for two complete games: breakout and matchsticks.  The example frozenbubble is
+not implemented but added as an idea to guide future development of @file{pge}.
+
+@include examples/breakout/README.texi
+@include examples/matchsticks/README.texi
+@include examples/frozenbubble/README.texi
+
+@page
+
+@subsection Ideas on how to extend PGE
+
+If you are a second year student at the University of South Wales you
+should skip this section.
+
+Here are a list of possible extensions to pge which might be useful.
+
+@itemize @bullet
+@item
+add invisibility colour for objects.
+
+@item
+allow fixed objects to be repositioned by Python.
+
+@item
+allow fixed objects to be rotated (repositioned) about their centre of gravity.
+
+@item
+introduce the concept of an object moving along a vector.
+Use object.constain (vector).
+
+@item
+per object elasticity.
+
+@item
+per object gravity.
+@end itemize
+
+Implementing per object gravity and rotation about the centre of
+gravity would allow frozen bubble to be completed using PGE.
+
+@subsection Breakout source code
+
+Here is the declaration section of breakout code.
+
+@example
+#!/usr/bin/env python
+
+import pge, sys, time
+from pygame.locals import *
+
+print "starting breakout"
+pge.interactive ()
+pge.record ()
+
+wood_light = pge.rgb (166.0/256.0, 124.0/256.0, 54.0/256.0)
+wood_dark = pge.rgb (76.0/256.0, 47.0/256.0, 0.0)
+red = pge.rgb (1.0, 0.0, 0.0)
+green = pge.rgb (0.0, 1.0, 0.0)
+blue = pge.rgb (0.0, 0.0, 1.0)
+
+dark_red = pge.rgb (166.0/255.0, 25.0/255.0, 50.0/255.0)
+dark_green = pge.rgb (25.0/255.0, 100.0/255.0, 50.0/255.0)
+dark_blue = pge.rgb (25.0/255.0, 50.0/255.0, 150.0/255.0)
+
+steel = pge.rgb (0.5, 0.5, 0.5)
+copper = pge.rgb (0.5, 0.3, 0.2)
+gold = pge.rgb (0.8, 0.6, 0.15)
+ball_size = 0.02
+boarder = 0.01
+white = pge.rgb (1.0, 1.0, 1.0)
+gap = 0.01
+blocks = []
+winner = False
+loser = False
+seconds_left = None
+previous = None
+slowdown = 6
+@end example
+
+The callback functions.
+
+@example
+def finish_game ():
+    sys.exit (0)
+
+
+def myquit (e):
+    print "goodbye"
+    finish_game ()
+
+
+def key_pressed (e):
+    if e.key == K_ESCAPE:
+        myquit (e)
+
+
+def placeBoarders (thickness, color):
+    print "placeBoarders"
+    e1 = pge.box (0.0, 0.0, 1.0, thickness, color).fix ()
+    e2 = pge.box (0.0, 0.0, thickness, 1.0, color).fix ()
+    e3 = pge.box (1.0-thickness, 0.0, thickness, 1.0, color).fix ()
+    e4 = pge.box (0.0, 1.0-thickness, 1.0, thickness, color).fix ()
+    return e1, e2, e3, e4
+
+
+def placeBall (kind, x, y, r):
+    return pge.circle (x, y, r, kind)
+
+
+def push_it (o, e):
+    p = e.collision_between ()
+    if p != None and p != []:
+        for i in p:
+            if i != o:
+                i.put_xvel (i.get_xvel () * 1.15)
+                i.put_yvel (i.get_yvel () * 1.15)
+
+
+def placeTriangle (p0, p1, p2, colour):
+    t = pge.poly3 (p0[0], p0[1], p1[0], p1[1], p2[0], p2[1], colour).on_collision (push_it).fix ()
+
+
+def delete_me (o, e):
+    global blocks, winner, loser
+
+    blocks.remove (o)
+    o.rm ()
+    if blocks == []:
+        if not loser:
+            winner = True
+            pge.text (0.2, 0.3, "Winner", white, 100, 1)
+            pge.at_time (4.0, finish_game)
+
+
+def box_of (pos, width, height, color):
+    global blocks
+
+    blocks += [pge.box (pos[0], pos[1], width, height, color).fix ().on_collision (delete_me)]
+@end example
+
+Timer and event based callbacks.
+
+@example
+def mouse_hit (e):
+    global gb
+    mouse = pge.pyg_to_unit_coord (e.pos)
+    if e.button == 1:
+        gb.put_xvel (gb.get_xvel ()-0.3)
+    elif e.button == 3:
+        gb.put_xvel (gb.get_xvel ()+0.3)
+    elif gb.moving_towards (mouse[0], mouse[1]):
+        ball = gb.get_unit_coord ()
+        # print "mouse =", mouse, "ball =", ball
+        gb.apply_impulse (pge.sub_coord (mouse, ball), 0.4)
+    else:
+        gb.put_yvel (gb.get_yvel ()+0.4)
+
+
+def place_boxes ():
+    for y in range (3):
+        for x in range (9):
+            box_of ([((float)(x))/10.0+0.06, (float)(y)/10.0+0.03], 0.08, 0.08, dark_blue)
+
+def timer ():
+    global seconds_left, previous
+    if seconds_left >= 0:
+        pge.at_time (1.0, timer)
+        s = "%d" % seconds_left
+        if previous != None:
+            previous.rm ()
+        previous = pge.text (0.8, 0.9, s, white, 100, 1)
+        seconds_left -= 1
+
+
+def out_of_time ():
+    global loser, winner
+    if not winner:
+        loser = True
+        pge.text (0.3, 0.7, "Loser", white, 100, 1)
+        pge.at_time (4.0, finish_game)
+@end example
+
+The main function.
+
+@example
+def main ():
+    global gb, winner, loser, seconds_left
+
+    t1 = placeTriangle ([0.2, 0.4], [0.4, 0.4], [0.3, 0.5], white)
+    t2 = placeTriangle ([0.6, 0.4], [0.8, 0.4], [0.7, 0.5], white)
+    b1, b2, b3, b4 = placeBoarders (boarder, wood_dark)
+
+    place_boxes ()
+    gb = placeBall (gold, 0.19, 0.8, 0.05).mass (1.25)
+
+    print "before run"
+    pge.gravity ()
+    pge.dump_world ()
+    pge.draw_collision (True, False)
+    pge.slow_down (slowdown)  # slows down real time by a factor of
+    pge.register_handler (myquit, [QUIT])
+    pge.register_handler (key_pressed, [KEYDOWN])
+    pge.register_handler (mouse_hit, [MOUSEBUTTONDOWN])
+    pge.display_set_mode ([800, 800])
+    seconds_left = 10*slowdown
+    timer ()
+    pge.run (10.0)
+    out_of_time ()
+    pge.run (4.0)
+    pge.finish ()
+
+
+print "before main()"
+main ()
+@end example
+
+@node Licence, GNU Project, Example Games, (dir)
+
+@section GPL-3.0
+@include gpl-3.0.texi
+
+@node GNU Project, Module, Licence, (dir)
+
+@c @include gnu.texi
+
+@node Module, Indices, GNU Project, (dir)
+
+@page
+@section PGE Python API
+@include pge-api.texi
+
+@node Indices, , Module, (dir)
+@section Indices
+
+@ifhtml
+@menu
+* Contents::   Section and subsections.
+* Methods::  Methods and classes.
+@end menu
+
+@node Contents, Methods, ,
+@section Section and subsections
+@printindex cp
+
+@node Methods, , Contents,
+@section Methods and classes.
+@end ifhtml
+
+@printindex fn
+
+@summarycontents
+@contents
+@bye

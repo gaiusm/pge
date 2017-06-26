@@ -1,0 +1,26 @@
+//
+//  simple test case to check expression parser in max2code
+// 
+
+polynomial terms 3
+
+//  Modula-2 declaration for the terms and smallest positive root value.
+
+initialise {
+}
+
+//  where max2code must place each polynomial term
+
+term 0 {   a[0] := }    //  * t^0
+term 1 {   a[1] := }    //  * t^1
+term 2 {   a[2] := }    //  * t^2
+
+finalise {
+}
+
+// and lastly the maxima code
+{
+   a * t ^ 2 - b * t + c;
+   ratsimp(%);
+   collectterms(%,t);
+}

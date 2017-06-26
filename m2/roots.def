@@ -1,0 +1,109 @@
+(* Copyright (C) 2010, 2011, 2012
+                 Free Software Foundation, Inc. *)
+(* This file is part of GNU Modula-2.
+
+GNU Modula-2 is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free
+Software Foundation; either version 3, or (at your option) any later
+version.
+
+GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License along
+with gm2; see the file COPYING.  If not, write to the Free Software
+Foundation, 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA. *)
+
+DEFINITION MODULE roots ;
+
+(*
+    Title      : roots
+    Author     : Gaius Mulley
+    System     : GNU Modula-2
+    Date       : Mon May 17 18:19:14 2010
+    Revision   : $Version$
+    Description: find the roots to quadratics and quartic equations.
+*)
+
+FROM coord IMPORT Coord ;
+
+EXPORT QUALIFIED findQuadratic, findQuartic, findAllRootsQuartic, findOctic,
+                 nearZero, nearSame, nearCoord, setTrace ;
+
+
+(*
+   findOctic - returns TRUE if a root >= 0 exists for the equation:
+
+                 8     7    6    5    4    3    2
+               ax  + bx + cx + dx + ex + fx + gx + hx + i = 0
+*)
+
+PROCEDURE findOctic (a, b, c, d, e, f, g, h, i: REAL; VAR x0: REAL) : BOOLEAN ;
+
+
+(*
+   findQuadratic - returns TRUE if scalar values of x can be found
+                   for.
+
+                     2
+                   ax  +  bx + c == 0
+*)
+
+PROCEDURE findQuadratic (a, b, c: REAL; VAR x0, x1: REAL) : BOOLEAN ;
+
+
+(*
+   findQuartic - returns TRUE if a scalar root can be found for:
+
+                   4      3      2
+                 ax  +  bx  +  cx  +  dx +  e  == 0
+
+                 TRUE is only returned if a positive value for
+                 x is found and it returns the smallest value for x.
+*)
+
+PROCEDURE findQuartic (a, b, c, d, e: REAL; VAR x: REAL) : BOOLEAN ;
+
+
+(*
+   findAllRootsQuartic - returns all the real roots for:
+
+                           4      3      2
+                         ax  +  bx  +  cx  +  dx +  e  == 0
+*)
+
+PROCEDURE findAllRootsQuartic (a, b, c, d, e: REAL; VAR x: ARRAY OF REAL) : CARDINAL ;
+
+
+(*
+   nearZero - returns TRUE if, r, is close to 0.0
+*)
+
+PROCEDURE nearZero (r: REAL) : BOOLEAN ;
+
+
+(*
+   nearSame - returns TRUE if, |a-b| < epsilon
+*)
+
+PROCEDURE nearSame (a, b: REAL) : BOOLEAN ;
+
+
+(*
+   nearCoord - returns TRUE if position, a, is very close to, b.
+*)
+
+PROCEDURE nearCoord (a, b: Coord) : BOOLEAN ;
+
+
+(*
+   setTrace - turns tracing on/off.
+*)
+
+PROCEDURE setTrace (on: BOOLEAN) ;
+
+
+END roots.
