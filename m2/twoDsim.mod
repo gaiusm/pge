@@ -5311,12 +5311,13 @@ VAR
    t    : REAL ;
 BEGIN
    t := -1.0 ;   (* no event needed yet.  *)
+   edesc := NIL ;
    n := HighIndice (objects) ;
    i := 1 ;
    WHILE i<=n DO
       IF isSpring (i)
       THEN
-         t := calcSpringEventTime (i)
+         t := calcSpringEventTime (t, i, edesc)
       END ;
       INC (i)
    END ;
