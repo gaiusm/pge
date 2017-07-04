@@ -23,7 +23,7 @@ DEFINITION MODULE coord ;
     Author     : Gaius Mulley
     System     : GNU Modula-2
     Date       : Wed Oct 24 12:25:11 2012
-    Revision   : $Version$ 
+    Revision   : $Version$
     Description: provides a set a primitives for manipulating coordinate pairs.
 *)
 
@@ -104,6 +104,13 @@ PROCEDURE rotateCoord (c: Coord; theta: REAL) : Coord ;
 *)
 
 PROCEDURE dotProd (a, b: Coord) : REAL ;
+
+
+(*
+   nearZeroCoord - returns TRUE if, a, is very close to (0, 0)
+*)
+
+PROCEDURE nearZeroCoord (a: Coord) : BOOLEAN ;
 
 
 END coord.

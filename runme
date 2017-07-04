@@ -1,13 +1,14 @@
 #!/bin/bash
 
+PROMPT=no
 VERSION=2.0
 PGE=pge-${VERSION}
 PGE=pge
 
 function compile () {
    cd $HOME/Sandpit/${PGE}
-   automake  --add-missing
-   autoreconf
+   # automake  --add-missing
+   # autoreconf
 
    cd $HOME/Sandpit
    rm -rf build-pge
@@ -27,8 +28,10 @@ if [ -d ${HOME}/Sandpit/${PGE} ] ; then
    echo "you are currently in: `pwd`"
    echo "this script assumes that you are inside ${PGE}"
    echo "it will destroy $HOME/Sandpit/build-pge"
-   echo "press enter to continue or ^C to abort"
-   read ans
+   if [ "x${PROMPT}" == "xyes" ] ; then
+       echo "press enter to continue or ^C to abort"
+       read ans
+   fi
    compile
 else
    echo "this script assumes that you are inside ${PGE}"

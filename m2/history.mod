@@ -28,14 +28,30 @@ CONST
    HalfSecond=   0.5 ;
 
 TYPE
+   historyType = (collision, spring) ;
+
+   collisionT = RECORD
+                   id1,
+                   id2   : CARDINAL ;
+                   where1,
+                   where2: whereHit ;
+                   cp    : Coord ;
+                END ;
+
+   springT = RECORD
+                id   : CARDINAL ;
+                where: springPoint ;
+             END ;
+
    hList = POINTER TO RECORD
-                         id1,
-                         id2        : CARDINAL ;
-                         where1,
-                         where2     : whereHit ;
-			 cp         : Coord ;
-                         t          : REAL ;
-                         next       : hList ;
+                         CASE type: historyType OF
+
+                         collision:  collisionF : collisionT |
+			 spring   :  springF : springT |
+
+                         END ;
+                         t   : REAL ;
+                         next: hList ;
                       END ;
 
 VAR
@@ -51,7 +67,21 @@ VAR
 
 PROCEDURE dumpHlist (l: hList) ;
 BEGIN
-   printf ("time %g id pair (%d, %d)\n", l^.t, l^.id1, l^.id2)
+   printf ("time %g ", l^.t) ;
+   CASE l^.type OF
+
+   collision:  printf ("collision id pair (%d, %d)\n", l^.collisionF.id1, l^.collisionF.id2) |
+   spring   :  printf ("spring id (%d) ", l^.springF.id) ;
+               CASE l^.springF.where OF
+
+               midPoint:  printf ("midpoint") |
+               endPoint:  printf ("endpoint") |
+               callPoint: printf ("callpoint")
+
+               END
+
+   END ;
+   printf ("`n")
 END dumpHlist ;
 
 
@@ -124,7 +154,55 @@ END isPair ;
 
 
 (*
-   isSame - do, a, and, b, reference the same collision?  Note we do not use the contact
+   assert -
+*)
+
+PROCEDURE assert (b: BOOLEAN; line: CARDINAL) ;
+BEGIN
+   IF NOT b
+   THEN
+      printf (__FILE__) ;
+      printf (":%d:error assert failed\n", line) ;
+      HALT
+   END
+END assert ;
+
+
+(*
+   isSameS -
+*)
+
+PROCEDURE isSameS (a, b: hList) : BOOLEAN ;
+BEGIN
+   assert (a^.type = spring, __LINE__) ;
+   assert (b^.type = spring, __LINE__) ;
+   RETURN (a^.springF.id = b^.springF.id) AND
+          (a^.springF.where = b^.springF.where)
+END isSameS ;
+
+
+(*
+   isSameC -
+*)
+
+PROCEDURE isSameC (a, b: hList) : BOOLEAN ;
+BEGIN
+   assert (a^.type = collision, __LINE__) ;
+   assert (b^.type = collision, __LINE__) ;
+   RETURN isPair (a^.collisionF.id1, a^.collisionF.id2,
+                  b^.collisionF.id1, b^.collisionF.id2) AND
+      (a^.collisionF.where1 = b^.collisionF.where1) AND
+      (a^.collisionF.where2 = b^.collisionF.where2) AND
+      (* where1 and where2 are not used yet.  *)
+      nearCoord (a^.collisionF.cp, b^.collisionF.cp)
+END isSameC ;
+
+
+(*
+   isSame - do, a, and, b, reference the same history object?  We check
+            spring and collision frames.
+
+            Note we do not use the contact
             point of collision as polygon/polygon collisions might hit on the corner or
             edge.  Instead we assume if we know the time, polygon, face this is good enough.
             twoDsim will test for multiple points on a line and we need to identify
@@ -134,9 +212,9 @@ END isPair ;
 PROCEDURE isSame (a, b: hList) : BOOLEAN ;
 BEGIN
    RETURN nearZero (a^.t-b^.t) AND
-           isPair (a^.id1, a^.id2, b^.id1, b^.id2) AND
-           (a^.where1 = b^.where1) AND (a^.where2 = b^.where2)
-           AND nearCoord (a^.cp, b^.cp)
+           (a^.type = b^.type) AND
+           (((a^.type = collision) AND isSameC (a, b)) OR
+            ((a^.type = spring) AND isSameS (a, b)))
 END isSame ;
 
 
@@ -158,31 +236,47 @@ END disposeAll ;
 
 
 (*
-   init - fill in the fields of, n, and return n.
+   initS - fill in the fields of, n, and return n.
 *)
 
-PROCEDURE init (n: hList; time: REAL; id1, id2: CARDINAL; w1, w2: whereHit; cp: Coord) : hList ;
+PROCEDURE initS (n: hList; time: REAL; id: CARDINAL; w: springPoint) : hList ;
 BEGIN
-   n^.id1 := id1 ;
-   n^.id2 := id2 ;
-   n^.where1 := w1 ;
-   n^.where2 := w2 ;
-   n^.cp := cp ;
+   n^.type := spring ;
+   n^.springF.id := id ;
+   n^.springF.where := w ;
    n^.t := time ;
    n^.next := NIL ;
    RETURN n
-END init ;
+END initS ;
 
 
 (*
-   isDuplicate - returns TRUE if the collision at, cp,
-                 and, time, has occurred before.
-                 The time (currentTime+relTime) must be the absolute
-                 time of the collision.
+   initC - fill in the fields of, n, and return n.
 *)
 
-PROCEDURE isDuplicate (currentTime, relTime: REAL;
-                       id1, id2: CARDINAL; w1, w2: whereHit; cp: Coord) : BOOLEAN ;
+PROCEDURE initC (n: hList; time: REAL; id1, id2: CARDINAL; w1, w2: whereHit; cp: Coord) : hList ;
+BEGIN
+   n^.type := collision ;
+   n^.collisionF.id1 := id1 ;
+   n^.collisionF.id2 := id2 ;
+   n^.collisionF.where1 := w1 ;
+   n^.collisionF.where2 := w2 ;
+   n^.collisionF.cp := cp ;
+   n^.t := time ;
+   n^.next := NIL ;
+   RETURN n
+END initC ;
+
+
+(*
+   isDuplicateS - returns TRUE if the spring event for object, id,
+                  and, time, has occurred before.
+                  The time (currentTime+relTime) must be the absolute
+                  time of the collision.
+*)
+
+PROCEDURE isDuplicateS (currentTime, relTime: REAL;
+                        id: CARDINAL; where: springPoint) : BOOLEAN ;
 VAR
    h, n: hList ;
 BEGIN
@@ -190,7 +284,49 @@ BEGIN
    THEN
       dumpLists
    END ;
-   n := init (newHList (), currentTime+relTime, id1, id2, w1, w2, cp) ;
+   n := initS (newHList (), currentTime+relTime, id, where) ;
+   IF Debugging
+   THEN
+      printf ("checking for duplicates of: ") ;
+      dumpHlist (n)
+   END ;
+   IF isDuplicateFuture (n) OR isDuplicatePast (n)
+   THEN
+      IF Debugging
+      THEN
+         printf ("duplicate spring event found (ignoring): ") ;
+         dumpHlist (n)
+      END ;
+      disposeHList (n) ;
+      RETURN TRUE
+   END ;
+   IF Debugging
+   THEN
+      printf ("unique spring event found: ") ;
+      dumpHlist (n)
+   END ;
+   disposeHList (n) ;
+   RETURN FALSE
+END isDuplicateS ;
+
+
+(*
+   isDuplicateC - returns TRUE if the collision at, cp,
+                  and, time, has occurred before.
+                  The time (currentTime+relTime) must be the absolute
+                  time of the collision.
+*)
+
+PROCEDURE isDuplicateC (currentTime, relTime: REAL;
+                        id1, id2: CARDINAL; w1, w2: whereHit; cp: Coord) : BOOLEAN ;
+VAR
+   h, n: hList ;
+BEGIN
+   IF Debugging
+   THEN
+      dumpLists
+   END ;
+   n := initC (newHList (), currentTime+relTime, id1, id2, w1, w2, cp) ;
    IF Debugging
    THEN
       printf ("checking for duplicates of: ") ;
@@ -214,7 +350,7 @@ BEGIN
    END ;
    disposeHList (n) ;
    RETURN FALSE
-END isDuplicate ;
+END isDuplicateC ;
 
 
 (*
@@ -228,13 +364,12 @@ END forgetFuture ;
 
 
 (*
-   occurred - mark the collision as having occurred at, currentTime, between, objects
-              id1 and id2 at position, cp.  This collision is placed onto the past queue.
-              If the event described by id1, id2 at, time, is also present
-              on the future queue it is removed.
+   occurredS - mark the spring event as having occurred at, currentTime, for spring, id.
+               This event is placed onto the past queue.
+               If this event is also present on the future queue it is removed.
 *)
 
-PROCEDURE occurred (currentTime: REAL; id1, id2: CARDINAL; cp: Coord) ;
+PROCEDURE occurredS (currentTime: REAL; id: CARDINAL; w: springPoint) ;
 VAR
    n: hList ;
 BEGIN
@@ -242,7 +377,83 @@ BEGIN
    THEN
       dumpLists
    END ;
-   n := init (newHList(), currentTime, id1, id2, edge, edge, cp) ;
+   n := initS (newHList(), currentTime, id, w) ;
+   IF Debugging
+   THEN
+      printf ("spring event has occurred ") ;
+      dumpHlist (n) ;
+      printf ("spring event has occurred, old queues\n") ;
+      dumpLists
+   END ;
+   updateTime (currentTime) ;
+   forgetFuture ;
+   (* removeFromFutureQ (n) ; *)
+   addToPastQ (n) ;
+   IF Debugging
+   THEN
+      printf ("spring event has occurred queues altered\n") ;
+      dumpLists
+   END
+END occurredS ;
+
+
+(*
+   anticipateS - anticipate a spring event at time, aTime,
+                 in the future with spring, i, at, w.
+                 A duplicate will ignored.  A non duplicate
+                 collision will be placed onto the futureQ.
+*)
+
+PROCEDURE anticipateS (aTime: REAL; id: CARDINAL; w: springPoint) ;
+VAR
+   n: hList ;
+BEGIN
+   IF Debugging
+   THEN
+      dumpLists
+   END ;
+   n := initS (newHList(), aTime, id, w) ;
+   IF Debugging
+   THEN
+      printf ("anticipated spring event at: ") ;
+      dumpHlist (n) ;
+      printf ("anticipated spring event, old queues\n") ;
+      dumpLists
+   END ;
+   IF isDuplicatePast (n) OR isDuplicateFuture (n)
+   THEN
+      IF Debugging
+      THEN
+         printf ("anticipated spring event, duplicate, ignoring\n")
+      END ;
+      disposeHList (n)
+   ELSE
+      addToFutureQ (n) ;
+      IF Debugging
+      THEN
+         printf ("anticipated spring event, new queues\n") ;
+         dumpLists
+      END
+   END
+END anticipateS ;
+
+
+(*
+   occurredC - mark the collision as having occurred at, currentTime, between, objects
+              id1 and id2 at position, cp.  This collision is placed onto the past queue.
+              If the event described by id1, id2 at, time, is also present
+              on the future queue it is removed.
+*)
+
+PROCEDURE occurredC (currentTime: REAL; id1, id2: CARDINAL; cp: Coord) ;
+VAR
+   n: hList ;
+BEGIN
+   IF Debugging
+   THEN
+      dumpLists
+   END ;
+   n := initC (newHList(), currentTime, id1, id2, edge, edge, cp) ;
    IF Debugging
    THEN
       printf ("collision has occurred ") ;
@@ -259,17 +470,17 @@ BEGIN
       printf ("collision has occurred queues altered\n") ;
       dumpLists
    END
-END occurred ;
+END occurredC ;
 
 
 (*
-   anticipate - anticipate a collision at time, aTime, in the future at
-                position, cp.
-                A duplicate will ignored.  A non duplicate
-                collision will be placed onto the futureQ.
+   anticipateC - anticipate a collision at time, aTime, in the future at
+                 position, cp.
+                 A duplicate will ignored.  A non duplicate
+                 collision will be placed onto the futureQ.
 *)
 
-PROCEDURE anticipate (aTime: REAL; id1, id2: CARDINAL; cp: Coord) ;
+PROCEDURE anticipateC (aTime: REAL; id1, id2: CARDINAL; cp: Coord) ;
 VAR
    n: hList ;
 BEGIN
@@ -277,7 +488,7 @@ BEGIN
    THEN
       dumpLists
    END ;
-   n := init (newHList(), aTime, id1, id2, edge, edge, cp) ;
+   n := initC (newHList(), aTime, id1, id2, edge, edge, cp) ;
    IF Debugging
    THEN
       printf ("anticipated collision at: ") ;
@@ -300,7 +511,7 @@ BEGIN
          dumpLists
       END
    END
-END anticipate ;
+END anticipateC ;
 
 
 (*

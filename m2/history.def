@@ -31,18 +31,21 @@ FROM coord IMPORT Coord ;
 
 
 TYPE
-   whereHit = (corner, edge) ;   (* where does a circle hit a polygon *)
+   (* where does a circle hit a polygon *)
+   whereHit = (corner, edge) ;
+   (* the sub categories of the spring event.  *)
+   springPoint = (midPoint, endPoint, callPoint) ;
 
 
 (*
-   isDuplicate - returns TRUE if the collision at, cp,
-                 and, time, has occurred before.
-                 The time (currentTime+relTime) must be the absolute
-                 time of the collision.
+   isDuplicateC - returns TRUE if the collision at, cp,
+                  and, time, has occurred before.
+                  The time (currentTime+relTime) must be the absolute
+                  time of the collision.
 *)
 
-PROCEDURE isDuplicate (currentTime, relTime: REAL;
-                       id1, id2: CARDINAL; w1, w2: whereHit; cp: Coord) : BOOLEAN ;
+PROCEDURE isDuplicateC (currentTime, relTime: REAL;
+                        id1, id2: CARDINAL; w1, w2: whereHit; cp: Coord) : BOOLEAN ;
 
 
 (*
@@ -53,23 +56,53 @@ PROCEDURE forgetFuture ;
 
 
 (*
-   occurred - mark the collision as having occurred at, currentTime, between, objects
-              id1 and id2 at position, cp.  This collision is placed onto the past queue.
-              If the event described by id1, id2 at, time, is also present
-              on the future queue it is removed.
+   occurredC - mark the collision as having occurred at, currentTime, between, objects
+               id1 and id2 at position, cp.  This collision is placed onto the past queue.
+               If the event described by id1, id2 at, time, is also present
+               on the future queue it is removed.
 *)
 
-PROCEDURE occurred (currentTime: REAL; id1, id2: CARDINAL; cp: Coord) ;
+PROCEDURE occurredC (currentTime: REAL; id1, id2: CARDINAL; cp: Coord) ;
 
 
 (*
-   anticipate - anticipate a collision at time, aTime, in the future at
-                position, cp.
-                A duplicate will ignored.  A non duplicate
-                collision will be placed onto the futureQ.
+   anticipateC - anticipate a collision at time, aTime, in the future at
+                 position, cp.
+                 A duplicate will ignored.  A non duplicate
+                 collision will be placed onto the futureQ.
 *)
 
-PROCEDURE anticipate (aTime: REAL; id1, id2: CARDINAL; cp: Coord) ;
+PROCEDURE anticipateC (aTime: REAL; id1, id2: CARDINAL; cp: Coord) ;
+
+
+(*
+   isDuplicateS - returns TRUE if the spring event for object, id,
+                  and, time, has occurred before.
+                  The time (currentTime+relTime) must be the absolute
+                  time of the collision.
+*)
+
+PROCEDURE isDuplicateS (currentTime, relTime: REAL;
+                        id: CARDINAL; where: springPoint) : BOOLEAN ;
+
+
+(*
+   anticipateS - anticipate a spring event at time, aTime,
+                 in the future with spring, i, at, w.
+                 A duplicate will ignored.  A non duplicate
+                 collision will be placed onto the futureQ.
+*)
+
+PROCEDURE anticipateS (aTime: REAL; id: CARDINAL; w: springPoint) ;
+
+
+(*
+   occurredS - mark the spring event as having occurred at, currentTime, for spring, id.
+               This event is placed onto the past queue.
+               If this event is also present on the future queue it is removed.
+*)
+
+PROCEDURE occurredS (currentTime: REAL; id: CARDINAL; w: springPoint) ;
 
 
 (*

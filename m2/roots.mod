@@ -303,7 +303,7 @@ BEGIN
             END
          END ;
          RETURN TRUE
-      ELSIF discriminant=0.0
+      ELSIF nearZero (discriminant)
       THEN
          x0 := -b / (2.0 * a) ;
 	 x0 := roundRoot (x0) ;
@@ -323,6 +323,79 @@ BEGIN
       END
    END
 END findQuadratic ;
+
+
+(*
+   findQuadraticRoots - returns TRUE if scalar values of x can be found
+                        for.
+
+                          2
+                        ax  +  bx + c == 0
+*)
+
+PROCEDURE findQuadraticRoots (a, b, c: REAL; VAR x: ARRAY OF REAL) : CARDINAL ;
+VAR
+   q, discriminant: REAL ;
+BEGIN
+   IF tracing
+   THEN
+      printf ("entered findQuadraticRoot\n")
+   END ;
+   IF nearZero(a)
+   THEN
+      IF tracing
+      THEN
+         printf ("findQuadraticRoot a == 0\n")
+      END ;
+      IF nearZero(b)
+      THEN
+         IF tracing
+         THEN
+            printf ("findQuadraticRoot a == 0, b == 0   -> 0\n")
+         END ;
+         RETURN 0
+      ELSE
+         x[0] := -c/b ;
+         x[0] := roundRoot (x[0]) ;
+         IF tracing
+         THEN
+            printf ("findQuadratic a == 0, x0 = %g -> 1\n", x[0])
+         END ;
+         RETURN 1
+      END
+   ELSE
+      discriminant := sqr (b) - 4.0*a*c ;
+      IF discriminant > 0.0
+      THEN
+         q := rsqrt (discriminant) ;
+         x[0] := (-b + q) / (2.0 * a) ;
+         x[1] := (-b - q) / (2.0 * a) ;
+
+         roundRoots (x, 2) ;
+         IF tracing
+         THEN
+            printf ("findQuadratic discriminant > 0.0, x0 = %g, x1 = %g  -> 2\n", x[0], x[1]) ;
+         END ;
+         RETURN 2
+      ELSIF discriminant = 0.0
+      THEN
+         x[0] := -b / (2.0 * a) ;
+	 x[0] := roundRoot (x[0]) ;
+
+         IF tracing
+         THEN
+            printf ("findQuadratic discriminant = 0.0, x0 = %g -> 1\n", x[0])
+         END ;
+         RETURN 1
+      ELSE
+         IF tracing
+         THEN
+            printf ("findQuadratic discriminant < 0.0  -> 0\n")
+         END ;
+         RETURN 0
+      END
+   END
+END findQuadraticRoots ;
 
 
 (*
@@ -379,14 +452,138 @@ END findCubic ;
 
 
 (*
-   findQuartic - returns TRUE if a scalar root can be found for:
+   findCubicRoots - returns the number of positive roots which can be found for
 
-                   4      3      2
-                 ax  +  bx  +  cx  +  dx +  e  == 0
-
-                 TRUE is only returned if a positive value for
-                 x is found and it returns the smallest value for x.
+                      3      2
+                    ax  +  bx  +  cx  +  d  ==  0
 *)
+
+PROCEDURE findCubicRoots (a, b, c, d: REAL; VAR x: ARRAY OF REAL) : CARDINAL ;
+VAR
+   n, i: CARDINAL ;
+BEGIN
+   IF nearZero (a)
+   THEN
+      n := findQuadraticRoots (b, c, d, x)
+   ELSE
+      n := 1 ;  (* only one non imaginary root.  *)
+      x[0] := -b/(3.0*a)
+              -1.0/(3.0*a) * cubr((2.0*cub(b)-9.0*a*b*c+27.0*sqr(a)*d+rsqrt(sqr(2.0*cub(b)-9.0*a*b*c+27.0*sqr(a)*d)-4.0*cub(sqr(b)-3.0*a*c))))
+              -1.0/(3.0*a) * cubr((2.0*cub(b)-9.0*a*b*c+27.0*sqr(a)*d-rsqrt(sqr(2.0*cub(b)-9.0*a*b*c+27.0*sqr(a)*d)-4.0*cub(sqr(b)-3.0*a*c))))
+   END ;
+   roundRoots (x, n) ;
+
+   IF tracing
+   THEN
+      printf ("findCubic found %d roots\n", n) ;
+      i := 1 ;
+      WHILE i < n DO
+         printf ("  root %d  = %g\n", i, x[i]) ;
+         INC (i)
+      END
+   END ;
+
+   RETURN removeSort (x, n)
+END findCubicRoots ;
+
+
+(*
+   findQuarticRoots - returns the number of positive scalar roots which can be found for:
+
+                        4      3      2
+                      ax  +  bx  +  cx  +  dx +  e  == 0
+*)
+
+PROCEDURE findQuarticRoots (a, b, c, d, e: REAL; VAR x: ARRAY OF REAL) : CARDINAL ;
+VAR
+   i, n: CARDINAL ;
+BEGIN
+   IF a = 0.0
+   THEN
+      RETURN findCubicRoots (b, c, d, e, x)
+   ELSE
+      IF tracing
+      THEN
+         printf ("findQuartic finding all roots\n", n)
+      END ;
+
+      n := findAllRootsQuartic (a, b, c, d, e, x) ;
+      roundRoots (x, n) ;
+      IF tracing
+      THEN
+         printf (" findQuartic found %d roots\n", n) ;
+         i := 0 ;
+         WHILE i<n DO
+            printf ("  root %d  = %g\n", i, x[i]) ;
+            INC (i)
+         END
+      END ;
+
+      RETURN removeSort (x, n)
+   END
+END findQuarticRoots ;
+
+
+(*
+   swap -
+*)
+
+PROCEDURE swap (VAR a, b: REAL) ;
+VAR
+   t: REAL ;
+BEGIN
+   t := a ;
+   a := b ;
+   b := t
+END swap ;
+
+
+(*
+   removeSort - remove any negative values from array, a.
+                Sort the remainder and return the length of the list.
+*)
+
+PROCEDURE removeSort (VAR a: ARRAY OF REAL; n: CARDINAL) : CARDINAL ;
+VAR
+   swapped: BOOLEAN ;
+   l, i, j: CARDINAL ;
+BEGIN
+   l := 0 ;
+   i := 0 ;
+   WHILE i<n DO
+      IF a[i] < 0.0
+      THEN
+         j := 0 ;
+         WHILE i+j < n DO
+            a[i+j] := a[i+j+1] ;
+	    INC (j)
+         END ;
+	 DEC (n)
+      ELSE
+         INC (i) ;
+         INC (l)
+      END
+   END ;
+   (* now we sort the list.  *)
+   IF l > 1
+   THEN
+      REPEAT
+         swapped := FALSE ;
+         FOR i := 1 TO l-1 DO
+            (* are the next pair out of order  *)
+            IF a[i-1] > a[i]
+            THEN
+               (* swap these and record a change was made.  *)
+               swap (a[i-1], a[i]) ;
+               swapped := TRUE
+            END ;
+         END
+      UNTIL NOT swapped ;
+   END ;
+   RETURN l
+END removeSort ;
+
+
 
 PROCEDURE findQuartic (a, b, c, d, e: REAL; VAR x: REAL) : BOOLEAN ;
 VAR
@@ -394,7 +591,7 @@ VAR
    i, n : CARDINAL ;
    unset: BOOLEAN ;
 BEGIN
-   IF a=0.0
+   IF nearZero (a)
    THEN
       RETURN findCubic (b, c, d, e, x)
    ELSE
@@ -418,10 +615,13 @@ BEGIN
       x := -1.0 ;
       i := 0 ;
       WHILE i<n DO
-         IF unset OR ((t[i] >= 0.0) AND (t[i]<x))
+         IF t[i] >= 0.0
          THEN
-            unset := FALSE ;
-            x := t[i]
+            IF unset OR (t[i] < x)
+            THEN
+               unset := FALSE ;
+               x := t[i]
+            END
          END ;
          INC (i)
       END ;
@@ -458,7 +658,7 @@ BEGIN
    alpha := -((3.0 * sqr(b)) / (8.0 * sqr(a))) + c/a ;
    beta  := (cub(b) / (8.0*cub(a))) - ((b * c) / (2.0 * sqr(a))) + d/a ;
    gamma := -(3.0*sqr(b)*sqr(b)) / (256.0 * sqr(a)*sqr(a)) + (c*sqr(b)) / (16.0 * cub(a)) - (b*d)/(4.0*sqr(a)) + e/a ;
-   IF beta=0.0
+   IF nearZero (beta)
    THEN
       X[1] := CMPLX(-(b / (4.0 * a)), 0.0) + csqrt((CMPLX(-alpha, 0.0) + csqrt(CMPLX(sqr(alpha)-4.0*gamma, 0.0)))/CMPLX(2.0, 0.0)) ;
       X[2] := CMPLX(-(b / (4.0 * a)), 0.0) + csqrt((CMPLX(-alpha, 0.0) - csqrt(CMPLX(sqr(alpha)-4.0*gamma, 0.0)))/CMPLX(2.0, 0.0)) ;
@@ -467,10 +667,10 @@ BEGIN
    ELSE
       p := -sqr(alpha)/12.0 - gamma ;
       q := -(cub(alpha) / 108.0) + (alpha*gamma)/3.0 - sqr(beta)/8.0 ;
-      f := sqr(q)/4.0+cub(p)/27.0 ;
+      f := sqr (q) /4.0 + cub (p) / 27.0 ;
       (* as f can be negative we must use complex arithmetic *)
-      r := -CMPLX(q/2.0, 0.0) + csqrt(CMPLX(f, 0.0)) ;
-      u := ccubr(r) ;
+      r := -CMPLX (q/2.0, 0.0) + csqrt(CMPLX(f, 0.0)) ;
+      u := ccubr (r) ;
       IF cnearZero(u)
       THEN
          y := -CMPLX((5.0/6.0)*alpha, 0.0) + u - ccubr(CMPLX(q, 0.0))
@@ -497,6 +697,110 @@ BEGIN
    END ;
    RETURN k
 END findAllRootsQuartic ;
+
+
+(*
+   findAllRootsQuartic - returns all the real roots for:
+
+                           4      3      2
+                         ax  +  bx  +  cx  +  dx +  e  == 0
+*)
+
+(*
+PROCEDURE findAllRootsQuartic (a, b, c, d, e: REAL; VAR x: ARRAY OF REAL) : CARDINAL ;
+VAR
+   Q, S,
+   D0, D1,
+   p, q,
+   delta : REAL ;
+BEGIN
+   delta := 256.0 * cub (a) * cub (e) - 192.0 * sqr (a) * b * d * sqr (e)
+            - 128.0 * sqr (a) * sqr (c) * sqr (e)
+	    + 144.0 * sqr (a) * c * sqr (d) * e
+	    - 27.0 * sqr (a) * sqr (d * d)
+	    + 144.0 * a * sqr (b) * c * sqr (e)
+	    - 6.0 * a * sqr (b) * sqr (d) * e
+	    - 80.0 * a * b * sqr (c) * d * e
+	    + 18.0 * a * b * c * cub (d)
+	    + 16.0 * a * sqr (c * c) * e
+	    - 4.0 * a * cub (c) * sqr (d)
+	    - 27.0 * sqr (b * b) + sqr (e)
+	    + 18.0 * cub (b) * c * e
+	    - 4.0 * cub (b) * cub (d)
+	    - 4.0 * sqr (b) * cub (c) * e
+	    + sqr (b) * sqr (c) * sqr (d) ;
+
+   p := (8.0 * a * c - 3.0 * sqr (b)) / (8.0 * sqr (a)) ;
+   q := (cub (b) + 8.0 * d * sqr (a) - 4.0 * a * b * c) / (8.0 * cub (a)) ;
+
+   D0 := sqr (c) - 3.0 * b * d + 12.0 * a * e ;
+   D1 := 2.0 * cub (c) - 9.0 * b * c * d + 27.0 * sqr (b) * e + 27.0 * a * sqr (d) - 72.0 * a * c * e ;
+   Q := cubr (D1 + rsqrt (sqr (D1 - 4.0 * cub (D0))) / 2.0) ;
+   S := 0.5 * rsqrt (- (2.0 / 3.0) * p + (Q + D0 / Q) / (3.0 * a)) ;
+
+   IF delta < 0.0
+   THEN
+      (* two real roots.  *)
+      x[0] := - b / (4.0 * a) - S + rsqrt (- 4.0 * sqr (S) - 2.0 * p + q / S) ;
+      x[1] := - b / (4.0 * a) - S - rsqrt (- 4.0 * sqr (S) - 2.0 * p + q / S) ;
+      x[2] := - b / (4.0 * a) + S + rsqrt (- 4.0 * sqr (S) - 2.0 * p + q / S) ;
+      x[3] := - b / (4.0 * a) + S - rsqrt (- 4.0 * sqr (S) - 2.0 * p + q / S)
+   ELSE
+      x[0] := - b / (4.0 * a) - S + rsqrt (- 4.0 * sqr (S) - 2.0 * p + q / S) ;
+      x[1] := - b / (4.0 * a) - S - rsqrt (- 4.0 * sqr (S) - 2.0 * p + q / S) ;
+      x[2] := - b / (4.0 * a) + S + rsqrt (- 4.0 * sqr (S) - 2.0 * p + q / S) ;
+      x[3] := - b / (4.0 * a) + S - rsqrt (- 4.0 * sqr (S) - 2.0 * p + q / S)
+   END ;
+   RETURN 4
+END findAllRootsQuartic ;
+*)
+
+
+(*
+
+VAR
+   n                     : CARDINAL ;
+   p2s, p4s,
+   x0s, x2s,
+   p1, p2, p3, p4, p5, p6: REAL ;
+BEGIN
+   p1 := 2.0 * cub (c) - 9.0 * b * c * d + 27.0 * sqr (b) * e - 72.0 * a * c * e ;
+   p2s := -4.0 * cub (sqr (c) - 3.0 * b * d + 12.0 * a * e) + sqr (p1) ;
+   IF p2s >= 0.0
+   THEN
+      p2 := p1 + rsqrt (p2s) ;
+      p3 := (sqr (c) - 3.0 * b * d + 12.0 * a * e) / (3.0 * a * cubr (p2 / 2.0)) +
+            cubr (p2 / 2.0) / (3.0 * a) ;
+      p4s := sqr (b) / (4.0 * sqr (a)) - (2.0 * c) / (3.0 * a) + p3 ;
+      IF p4s >= 0.0
+      THEN
+         p4 := rsqrt (p4s) ;
+         p5 := sqr (b) / (2.0 * sqr (a)) - 4.0 * c / (3.0 * a) - p3 ;
+         p6 := (- (cub(b) / cub (a)) + 4.0 * b * c / sqr (a) - (8.0 * d) / a) /
+               (4.0 * p4) ;
+
+         x0s := (p5 - p6) / 2.0 ;
+	 n := 0 ;
+	 IF x0s >= 0.0
+         THEN
+            x[0] := - (b / (4.0 * a)) - p4 - rsqrt (x0s) ;
+            x[1] := - (b / (4.0 * a)) - p4 + rsqrt (x0s) ;
+	    INC (n, 2)
+         END ;
+         x2s := (p5 + p6) / 2.0 ;
+	 IF x2s >= 0.0
+         THEN
+            INC (n) ;
+            x[n] := - (b / (4.0 * a)) + p4 - rsqrt (x2s) ;
+            INC (n) ;
+            x[n] := - (b / (4.0 * a)) + p4 + rsqrt (x2s)
+         END ;
+         RETURN n
+      END
+   END ;
+   RETURN 0
+END findAllRootsQuartic ;
+*)
 
 
 (*
@@ -599,5 +903,6 @@ END test ;
 
 
 BEGIN
-   tracing := Debugging
+   tracing := Debugging ;
+   test
 END roots.

@@ -580,6 +580,19 @@ class object:
             return False
         return pgeif.moving_towards (self.o, x, y)
 
+    #
+    #  draw - draw a spring using colour, c, and a width, w.
+    #         It is drawn under the objects it connects.
+    #         The spring object is returned.
+    #
+    def draw (self, c, w):
+        self._check_not_deleted ("spring no longer exists")
+        self._check_type ([spring_t], "expected a spring")
+        c._param_colour ("the second parameter to draw is expected to be a colour")
+        print self.o, c._get_pgeif_colour (), w
+        pgeif.draw_spring (self.o, c._get_pgeif_colour (), w)
+        return self
+
 #
 #  _colspace - convert a float value 0.0..1.0 into integer 0..255.
 #
@@ -915,7 +928,7 @@ def _draw ():
     _doFlipBuffer ()
 
 
-no_event, frame_event, collision_event, function_event, final_event = range (5)
+no_event, frame_event, collision_event, function_event, spring_event, final_event = range (6)
 
 #
 # the event class is used by the user through call back functions.  In particular
@@ -965,6 +978,11 @@ class event:
                 _debugf ("function event %d in %f seconds\n", t, self.__etime)
                 self.__etype = _unpackCard (self._edata[8:12]) # 4 bytes etype
                 self.__id = _unpackCard (self._edata[12:16]) # 4 bytes id
+            elif t == spring_event:
+                _debugf ("spring event %d in %f seconds\n", t, self.__etime)
+                self.__etype = _unpackCard (self._edata[8:12]) # 4 bytes etype
+                self.__id = _unpackCard (self._edata[12:16]) # 4 bytes id
+                self.__kind = _unpackCard (self._edata[16:20]) # 4 bytes id
             else:
                 _printf ("unknown event %d in %f seconds\n", t, self.__etime)
     def _set_frame_contents (self, data, length):
@@ -1078,6 +1096,12 @@ def _get_next_event ():
         # _printf ("pgeif.is_function\n")
         eData = pgeif.get_ebuf ()
         return event (function_event, eData, len (eData))
+    elif pgeif.is_spring ():
+        _debugf ("pgeif.is_spring\n")
+        _debugf ("pgeif.get_ebuf\n")
+        eData = pgeif.get_ebuf ()
+        _debugf ("event (...\n")
+        return event (spring_event, eData, len (eData))
     else:
         _printf ("fatal error: unknown event type (terminating simulation)\n")
         sys.exit (1)
@@ -1475,7 +1499,7 @@ def runpy (t=-1):
         # no events yet, so collect the next from the physics engine
         ev = _get_next_event ()
         nev = _post_event (ev, ev._get_time ())
-    # always add the a final event which is the only way to finish the while loop
+    # always add the final event which is the only way to finish the while loop
     fin = _post_event (_finish_event (), t)
     while True:
         for e in _wait_for_event ():

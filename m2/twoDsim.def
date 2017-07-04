@@ -30,7 +30,7 @@ DEFINITION MODULE twoDsim ;
 
 FROM SYSTEM IMPORT ADDRESS ;
 FROM deviceIf IMPORT Colour ;
-FROM history IMPORT whereHit ;
+FROM history IMPORT whereHit, springPoint ;
 
 
 (*
@@ -229,6 +229,13 @@ PROCEDURE spring (id1, id2: CARDINAL; k, l: REAL) : CARDINAL ;
 
 
 (*
+   draw_spring - draw spring, id, using colour, c, and a width, w.
+*)
+
+PROCEDURE draw_spring (id: CARDINAL; c: CARDINAL; w: REAL) ;
+
+
+(*
    circle - adds a circle to the world.  Center
             defined by: x0, y0 radius, radius.
 *)
@@ -335,6 +342,13 @@ PROCEDURE isFrame () : BOOLEAN ;
 *)
 
 PROCEDURE isFunction () : BOOLEAN ;
+
+
+(*
+   isSpring - returns TRUE if the next event is a spring event.
+*)
+
+PROCEDURE isSpring () : BOOLEAN ;
 
 
 (*

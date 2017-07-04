@@ -37,7 +37,7 @@ EXPORT UNQUALIFIED ExceptionKind,
 		   get_mass, set_gravity, get_gravity,
 		   circle, spring,
                    velocity, accel, rotate, process_event,
-                   is_collision, is_frame, is_function,
+                   is_collision, is_frame, is_function, is_spring,
 		   create_function_event,
 		   time_until, get_time, rm,
                    batch, use_buffer, empty_cbuffer, empty_fbuffer,
@@ -50,6 +50,7 @@ EXPORT UNQUALIFIED ExceptionKind,
    		   put_xvel, put_yvel,
 		   put_xaccel, put_yaccel,
 		   apply_impulse, moving_towards, set_colour,
+		   draw_spring,
 		   skip_until, fps ;
 
 
@@ -258,6 +259,13 @@ PROCEDURE is_function () : BOOLEAN ;
 
 
 (*
+   is_spring - returns TRUE if the next event is a spring event.
+*)
+
+PROCEDURE is_spring () : BOOLEAN ;
+
+
+(*
    create_function_event - creates a function event at time, t,
                            in the future.
 *)
@@ -377,6 +385,13 @@ PROCEDURE put_yaccel (id: CARDINAL; r: REAL) ;
 *)
 
 PROCEDURE set_colour (id: CARDINAL; c: CARDINAL) ;
+
+
+(*
+   draw_spring - draw a spring, id, using colour, c, with a width, w.
+*)
+
+PROCEDURE draw_spring (id: CARDINAL; c: CARDINAL; w: REAL) ;
 
 
 (*

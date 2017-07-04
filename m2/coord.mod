@@ -1,4 +1,5 @@
-(* Copyright (C) 2011 Free Software Foundation, Inc. *)
+(* Copyright (C) 2011, 2012, 2013, 2014, 2015, 2016, 2017
+   Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
 GNU Modula-2 is free software; you can redistribute it and/or modify it under
@@ -139,6 +140,16 @@ PROCEDURE dotProd (a, b: Coord) : REAL ;
 BEGIN
    RETURN a.x*b.x + a.y*b.y
 END dotProd ;
+
+
+(*
+   nearZeroCoord - returns TRUE if, a, is very close to (0, 0)
+*)
+
+PROCEDURE nearZeroCoord (a: Coord) : BOOLEAN ;
+BEGIN
+   RETURN nearZero (a.x) AND nearZero (a.y)
+END nearZeroCoord ;
 
 
 END coord.

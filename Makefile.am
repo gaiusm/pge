@@ -35,6 +35,9 @@ SUBDIRS = c
 endif
 
 if MAINTAINER
+springs.m: $(srcdir)/src/springs.mxm
+	python $(srcdir)/mxm/max2code.py -v -o $@ $<
+
 circles.m: $(srcdir)/src/circles.mxm
 	python $(srcdir)/mxm/max2code.py -v -o $@ $<
 
@@ -44,6 +47,9 @@ rotating-circles.m: $(srcdir)/src/rotating-circles.mxm
 rotating-line.m: $(srcdir)/mxm/rotating-line.mxm
 	python $(srcdir)/mxm/max2code.py -v -o $@ $<
 else
+springs.m: $(srcdir)/src/springs.mxm
+	cp $(srcdir)/m/springs.m $@
+
 circles.m: $(srcdir)/src/circles.mxm
 	cp $(srcdir)/m/circles.m $@
 
@@ -130,10 +136,10 @@ clear: force
 force:
 
 if MAINTAINER
-MC=$(HOME)/GM2/graft-5.2.0/build-5.2.0/gcc/gm2/boot-bin/mc --h-file-prefix=G
-PIMLIBS=$(HOME)/GM2/graft-5.2.0/gcc-5.2.0/gcc/gm2/gm2-libs
-ISOLIBS=$(HOME)/GM2/graft-5.2.0/gcc-5.2.0/gcc/gm2/gm2-libs-iso
-MCLIBS=$(HOME)/GM2/graft-5.2.0/gcc-5.2.0/gcc/gm2/mc-boot-ch
+MC=$(HOME)/GM2/graft-5.4.0/build-5.4.0/gcc/gm2/boot-bin/mc --h-file-prefix=G
+PIMLIBS=$(HOME)/GM2/graft-5.4.0/gcc-5.4.0/gcc/gm2/gm2-libs
+ISOLIBS=$(HOME)/GM2/graft-5.4.0/gcc-5.4.0/gcc/gm2/gm2-libs-iso
+MCLIBS=$(HOME)/GM2/graft-5.4.0/gcc-5.4.0/gcc/gm2/mc-boot-ch
 
 M2DEFS = coord.def delay.def deviceGroff.def \
          deviceIf.def devicePy.def Fractions.def GC.def \

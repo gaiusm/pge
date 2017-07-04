@@ -51,14 +51,21 @@ def main ():
 
     placeBoarders (0.01, wood_dark)
 
-    first = placeBall (wood_light, 0.55, 0.95, 0.03).fix ()
-    second = placeBall (wood_dark, 0.55, 0.35, 0.03).mass (1.0)
-    s = pge.spring (first, second, 100.0, 0.5).draw (yellow, 0.002)
+    left = placeBall (wood_light, 0.25, 0.55, 0.03).fix ()
+    right = placeBall (wood_light, 0.75, 0.55, 0.03).fix ()
+
+    prev = left
+    for x in range (35, 75, 10):
+        step = placeBall (wood_dark, float (x) / 100.0, 0.5, 0.04).mass (0.3)
+        s = pge.spring (prev, step, 1000.0, 0.1).draw (yellow, 0.002)
+        prev = step
+    s = pge.spring (right, prev, 100.0, 0.1).draw (yellow, 0.002)
+    gb = placeBall (gold, 0.7, 0.8, 0.01).mass (0.4)
     print "before run"
     pge.record ()
     pge.draw_collision (True, False)
     pge.collision_colour (red)
-    # pge.gravity ()
+    pge.gravity ()
     pge.dump_world ()
     pge.slow_down (6.0)  # slows down real time by a factor of
     pge.register_handler (myquit, [QUIT])

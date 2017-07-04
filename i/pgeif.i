@@ -37,6 +37,7 @@ extern "C" double time_until (void);
 extern "C" unsigned int is_frame (void);
 extern "C" unsigned int is_collision (void);
 extern "C" unsigned int is_function (void);
+extern "C" unsigned int is_spring (void);
 extern "C" void create_function_event (double t, unsigned int id);
 
 extern "C" void process_event (void);
@@ -71,6 +72,7 @@ extern "C" void put_yvel (unsigned int id, double d);
 extern "C" void put_xaccel (unsigned int id, double d);
 extern "C" void put_yaccel (unsigned int id, double d);
 extern "C" void set_colour (unsigned int id, unsigned int c);
+extern "C" void draw_spring (unsigned int id, unsigned int c, double w);
 
 extern "C" void gravity (double g);
 
@@ -105,6 +107,7 @@ extern "C" double time_until (void);
 extern "C" unsigned int is_frame (void);
 extern "C" unsigned int is_collision (void);
 extern "C" unsigned int is_function (void);
+extern "C" unsigned int is_spring (void);
 extern "C" void create_function_event (double t, unsigned int id);
 
 extern "C" void process_event (void);
@@ -140,6 +143,7 @@ extern "C" void put_xaccel (unsigned int id, double d);
 extern "C" void put_yaccel (unsigned int id, double d);
 
 extern "C" void set_colour (unsigned int id, unsigned int c);
+extern "C" void draw_spring (unsigned int id, unsigned int c, double w);
 
 extern "C" void gravity (double g);
 extern "C" unsigned int purple (void);

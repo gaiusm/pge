@@ -62,14 +62,15 @@ MY_DEPS = macroObjects.lo Points.lo Fractions.lo PolyMatrix3D.lo \
           GUnixArgs.lo Gwrapc.lo gdbif.lo network.lo Glibm.lo Gpth.lo \
           Gcbuiltin.lo GBuiltins.lo Gwrapsock.lo
 
-BUILT_SOURCES = circles.m rotating-line.m rotating-circles.m
+BUILT_SOURCES = springs.m circles.m rotating-line.m rotating-circles.m
 
 # PYTHON_VERSION=$(shell python --version 2>&1 | cut -f2 -d' ')
 # PYTHON_VERSION=2.7
 
-GM2_LIB_DIR=/opt/gm2/lib/gcc/x86_64-linux-gnu/$(GM2GCCBASE)/m2
+# GM2_LIB_DIR=/opt/gm2/lib/gcc/x86_64-unknown-linux-gnu/$(GM2GCCBASE)/m2
+GM2_LIB_DIR=/home/gaius/opt/lib/gcc/x86_64-unknown-linux-gnu/$(GM2GCCBASE)/m2
 
-SRC_PATH_PIM=$(srcdir)/pge-m2:$(GM2_LIB_DIR)/libgm2/pim:$(GM2_LIB_DIR)/iso
+SRC_PATH_PIM=-I$(srcdir)/pge-m2 -I$(GM2_LIB_DIR)/libgm2/pim -I$(GM2_LIB_DIR)/iso
 
 PROFILE =
 CHECK = -fsoft-check-all
@@ -101,6 +102,9 @@ matchsticks2: _pgeif.so
 	PYTHONPATH=.:$(srcdir)/src python $(srcdir)/testsuite/matchsticks2.py
 
 if MAINTAINER
+springs.m: $(top_srcdir)/mxm/springs.mxm
+	python $(top_srcdir)/mxmtool/max2code.py -v -o $@ $<
+
 circles.m: $(top_srcdir)/mxm/circles.mxm
 	python $(top_srcdir)/mxmtool/max2code.py -v -o $@ $<
 
@@ -110,6 +114,9 @@ rotating-circles.m: $(top_srcdir)/mxm/rotating-circles.mxm
 rotating-line.m: $(top_srcdir)/mxm/rotating-line.mxm
 	python $(top_srcdir)/mxmtool/max2code.py -v -o $@ $<
 else
+springs.m: $(top_srcdir)/mxm/springs.mxm
+	cp $(top_srcdir)/m/springs.m $@
+
 circles.m: $(top_srcdir)/mxm/circles.mxm
 	cp $(top_srcdir)/m/circles.m $@
 
@@ -130,8 +137,8 @@ endif
 libpgeif.la:  $(MY_DEPS)
 	swig -outdir . -o pgeif_wrap.cxx -c++ -python $(top_srcdir)/i/pgeif.i
 	$(LIBTOOL) --tag=CC --mode=compile g++ -g -c pgeif_wrap.cxx -I/usr/include/python$(PYTHON_VERSION) -o pgeif_wrap.lo
-	gm2 -c -g -I$(SRC_PATH_PIM) -fcpp -fmakelist -I$(top_srcdir)/m2 $(top_srcdir)/m2/pgeif.mod
-	gm2 -c -g -I$(SRC_PATH_PIM) -fcpp -fmakeinit -fshared -I$(top_srcdir) $(top_srcdir)/m2/pgeif.mod
+	gm2 -c -g $(SRC_PATH_PIM) -fcpp -fmakelist -I$(top_srcdir)/m2 $(top_srcdir)/m2/pgeif.mod
+	gm2 -c -g $(SRC_PATH_PIM) -fcpp -fmakeinit -fshared -I$(top_srcdir) $(top_srcdir)/m2/pgeif.mod
 	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile gcc -c $(CFLAGS_FOR_TARGET) $(LIBCFLAGS) $(libgm2_la_M2FLAGS) $(srcdir)/pgeif.c -o pgeif.lo
 	$(LIBTOOL) --tag=CC --mode=compile g++ -g -c _m2_pgeif.cpp -o _m2_pgeif.lo
 	$(LIBTOOL) --tag=CC --mode=link gcc -g _m2_pgeif.lo $(MY_DEPS) \

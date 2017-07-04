@@ -388,6 +388,16 @@ END put_yaccel ;
 
 
 (*
+   draw_spring - draw spring, id, using colour, c, and a width, w.
+*)
+
+PROCEDURE draw_spring (id: CARDINAL; c: CARDINAL; w: REAL) ;
+BEGIN
+   twoDsim.draw_spring (lookupDef (object, id), c, w)
+END draw_spring ;
+
+
+(*
    apply_impulse - applies an impulse of magnitude along vector
                    [x, y] for object, id.
 *)
@@ -714,6 +724,16 @@ PROCEDURE is_function () : BOOLEAN ;
 BEGIN
    RETURN twoDsim.isFunction ()
 END is_function ;
+
+
+(*
+   is_spring - returns TRUE if the next event is a spring event.
+*)
+
+PROCEDURE is_spring () : BOOLEAN ;
+BEGIN
+   RETURN twoDsim.isSpring ()
+END is_spring ;
 
 
 (*

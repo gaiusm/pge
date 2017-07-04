@@ -25,14 +25,14 @@ FROM Indexing IMPORT Index, InitIndex, PutIndice, GetIndice, HighIndice ;
 FROM libc IMPORT printf, exit ;
 FROM deviceIf IMPORT flipBuffer, frameNote, glyphCircle, glyphPolygon, writeTime, blue, red, black, yellow, purple, white ;
 FROM libm IMPORT sqrt, asin, sin, cos, atan ;
-FROM roots IMPORT findQuartic, findQuadratic, findAllRootsQuartic, findOctic, nearZero, nearCoord, nearSame, setTrace ;
+FROM roots IMPORT findQuartic, findQuadratic, findAllRootsQuartic, findQuarticRoots, findOctic, nearZero, nearCoord, nearSame, setTrace ;
 FROM Fractions IMPORT Fract, zero, one, putReal, initFract ;
 FROM Points IMPORT Point, initPoint ;
 FROM GC IMPORT collectAll ;
 FROM coord IMPORT Coord, initCoord, normaliseCoord, perpendiculars, perpendicular, scaleCoord,
-                  subCoord, addCoord, lengthCoord, rotateCoord, dotProd ;
+                  subCoord, addCoord, lengthCoord, rotateCoord, dotProd, nearZeroCoord ;
 FROM polar IMPORT Polar, initPolar, polarToCoord, coordToPolar, rotatePolar ;
-FROM history IMPORT isDuplicate, occurred, anticipate, forgetFuture, isPair ;
+FROM history IMPORT isDuplicateC, occurredC, anticipateC, occurredS, anticipateS, isDuplicateS, forgetFuture, isPair ;
 FROM delay IMPORT getActualFPS ;
 FROM MathLib0 IMPORT pi ;
 FROM IOChan IMPORT ChanId ;
@@ -53,6 +53,7 @@ CONST
    BufferedTime           =     0.1 ;
    InactiveTime           =     1.0 ;  (* the time we keep simulating after all collision events have expired *)
    Elasticity             =     0.98 ; (* how elastic are the collisions?                                     *)
+   ElasticitySpring       =     0.9 ;  (* how much energy is lost in a spring bounce?                         *)
 
 TYPE
    ObjectType = (polygonOb, circleOb, springOb) ;
@@ -60,8 +61,6 @@ TYPE
    eventKind = (frameKind, functionKind, collisionKind, springKind) ;
 
    eventType = (frameEvent, circlesEvent, circlePolygonEvent, polygonPolygonEvent, functionEvent, springEvent) ;
-
-   springPoint = (midPoint, endPoint) ;
 
    descP = PROCEDURE (eventDesc, CARDINAL, CARDINAL, CARDINAL, CARDINAL, whereHit, whereHit, Coord) : eventDesc ;
 
@@ -122,9 +121,10 @@ TYPE
                           fixed,
                           stationary      : BOOLEAN ;
 			  sax, say,         (* spring accel.  *)
-			  gravity,          (* per object grav *)
-			  fx, fy,           (* force vec. *)
+			  gravity         : REAL ;  (* per object grav *)
+			  forceVec        : Coord ; (* force vector. *)
                           vx, vy, ax, ay  : REAL ;
+			  ke, pe,       (* kinetic and potential energy.  *)
                           inertia,
                           angleOrientation,
                           angularVelocity,
@@ -141,8 +141,11 @@ TYPE
                        END ;
 
    Spring = RECORD
-               id1, id2: CARDINAL ;
-	       k, l    : REAL ;
+               id1, id2         : CARDINAL ; (* k is Hooks constant, l0 is at rest length.  *)
+	       k, l0, cbl, l1   : REAL ;     (* cbl is the call back length.  l1 is current length *)
+	       width            : REAL ;     (* width used for drawing only.  *)
+	       draw,	                     (* should the spring be drawn?  *)
+	       hasCallBackLength: BOOLEAN ;  (* has user specified the call back length?  *)
             END ;
 
    Circle = RECORD
@@ -187,7 +190,9 @@ VAR
    writeTimeDelay,
    drawPrediction,
    drawCollisionFrame : BOOLEAN ;
+   haveSpringColour,
    haveCollisionColour: BOOLEAN ;
+   springColour,
    collisionColour    : Colour ;
    bufferStart        : ADDRESS ;
    bufferLength       : CARDINAL ;
@@ -224,6 +229,20 @@ END AssertR ;
 
 
 (*
+   AssertRFail -
+*)
+
+PROCEDURE AssertRFail (a, b: REAL) ;
+BEGIN
+   IF NOT nearZero (a-b)
+   THEN
+      printf ("error assert failed: %g should equal %g difference is %g\n", a, b, a-b) ;
+      exit (1)
+   END
+END AssertRFail ;
+
+
+(*
    AssertRDebug -
 *)
 
@@ -246,7 +265,13 @@ END AssertRDebug ;
 PROCEDURE dumpSpring (o: Object) ;
 BEGIN
    WITH o^ DO
-      printf ("spring exists between object %d and object %d (at rest length is %g and it has a Hook value of %g)\n", s.id1, s.id2, s.l, s.k)
+      printf ("spring exists between object %d and object %d (at rest %g, Hook %g, current length %g", s.id1, s.id2, s.l0, s.k, s.l1) ;
+      IF s.hasCallBackLength
+      THEN
+         printf (", call back %g)\n", s.cbl)
+      ELSE
+         printf (")\n")
+      END
    END
 END dumpSpring ;
 
@@ -335,7 +360,7 @@ BEGIN
       IF (NOT fixed) AND (NOT stationary)
       THEN
          printf ("    velocity (%g, %g) acceleration (%g, %g)", vx, vy, ax, ay) ;
-         printf (" forces (%g, %g) spring acceleration (%g, %g) object gravity (%g)\n", fx, fy, sax, say, gravity)
+         printf (" forces (%g, %g) spring acceleration (%g, %g) object gravity (%g)\n", forceVec.x, forceVec.y, sax, say, gravity)
       END
    END
 END dumpObject ;
@@ -379,8 +404,7 @@ BEGIN
       sax              := 0.0 ;
       say              := 0.0 ;
       gravity          := 0.0 ;
-      fx               := 0.0 ;
-      fy               := 0.0 ;
+      forceVec         := initCoord (0.0, 0.0) ;
       object           := type ;
       vx               := 0.0 ;
       vy               := 0.0 ;
@@ -1535,16 +1559,16 @@ END isPolygon ;
 
 
 (*
-   isSpring - return TRUE if object, id, is a spring.
+   isSpringObject - return TRUE if object, id, is a spring.
 *)
 
-PROCEDURE isSpring (id: CARDINAL) : BOOLEAN ;
+PROCEDURE isSpringObject (id: CARDINAL) : BOOLEAN ;
 VAR
    idp: Object ;
 BEGIN
    idp := GetIndice (objects, id) ;
-   RETURN idp^.object = springOb
-END isSpring ;
+   RETURN (idp # NIL) AND (idp^.object = springOb)
+END isSpringObject ;
 
 
 (*
@@ -1568,60 +1592,58 @@ END get_mass ;
 
 (*
    calcSpringFixed - calculate the forces on, moving object which is attached to, fixed.
-                     Given spring properties of, k, and, l.
+                     Given spring properties of, k, and, l0.
 *)
 
-PROCEDURE calcSpringFixed (k, l: REAL; fixed, moving: CARDINAL) ;
+PROCEDURE calcSpringFixed (k, l0, l1: REAL; fixed, moving: CARDINAL) ;
 VAR
    o   : Object ;
    fvec,
    d, n: Coord ;
-   f, D: REAL ;
+   f   : REAL ;
 BEGIN
+   f := k * (l1 - l0) ;   (* force the spring exacts upon moving.  *)
    d := subCoord (getCofG (fixed), getCofG (moving)) ;
-   D := lengthCoord (d) ;
-   f := k * (D - l) ;   (* force the spring exacts upon moving.  *)
    n := normaliseCoord (d) ;
    (* multiply by 2.0 as one object is fixed.  *)
-   fvec := scaleCoord (n, f * 2.0) ;  (* compute the force as a vector.  *)
    o := GetIndice (objects, moving) ;
-   o^.fx := o^.fx + fvec.x ;  (* add force vector to moving object.  *)
-   o^.fy := o^.fy + fvec.y
+   (* add force as a vector to the moving object.  *)
+   o^.forceVec := addCoord (o^.forceVec, scaleCoord (n, f * 1.0))
 END calcSpringFixed ;
 
 
 (*
    calcSpringMoving - calculate the forces on, moving objects, o1, o2,
                       which are attached by a spring.
-                      The spring has properties of, k, and, l.
+                      The spring has properties of, k, and, l0.
 *)
 
-PROCEDURE calcSpringMoving (k, l: REAL; o1, o2: CARDINAL) ;
+PROCEDURE calcSpringMoving (k, l0, l1: REAL; o1, o2: CARDINAL) ;
 VAR
    o1p, o2p: Object ;
    fvec,
    d, n    : Coord ;
-   f, D    : REAL ;
+   f       : REAL ;
 BEGIN
    d := subCoord (getCofG (o1), getCofG (o2)) ;
-   D := lengthCoord (d) ;
-   f := k * (D - l) ;   (* force the spring exacts upon o2.  *)
+   f := k * (l1 - l0) ;   (* force the spring exacts upon o2.  *)
    n := normaliseCoord (d) ;
    fvec := scaleCoord (n, f) ;  (* compute the force as a vector.  *)
    o2p := GetIndice (objects, o2) ;
-   o2p^.fx := o2p^.fx + fvec.x ;  (* add force vector to moving o2.  *)
-   o2p^.fy := o2p^.fy + fvec.y ;
-   o1p := GetIndice (objects, o1) ;   (* and the opposite force is applied to o1.  *)
-   o1p^.fx := o1p^.fx - fvec.x ;   (* sub force vector from o1.  *)
-   o1p^.fy := o1p^.fy - fvec.y ;
+   (* add force vector to moving o2.  *)
+   o2p^.forceVec := addCoord (o2p^.forceVec, fvec) ;
+   o1p := GetIndice (objects, o1) ;
+   (* and the opposite force is applied to o1.  *)
+   (* sub force vector from o1.  *)
+   o1p^.forceVec := subCoord (o1p^.forceVec, fvec)
 END calcSpringMoving ;
 
 
 (*
-   calcSpringForces - calculate the forces a spring, id, has on its components.
+   calcSpringForce - calculate the forces a spring, id, has on its components.
 *)
 
-PROCEDURE calcSpringForces (id: CARDINAL) ;
+PROCEDURE calcSpringForce (id: CARDINAL) ;
 VAR
    idp     : Object ;
    id1, id2: CARDINAL ;
@@ -1631,30 +1653,32 @@ BEGIN
 
    springOb:  id1 := idp^.s.id1 ;
 	      id2 := idp^.s.id2 ;
+	      (* calculate actual length of spring now.  *)
 	      IF isFixed (id1) AND (NOT isFixed (id2))
               THEN
-                 calcSpringFixed (idp^.s.k, idp^.s.l,
+                 calcSpringFixed (idp^.s.k, idp^.s.l0, idp^.s.l1,
                                   id1, id2)
               ELSIF isFixed (id2) AND (NOT isFixed (id1))
               THEN
-                 calcSpringFixed (idp^.s.k, idp^.s.l,
+                 calcSpringFixed (idp^.s.k, idp^.s.l0, idp^.s.l1,
                                   id2, id1)
               ELSIF (NOT isFixed (id1)) AND (NOT isFixed (id2))
               THEN
-                 calcSpringMoving (idp^.s.k, idp^.s.l,
+                 calcSpringMoving (idp^.s.k, idp^.s.l0, idp^.s.l1,
                                    id1, id2)
               END
 
    ELSE
    END
-END calcSpringForces ;
+END calcSpringForce ;
 
 
 (*
-   zeroForces - assign force vector to zero for all objects.
+   zeroForceEnergy - assign force vector, potential energy and kinetic energy
+                     to zero for all objects
 *)
 
-PROCEDURE zeroForces ;
+PROCEDURE zeroForceEnergy ;
 VAR
    n, i: CARDINAL ;
    iptr: Object ;
@@ -1663,18 +1687,20 @@ BEGIN
    i := 1 ;
    WHILE i<=n DO
       iptr := GetIndice (objects, i) ;
-      iptr^.fx := 0.0 ;
-      iptr^.fy := 0.0 ;
+      iptr^.forceVec := initCoord (0.0, 0.0) ;
+      iptr^.ke := 0.0 ;
+      iptr^.pe := 0.0 ;
       INC (i)
    END
-END zeroForces ;
+END zeroForceEnergy ;
 
 
 (*
-   applyForces - translate the forces into acceleration and update stationary boolean.
+   applyForce - translate the force into acceleration
+                and update stationary boolean.
 *)
 
-PROCEDURE applyForces ;
+PROCEDURE applyForce ;
 VAR
    n, i: CARDINAL ;
    iptr: Object ;
@@ -1683,50 +1709,125 @@ BEGIN
    i := 1 ;
    WHILE i<=n DO
       iptr := GetIndice (objects, i) ;
-      IF NOT (nearZero (iptr^.fx) AND nearZero (iptr^.fy))
+      IF NOT nearZeroCoord (iptr^.forceVec)
       THEN
          IF (isCircle (i) OR isPolygon (i)) AND (NOT isFixed (i))
          THEN
-            iptr^.sax := iptr^.fx / get_mass (i) ;
-            iptr^.say := iptr^.fy / get_mass (i) ;
-            (* iptr^.stationary := NOT (nearZero (iptr^.sax) AND nearZero (iptr^.say)) *)
+            IF nearZero (get_mass (i))
+            THEN
+               printf ("moving object %d needs a mass before a force can be applied\n", i)
+            ELSE
+               iptr^.sax := iptr^.forceVec.x / get_mass (i) ;
+               iptr^.say := iptr^.forceVec.y / get_mass (i) ;
+               inElasticSpring (iptr^.say) ;
+               inElasticSpring (iptr^.sax) ;
+               (* iptr^.stationary := NOT (nearZero (iptr^.sax) AND nearZero (iptr^.say)) *)
+            END
          END
       END ;
       INC (i)
    END
-END applyForces ;
+END applyForce ;
 
 
 (*
-   updateForces - zeros out the forces and recomputes forces
-                  and finally converts them into acceleration.
+   calcSpringEnergy -
 *)
 
-PROCEDURE updateForces ;
+PROCEDURE calcSpringEnergy (i: CARDINAL) ;
+VAR
+   M     : REAL ;
+   id1ptr,
+   id2ptr,
+   iptr  : Object ;
 BEGIN
-   zeroForces ;
-   dumpWorld ;
-   calcForces ;
-   applyForces ;
-   dumpWorld
-END updateForces ;
+   Assert (isSpringObject (i), __LINE__) ;
+   iptr := GetIndice (objects, i) ;
+   iptr^.ke := 0.0 ;   (* no kinetic energy as it has no mass.  *)
+   iptr^.pe := iptr^.s.k * sqr (iptr^.s.l0 - iptr^.s.l1) / 2.0 ;
+
+   id1ptr := GetIndice (objects, iptr^.s.id1) ;
+   id2ptr := GetIndice (objects, iptr^.s.id2) ;
+   (* give this to the two objects attached to the spring.  *)
+   IF id1ptr^.fixed AND (NOT id2ptr^.fixed)
+   THEN
+      (* give it all to id2.  *)
+      id2ptr^.pe := id2ptr^.pe + iptr^.pe
+   ELSIF id2ptr^.fixed AND (NOT id1ptr^.fixed)
+   THEN
+      (* give it all to id1.  *)
+      id1ptr^.pe := id1ptr^.pe + iptr^.pe
+   ELSIF (NOT id2ptr^.fixed) AND (NOT id1ptr^.fixed)
+   THEN
+      (* give it to both id1 and id2 using their mass as a radio.  *)
+      M := get_mass (iptr^.s.id1) + get_mass (iptr^.s.id2) ;
+      id1ptr^.pe := id1ptr^.pe + iptr^.pe * get_mass (iptr^.s.id1) / M ;
+      id2ptr^.pe := id2ptr^.pe + iptr^.pe * get_mass (iptr^.s.id2) / M
+   END
+END calcSpringEnergy ;
 
 
 (*
-   calcForces - calculate all forces for objects attached by springs.
+   calcObjectEnergy -
 *)
 
-PROCEDURE calcForces ;
+PROCEDURE calcObjectEnergy (i: CARDINAL) ;
+BEGIN
+   IF isSpringObject (i)
+   THEN
+      calcSpringEnergy (i)
+   END
+END calcObjectEnergy ;
+
+
+(*
+   calcEnergy -
+*)
+
+PROCEDURE calcEnergy ;
 VAR
    n, i: CARDINAL ;
 BEGIN
    n := HighIndice (objects) ;
    i := 1 ;
    WHILE i<=n DO
-      calcSpringForces (i) ;
+      calcObjectEnergy (i) ;
       INC (i)
-   EN
-END calcForces ;
+   END
+END calcEnergy ;
+
+
+(*
+   recalculateForceEnergy - recalculate all forces and energy
+                            for all objects.
+*)
+
+PROCEDURE recalculateForceEnergy ;
+BEGIN
+   zeroForceEnergy ;
+   dumpWorld ;
+   calcForce ;
+   calcEnergy ;
+   applyForce ;
+   dumpWorld
+END recalculateForceEnergy ;
+
+
+(*
+   calcForce - calculate all forces for objects attached by springs.
+*)
+
+PROCEDURE calcForce ;
+VAR
+   n, i: CARDINAL ;
+BEGIN
+   n := HighIndice (objects) ;
+   i := 1 ;
+   WHILE i<=n DO
+      calcSpringForce (i) ;
+      INC (i)
+   END
+END calcForce ;
 
 
 (*
@@ -1757,10 +1858,15 @@ BEGIN
    printf ("assign to optr\n") ;
    WITH optr^ DO
       s.k := k ;
-      s.l := l ;
+      s.l0 := l ;
+      s.l1 := lengthCoord (subCoord (getCofG (id1), getCofG (id2))) ;
       s.id1 := id1 ;
-      s.id2 := id2
+      s.id2 := id2 ;
+      s.hasCallBackLength := FALSE
    END ;
+   (* and stop the current position from being the next endPoint.  *)
+   anticipateSpring (currentTime, makeSpringDesc (NIL, id, endPoint)) ;
+   recalculateForceEnergy ;
    printf ("return from spring\n") ;
    RETURN id
 END spring ;
@@ -2134,74 +2240,122 @@ END getAccelCoord ;
 
 PROCEDURE setCollisionColour (c: Colour) ;
 BEGIN
-   collisionColour := c ;
-   haveCollisionColour := TRUE
+   collisionColour := c
 END setCollisionColour ;
 
 
 (*
-   getCollisionColour - returns the collision colour if requiredDebug,
-                        otherwise return, c.
+   doCircleFrame -
 *)
 
-PROCEDURE getCollisionColour (c: Colour; requiredDebug: BOOLEAN) : Colour ;
+PROCEDURE doCircleFrame (optr: Object; dt: REAL; col: Colour) ;
+VAR
+   vc, ac: Coord ;
 BEGIN
-   IF requiredDebug AND haveCollisionColour
-   THEN
-      RETURN collisionColour
-   ELSE
-      RETURN c
+   vc := getVelCoord (optr) ;
+   ac := getAccelCoord (optr) ;
+   doCircle (newPositionCoord (optr^.c.pos, vc, ac, dt), optr^.c.r, col)
+END doCircleFrame ;
+
+
+(*
+   doPolygonFrame -
+*)
+
+PROCEDURE doPolygonFrame (optr: Object; dt: REAL; col: Colour) ;
+VAR
+   i : CARDINAL ;
+   po: ARRAY [0..MaxPolygonPoints] OF Coord ;
+   co,
+   vc,
+   ac: Coord ;
+BEGIN
+   WITH optr^ DO
+      vc := getVelCoord (optr) ;
+      ac := getAccelCoord (optr) ;
+      FOR i := 0 TO p.nPoints-1 DO
+         po[i] := newPositionRotationCoord (p.cOfG, vc, ac, dt,
+                                            angularVelocity, angleOrientation, p.points[i]) ;
+         IF Debugging
+         THEN
+            printf ("po[%d].x = %g, po[%d].y = %g\n", i, po[i].x, i, po[i].y)
+         END ;
+         co := addCoord (p.cOfG, polarToCoord (rotatePolar (p.points[i], angleOrientation))) ;
+         IF Debugging
+         THEN
+            printf (" [co.x = %g, co.y = %g]\n", co.x, co.y)
+         END ;
+         IF nearZero (dt)
+         THEN
+            IF (NOT nearZero (co.x-po[i].x)) OR (NOT nearZero (co.y-po[i].y))
+            THEN
+               printf ("these values should be the same\n") ;
+               exit (1)
+            END
+         END
+      END ;
+      doPolygon (p.nPoints, po, col)
    END
-END getCollisionColour ;
+END doPolygonFrame ;
+
+
+(*
+   doSpringFrame -
+*)
+
+PROCEDURE doSpringFrame (optr: Object; dt: REAL; col: CARDINAL) ;
+VAR
+   i : CARDINAL ;
+   p,
+   s1,
+   s2: Coord ;
+   o1,
+   o2: Object ;
+   po: ARRAY [0..3] OF Coord ;
+   co,
+   vc,
+   ac: Coord ;
+   w2: REAL ;
+BEGIN
+   Assert (optr^.object = springOb, __LINE__) ;
+   IF optr^.s.draw
+   THEN
+      w2 := optr^.s.width / 2.0 ;
+      o1 := GetIndice (objects, optr^.s.id1) ;
+      o2 := GetIndice (objects, optr^.s.id2) ;
+      s1 := newPositionCoord (getCofG (optr^.s.id1),
+                              getVelCoord (o1), getAccelCoord (o1), dt) ;
+      s2 := newPositionCoord (getCofG (optr^.s.id2),
+                              getVelCoord (o2), getAccelCoord (o2), dt) ;
+      p := scaleCoord (normaliseCoord (perpendicular (subCoord (s1, s2))), w2) ;
+      po[0] := addCoord (s1, p) ;
+      po[1] := subCoord (s1, p) ;
+      po[2] := subCoord (s2, p) ;
+      po[3] := addCoord (s2, p) ;
+      doPolygon (4, po, col)
+   END
+END doSpringFrame ;
 
 
 (*
    doDrawFrame -
 *)
 
-PROCEDURE doDrawFrame (optr: Object; dt: REAL; needsDebug: BOOLEAN) ;
+PROCEDURE doDrawFrame (optr: Object; dt: REAL; col: Colour) ;
 VAR
-   i     : CARDINAL ;
-   co,
-   vc, ac: Coord ;
-   po    : ARRAY [0..MaxPolygonPoints] OF Coord ;
-   oc    : Colour ;
+   ac, vc: Coord ;
 BEGIN
    IF DebugTrace
    THEN
       printf ("doDrawFrame (%g)\n", dt)
    END ;
    checkDeleted (optr) ;
-   vc := getVelCoord (optr) ;
-   ac := getAccelCoord (optr) ;
    WITH optr^ DO
       CASE object OF
 
-      circleOb :  doCircle (newPositionCoord (c.pos, vc, ac, dt), c.r, getCollisionColour (c.col, needsDebug)) |
-      springOb :  |
-      polygonOb:  (* gdbif.sleepSpin ; *)
-                  FOR i := 0 TO p.nPoints-1 DO
-                     po[i] := newPositionRotationCoord (p.cOfG, vc, ac, dt,
-                                                        angularVelocity, angleOrientation, p.points[i]) ;
-                     IF Debugging
-                     THEN
-                        printf ("po[%d].x = %g, po[%d].y = %g\n", i, po[i].x, i, po[i].y)
-                     END ;
-                     co := addCoord (p.cOfG, polarToCoord (rotatePolar (p.points[i], angleOrientation))) ;
-                     IF Debugging
-                     THEN
-                        printf (" [co.x = %g, co.y = %g]\n", co.x, co.y)
-                     END ;
-                     IF nearZero (dt)
-                     THEN
-                        IF (NOT nearZero (co.x-po[i].x)) OR (NOT nearZero (co.y-po[i].y))
-                        THEN
-                           printf ("these values should be the same\n") ;
-                           exit (1)
-                        END
-                     END
-                  END ;
-                  doPolygon (p.nPoints, po, getCollisionColour (p.col, needsDebug))
+      circleOb :  doCircleFrame (optr, dt, col) |
+      springOb :  doSpringFrame (optr, dt, col) |
+      polygonOb:  doPolygonFrame (optr, dt, col)
 
       END
    END
@@ -2209,10 +2363,12 @@ END doDrawFrame ;
 
 
 (*
-   getCollisionObjects -
+   getEventObjects -
 *)
 
-PROCEDURE getCollisionObjects (VAR id1, id2: Object; e: eventQueue) ;
+PROCEDURE getEventObjects (VAR id1, id2: Object; e: eventQueue) ;
+VAR
+   id: Object ;
 BEGIN
    id1 := NIL ;
    id2 := NIL ;
@@ -2230,12 +2386,86 @@ BEGIN
 
          polygonPolygonEvent:
                         id1 := GetIndice(objects, pp.pid1) ;
-                        id2 := GetIndice(objects, pp.pid2)
+                        id2 := GetIndice(objects, pp.pid2) |
+
+         springEvent:
+	                id := GetIndice(objects, sp.id) ;
+	                id1 := GetIndice(objects, id^.s.id1) ;
+	                id2 := GetIndice(objects, id^.s.id2) ;
 
          END
       END
    END
-END getCollisionObjects ;
+END getEventObjects ;
+
+
+(*
+   getColour -
+*)
+
+PROCEDURE getColour (optr: Object) : Colour ;
+BEGIN
+   CASE optr^.object OF
+
+   polygonOb:  RETURN optr^.p.col |
+   circleOb :  RETURN optr^.c.col |
+   springOb :  RETURN white ()
+
+   END
+END getColour ;
+
+
+(*
+   getSpringColour -
+*)
+
+PROCEDURE getSpringColour () : Colour ;
+BEGIN
+   IF haveSpringColour
+   THEN
+      RETURN springColour
+   ELSE
+      RETURN red ()
+   END
+END getSpringColour ;
+
+
+(*
+   getCollisionColour -
+*)
+
+PROCEDURE getCollisionColour () : Colour ;
+BEGIN
+   IF haveCollisionColour
+   THEN
+      RETURN collisionColour
+   ELSE
+      RETURN blue ()
+   END
+END getCollisionColour ;
+
+
+(*
+   getEventObjectColour -
+*)
+
+PROCEDURE getEventObjectColour (e: eventQueue; optr: Object) : Colour ;
+VAR
+   id1, id2: Object ;
+BEGIN
+   getEventObjects (id1, id2, e) ;
+   IF (e=NIL) OR ((id1#optr) AND (id2#optr))
+   THEN
+      RETURN getColour (optr)
+   ELSE
+      CASE e^.kind OF
+
+      collisionKind:  RETURN getCollisionColour () |
+      springKind   :  RETURN getSpringColour ()
+
+      END
+   END
+END getEventObjectColour ;
 
 
 (*
@@ -2250,11 +2480,9 @@ PROCEDURE drawFrame (e: eventQueue) ;
 VAR
    dt      : REAL ;
    i, n    : CARDINAL ;
-   id1, id2,
    optr    : Object ;
 BEGIN
-   Assert ((e = NIL) OR (e^.kind = collisionKind), __LINE__) ;
-   getCollisionObjects (id1, id2, e) ;
+   Assert ((e = NIL) OR (e^.kind = collisionKind) OR (e^.kind = springKind), __LINE__) ;
    IF DebugTrace
    THEN
       printf ("start drawFrame\n")
@@ -2285,7 +2513,7 @@ BEGIN
             dumpObject (optr)
          END ;
          (* printf ("before doDrawFrame\n"); *)
-         doDrawFrame (optr, dt, (optr=id1) OR (optr=id2)) ;
+         doDrawFrame (optr, dt, getEventObjectColour (e, optr)) ;
          (* printf ("after doDrawFrame\n"); *)
       END ;
       INC (i)
@@ -2409,6 +2637,16 @@ END updateCircle ;
 
 
 (*
+   updateSpring - update the current length, l1, field of the spring.
+*)
+
+PROCEDURE updateSpring (optr: Object) ;
+BEGIN
+   optr^.s.l1 := lengthCoord (subCoord (getCofG (optr^.s.id1), getCofG (optr^.s.id2))) ;
+END updateSpring ;
+
+
+(*
    updateOb -
 *)
 
@@ -2421,7 +2659,7 @@ BEGIN
 
          polygonOb :  updatePolygon (optr, dt) |
          circleOb  :  updateCircle (optr, dt) |
-         springOb  :
+         springOb  :  updateSpring (optr)
 
          END
       END
@@ -2441,9 +2679,23 @@ VAR
 BEGIN
    n := HighIndice(objects) ;
    i := 1 ;
+   (* springs are dependant on circles and polygons, so these are moved first.  *)
    WHILE i<=n DO
       optr := GetIndice (objects, i) ;
-      updateOb (optr, dt) ;
+      IF NOT isSpringObject (i)
+      THEN
+         updateOb (optr, dt)
+      END ;
+      INC (i)
+   END ;
+   (* now the springs.  *)
+   i := 1 ;
+   WHILE i<=n DO
+      optr := GetIndice (objects, i) ;
+      IF isSpringObject (i)
+      THEN
+         updateOb (optr, dt)
+      END ;
       INC (i)
    END
 END doUpdatePhysics ;
@@ -2457,6 +2709,9 @@ END doUpdatePhysics ;
 PROCEDURE updatePhysics ;
 BEGIN
    doUpdatePhysics (currentTime-lastUpdateTime) ;
+   (*
+      recalculateForceEnergy
+   *)
    lastUpdateTime := currentTime
 END updatePhysics ;
 
@@ -2478,6 +2733,9 @@ BEGIN
       ELSIF kind = functionKind
       THEN
          printf ("functionEvent ")
+      ELSIF kind = springKind
+      THEN
+         printf ("springEvent ")
       ELSE
          printf ("unknown kind ")
       END ;
@@ -2510,7 +2768,17 @@ BEGIN
                                    ELSE
                                       printf (" polygon (%d) on edge %d\n", pp.pid2, pp.lineCorner2)
                                    END |
-            functionEvent      :   printf ("function event %d\n", fc.id)
+            functionEvent      :   printf ("function event %d\n", fc.id) |
+            springEvent        :   printf ("spring %d reached ", sp.id) ;
+
+                                   CASE sp.type OF
+
+                                   midPoint:  printf ("midpoint") |
+				   endPoint:  printf ("endpoint") |
+				   callPoint:  printf ("callpoint")
+
+                                   END ;
+				   printf ("\n")
 
             END
          END
@@ -2599,14 +2867,18 @@ BEGIN
       exit (1);
       RETURN 0.0
    ELSE
+      IF trace
+      THEN
+         printQueue
+      END ;
       e := eventQ ;
       eventQ := eventQ^.next ;
       dt := e^.time ;
       p  := e^.p ;
       currentTime := currentTime + dt ;
       Assert ((p=drawFrameEvent) OR (p=doCollision) OR
-              (p=debugFrame) OR (p=doFunctionEvent),
-	      __LINE__) ;
+              (p=debugFrame) OR (p=doFunctionEvent) OR
+	      (p=doSpring), __LINE__) ;
       p (e) ;
       disposeDesc (e^.ePtr) ;
       disposeEvent (e) ;
@@ -2691,6 +2963,17 @@ END checkZeroCoord ;
 
 
 (*
+   inElasticSpring -
+*)
+
+PROCEDURE inElasticSpring (VAR v: REAL) ;
+BEGIN
+   v := v * ElasticitySpring ;
+   checkZero (v)
+END inElasticSpring ;
+
+
+(*
    inElastic -
 *)
 
@@ -2744,6 +3027,39 @@ BEGIN
       END
    END
 END checkStationary ;
+
+
+(*
+   checkStationarySpring - checks to see if object, o, should be put into
+                           the stationary state.
+*)
+
+PROCEDURE checkStationarySpring (o: Object) ;
+BEGIN
+   IF objectExists (o)
+   THEN
+      WITH o^ DO
+         IF NOT fixed
+         THEN
+            forceVec := scaleCoord (forceVec, ElasticitySpring) ;
+
+            inElasticSpring (vx) ;
+            inElasticSpring (vy) ;
+
+            stationary := nearZeroVelocity (vx) AND nearZeroVelocity (vy) ;
+            IF stationary
+            THEN
+               vx := 0.0 ;
+               vy := 0.0 ;
+               IF Debugging
+               THEN
+                  dumpObject (o)
+               END
+            END
+         END
+      END
+   END
+END checkStationarySpring ;
 
 
 (*
@@ -3412,7 +3728,7 @@ BEGIN
    printf ("near end of doCollision\n");
    printQueue ;
    *)
-   addNextCollisionEvent ;
+   addNextObjectEvent ;
    (*
    printf ("at end of doCollision\n");
    printQueue ;
@@ -3506,7 +3822,7 @@ BEGIN
       y      := c.pos.y ;
       radius := c.r
    END ;
-   getObjectValues(o, vx, vy, ax, ay)
+   getObjectValues (o, vx, vy, ax, ay)
 END getCircleValues ;
 
 
@@ -3718,13 +4034,13 @@ BEGIN
 (*
    maximaCircleCollision (array,
                           a, b, c, d, e, f, g, h, k, l, m, n, o, p) ;
-
+*)
+   manualCircleCollision (array, a, b, c, d, e, f, g, h, k, l, m, n, o, p) ;
    AssertRDebug (array[4], A, "A") ;
    AssertRDebug (array[3], B, "B") ;
    AssertRDebug (array[2], C, "C") ;
    AssertRDebug (array[1], D, "D") ;
    AssertRDebug (array[0], E, "E") ;
-*)
 
    (* now solve for values of t which satisfy   At^4 + Bt^3 + Ct^2 + Dt^1 + Et^0 = 0  *)
    IF findQuartic (A, B, C, D, E, t)          (* this function will alter, t.  *)
@@ -3775,7 +4091,7 @@ BEGIN
             *)
             (* Assert (nearCoord (cp1, cp2), __LINE__) ; *)
             (* found a value of t which is better than bestTimeOfCollision, but it might be a duplicate collision.  *)
-            IF NOT isDuplicate (currentTime, t, id1, id2, edge, edge, cp)
+            IF NOT isDuplicateC (currentTime, t, id1, id2, edge, edge, cp)
             THEN
                (* ok, this has not been seen before.  *)
                RETURN TRUE
@@ -4190,7 +4506,7 @@ BEGIN
       collisionPoint := newPositionCoord (c, cvel, caccel, t) ;
 
       (* return TRUE providing that we do not already know about it *)
-      IF isDuplicate (currentTime, t, id1, id2, edge, edge, collisionPoint)
+      IF isDuplicateC (currentTime, t, id1, id2, edge, edge, collisionPoint)
       THEN
          IF trace
          THEN
@@ -4432,11 +4748,11 @@ END sortLine ;
 
 
 (*
-   earlierCircleEdgeCollision - return TRUE if an earlier time, t, is found than tc for when circle
-                                hits a line.  The circle is defined by a, center, radius and has
-                                acceleration, accelCircle, and velocity, velCircle.
-                                The line is between p1 and p2 and has velocity, velLine, and
-                                acceleration, accelLine.
+   findEarlierCircleEdgeCollision - return TRUE if an earlier time, t, is found than tc for when circle
+                                    hits a line.  The circle is defined by a, center, radius and has
+                                    acceleration, accelCircle, and velocity, velCircle.
+                                    The line is between p1 and p2 and has velocity, velLine, and
+                                    acceleration, accelLine.
 *)
 
 PROCEDURE findEarlierCircleEdgeCollision (VAR timeOfCollision: REAL;
@@ -5192,9 +5508,9 @@ BEGIN
    WITH edesc^ DO
       CASE etype OF
 
-      circlesEvent       :  anticipate (currentTime+tc, cc.cid1, cc.cid2, cc.cPoint) |
-      circlePolygonEvent :  anticipate (currentTime+tc, cp.pid, cp.cid, cp.cPoint) |
-      polygonPolygonEvent:  anticipate (currentTime+tc, pp.pid1, pp.pid2, pp.cPoint)
+      circlesEvent       :  anticipateC (currentTime+tc, cc.cid1, cc.cid2, cc.cPoint) |
+      circlePolygonEvent :  anticipateC (currentTime+tc, cp.pid, cp.cid, cp.cPoint) |
+      polygonPolygonEvent:  anticipateC (currentTime+tc, pp.pid1, pp.pid2, pp.cPoint)
 
       END
    END
@@ -5210,9 +5526,9 @@ BEGIN
    WITH edesc^ DO
       CASE etype OF
 
-      circlesEvent       :  occurred (currentTime, cc.cid1, cc.cid2, cc.cPoint) |
-      circlePolygonEvent :  occurred (currentTime, cp.pid, cp.cid, cp.cPoint) |
-      polygonPolygonEvent:  occurred (currentTime, pp.pid1, pp.pid2, pp.cPoint)
+      circlesEvent       :  occurredC (currentTime, cc.cid1, cc.cid2, cc.cPoint) |
+      circlePolygonEvent :  occurredC (currentTime, cp.pid, cp.cid, cp.cPoint) |
+      polygonPolygonEvent:  occurredC (currentTime, pp.pid1, pp.pid2, pp.cPoint)
 
       END
    END
@@ -5300,6 +5616,612 @@ END removeSpringEvent ;
 
 
 (*
+   getSpringEndValues - it retrieves the:
+
+                        CofG        :  c
+                        velocity    :  v
+                        acceleration:  a
+
+                        of object, o.
+*)
+
+PROCEDURE getSpringEndValues (o: CARDINAL; VAR c, v, a: Coord) ;
+VAR
+   ptr: Object ;
+BEGIN
+   ptr := GetIndice (objects, o) ;
+   c := getCofG (o) ;
+   v := getVelCoord (ptr) ;
+   a := getAccelCoord (ptr)
+END getSpringEndValues ;
+
+
+(*
+   manualCircleCollision -
+*)
+
+PROCEDURE manualCircleCollision (VAR array: ARRAY OF REAL; a, b, c, d, e, f, g, h, k, l, m, n, o, p: REAL) ;
+BEGIN
+   IF trace
+   THEN
+      printf ("circle 1 pos:  %g, %g\n", a, b) ;
+      printf ("         vel:  %g, %g\n", c, d) ;
+      printf ("         acc:  %g, %g\n", e, f) ;
+      printf ("circle 2 pos:  %g, %g\n", g, h) ;
+      printf ("         vel:  %g, %g\n", k, l) ;
+      printf ("         acc:  %g, %g\n", m, n) ;
+
+      printf ("  total distance of %g\n", o+p)
+   END ;
+
+   array[4] := sqr(n)-2.0*m*n+sqr(m)+sqr(f)-2.0*e*f+sqr(e) ;
+   array[3] := (4.0*l-4.0*k)*n+(4.0*k-4.0*l)*m+(4.0*d-4.0*c)*f+(4.0*c-4.0*d)*e ;
+   array[2] := (4.0*h-4.0*g)*n+(4.0*g-4.0*h)*m+4.0*sqr(l)-8.0*k*l+4.0*sqr(k)+(4.0*b-4.0*a)*f+(4.0*a-4.0*b)*e+4.0*sqr(d)-8.0*c*d+4.0*sqr(c) ;
+   array[1] := (8.0*h-8.0*g)*l+(8.0*g-8.0*h)*k+(8.0*b-8.0*a)*d+(8.0*a-8.0*b)*c ;
+   array[0] := 4.0*sqr(h)-8.0*g*h+4.0*sqr(g)+4.0*sqr(b)-8.0*a*b+4.0*sqr(a)-sqr(2.0*(p+o))
+END manualCircleCollision ;
+
+
+(*
+   earlierSpringLength - i is a spring.
+                         c1, c2 are the c of g of the objects 1 and 2.
+                         v1, v2 are the velocities of objects 1 and 2.
+                         a1, a2 are the acceleration of objects 1 and 2.
+
+                         Single letter variables are used since wxmaxima
+                         only operates with these.  Thus the output from wxmaxima
+                         can be cut and pasted into the program.
+
+                            a = c1.x
+                            b = c1.y
+                            c = v1.x
+                            d = v1.y
+                            e = a1.x
+                            f = a1.y
+                            g = c2.x
+                            h = c2.y
+                            k = v2.x
+                            l = v2.y
+                            m = a2.x
+                            n = a2.y
+
+                            t                       is the time of this collision (if any)
+                            bestTimeOfCollision     is earlier known collision so far.
+*)
+
+PROCEDURE earlierSpringLength (edesc: eventDesc; id: CARDINAL;
+                               VAR t: REAL; bestTime: REAL;
+                               c1, v1, a1, c2, v2, a2: Coord; l: REAL;
+			       sp: springPoint) : BOOLEAN ;
+VAR
+   array: ARRAY [0..4] OF REAL ;
+   roots: ARRAY [0..3] OF REAL ;
+   n, j : CARDINAL ;
+   T    : REAL ;
+BEGIN
+   manualCircleCollision (array,
+                          c1.x, c2.x, v1.x, v2.x, a1.x, a2.x,
+                          c1.y, c2.y, v1.y, v2.y, a1.y, a2.y, l, 0.0) ;
+
+   (* now solve for values of t which satisfy   array[4]*t^4 + array[3]*t^3 + array[2]*t^2 + array[1]*t^1 + array[0]*t^0 = 0  *)
+   n := findQuarticRoots (array[4], array[3], array[2], array[1], array[0], roots) ;
+   j := 0 ;
+   (* we try each root in turn, selecting the smallest positive which has not been seen before.  *)
+   WHILE j<n DO
+      t := roots[j] ;
+      T := array[4]*(sqr(t)*sqr(t)) + array[3]*(sqr(t)*t) + array[2]*sqr(t) + array[1]*t + array[0] ;
+      IF Debugging
+      THEN
+         printf ("%gt^4 + %gt^3 +%gt^2 + %gt + %g = %g    (t=%g)\n",
+                 array[4], array[3], array[2], array[1], array[0], T, t) ;
+         printf ("found spring reaches length %g at %g\n", l, t)
+      END ;
+      Assert (t >= 0.0, __LINE__) ;
+      (* remember edesc = NIL if bestTime is unassigned.  *)
+      IF (edesc = NIL) OR (t < bestTime)
+      THEN
+         IF NOT isDuplicateS (currentTime, t, id, sp)
+         THEN
+            (* ok, this has not been seen before.  *)
+            RETURN TRUE
+         END
+      END ;
+      INC (j)
+   END ;
+   RETURN FALSE
+END earlierSpringLength ;
+
+
+(*
+   makeSpringDesc - creates and fills in the spring descriptor.
+*)
+
+PROCEDURE makeSpringDesc (edesc: eventDesc; i: CARDINAL; stype: springPoint) : eventDesc ;
+BEGIN
+   IF edesc=NIL
+   THEN
+      edesc := newDesc()
+   END ;
+   edesc^.etype := springEvent ;
+   edesc^.sp.id := i ;
+   edesc^.sp.type := stype ;
+   RETURN edesc
+END makeSpringDesc ;
+
+
+(*
+   calcSpringLengthEvents -
+*)
+
+PROCEDURE calcSpringLengthEvents (VAR ts: REAL; i: CARDINAL; VAR edesc: eventDesc) ;
+VAR
+   a, b, c, d, e, f, g, h, k, l, m, n, o, p: REAL ;
+   cp,
+   c1, v1, a1,
+   c2, v2, a2    : Coord ;
+   test,
+   t             : REAL ;
+   id1, id2      : CARDINAL ;
+   iptr,
+   id1ptr, id2ptr: Object ;
+BEGIN
+   Assert (isSpringObject (i), __LINE__) ;
+   iptr := GetIndice (objects, i) ;
+   id1 := iptr^.s.id1 ;
+   id2 := iptr^.s.id2 ;
+   t := -1.0 ;
+   getSpringEndValues (id1, c1, v1, a1) ;
+   getSpringEndValues (id2, c2, v2, a2) ;
+
+   (* gdbif.sleepSpin ;  *)
+
+(*
+   test := -1.0 ;
+   IF earlierCircleCollision (edesc, i, i,
+                              t, ts, cp,
+                              c1.x, c2.x, v1.x, v2.x, a1.x, a2.x,
+                              c1.y, c2.y, v1.y, v2.y, a1.y, a2.y, iptr^.s.l0, 0.0)
+   THEN
+      test := t ;
+      edesc := NIL ;
+      ts := -1.0 ;
+      printf ("should get to the mid point in %g seconds\n", t)
+   END ;
+   t := -1.0 ;
+
+   id1ptr := GetIndice (objects, id1) ;
+   id2ptr := GetIndice (objects, id2) ;
+   getCircleValues (id1ptr, a, g, o, c, k, e, m) ;
+
+   (*
+        b         xj
+        h         yj
+        p         rj
+        d         vxj
+        l         vyj
+        f         ajx
+        n         ajy
+   *)
+
+   getCircleValues (id2ptr, b, h, p, d, l, f, n) ;
+   o := 0.0 ;
+   p := iptr^.s.l0 ;
+   IF earlierCircleCollision (edesc, id1, id2,
+                              t, ts, cp,
+                              a, b, c, d, e, f, g, h, k, l, m, n, o, p)
+   THEN
+      test := t ;
+      edesc := NIL ;
+      ts := -1.0 ;
+      printf ("should get to the mid point in %g seconds\n", t)
+   END ;
+   t := -1.0 ;
+*)
+
+   IF earlierSpringLength (edesc, i, t, ts,
+                           c1, v1, a1, c2, v2, a2, iptr^.s.l0, midPoint)
+   THEN
+      (*
+      printf ("actually found a mid point value of %g\n", t) ;
+      AssertRFail (test, t) ;
+      *)
+      ts := t ;
+      IF trace
+      THEN
+         printf ("spring %d reaches at rest in %g seconds\n", i, t)
+      END ;
+      edesc := makeSpringDesc (edesc, i, midPoint)
+   END ;
+   IF iptr^.s.hasCallBackLength
+   THEN
+      getSpringEndValues (id1, c1, v1, a1) ;
+      getSpringEndValues (id2, c2, v2, a2) ;
+      IF earlierSpringLength (edesc, i, t, ts,
+                              c1, v1, a1, c2, v2, a2, iptr^.s.cbl, callPoint)
+      THEN
+         ts := t ;
+         IF trace
+         THEN
+            printf ("spring %d reaches the call length in %g seconds\n", i, t)
+         END ;
+         edesc := makeSpringDesc (edesc, i, callPoint)
+      END
+   END
+END calcSpringLengthEvents ;
+
+
+(*
+   manualSpringVelocityZero -
+*)
+
+PROCEDURE manualSpringVelocityZero (VAR array: ARRAY OF REAL; a, b, c, d: REAL) ;
+BEGIN
+   (* thanks to wxmaxima and max2code.  *)
+   array[0] := (((0.0+0.0)+ sqr(c) )+ sqr(a) );
+   array[1] := (((2.0*c)*d)+((2.0*a)*b));
+   array[2] := ( sqr(d) + sqr(b) )
+END manualSpringVelocityZero ;
+
+
+(*
+   earlierSpringEnd - returns the earliest time in the future when the
+                      relative velocity between the two bodies is zero.
+*)
+
+PROCEDURE earlierSpringEnd (edesc: eventDesc; i: CARDINAL;
+                            VAR t: REAL; ts: REAL;
+                            v, a: Coord) : BOOLEAN ;
+VAR
+   t0, t1: REAL ;
+   array : ARRAY [0..2] OF REAL ;
+BEGIN
+   manualSpringVelocityZero (array, v.x, a.x, v.y, a.y) ;
+   IF findQuadratic (array[2], array[1], array[0], t0, t1)
+   THEN
+      IF (t0 >= 0.0) AND (t1 >= 0.0)
+      THEN
+         IF t0 < t1
+         THEN
+            t := t0
+         ELSE
+            t := t1
+         END ;
+	 RETURN (edesc = NIL) OR (t < ts)
+      ELSIF t0 >= 0.0
+      THEN
+         t := t0 ;
+         RETURN (edesc = NIL) OR (t < ts)
+      ELSIF t1 >= 0.0
+      THEN
+         t := t1 ;
+         RETURN (edesc = NIL) OR (t < ts)
+      END
+   END ;
+   RETURN FALSE
+END earlierSpringEnd ;
+
+
+(*
+   calcSpringEndEvents - the spring reaches maximum compression or extension when the
+                         relative velocity between the objects attached to the spring
+                         is zero.
+*)
+
+PROCEDURE calcSpringEndEvents (VAR ts: REAL; i: CARDINAL; VAR edesc: eventDesc) ;
+VAR
+   c1, v1, a1,
+   c2, v2, a2    : Coord ;
+   t             : REAL ;
+   id1, id2      : CARDINAL ;
+   iptr,
+   id1ptr, id2ptr: Object ;
+BEGIN
+   Assert (isSpringObject (i), __LINE__) ;
+   iptr := GetIndice (objects, i) ;
+   id1 := iptr^.s.id1 ;
+   id2 := iptr^.s.id2 ;
+   t := -1.0 ;
+   getSpringEndValues (id1, c1, v1, a1) ;
+   getSpringEndValues (id2, c2, v2, a2) ;
+   v1 := subCoord (v2, v1) ;
+   a1 := subCoord (a2, a1) ;
+   IF earlierSpringEnd (edesc, i, t, ts, v1, a1)
+   THEN
+      IF NOT isDuplicateS (currentTime, t, i, endPoint)
+      THEN
+         ts := t ;
+         IF trace
+         THEN
+            printf ("found when spring %d reaches an end time at %g\n", i, t)
+         END ;
+         edesc := makeSpringDesc (edesc, i, endPoint)
+      END
+   END
+END calcSpringEndEvents ;
+
+
+(*
+   calcSpringEndEventsKE - calcalate the time at which there is no Kinetic energy
+                           in spring, i.  This will be when the spring reaches
+                           its end point.
+*)
+
+PROCEDURE calcSpringEndEventsKE (VAR ts: REAL; i: CARDINAL; VAR edesc: eventDesc) ;
+VAR
+   c1, v1, a1,
+   c2, v2, a2    : Coord ;
+   t, l1, d      : REAL ;
+   id1, id2      : CARDINAL ;
+   iptr,
+   id1ptr, id2ptr: Object ;
+BEGIN
+(*
+   Assert (isSpringObject (i), __LINE__) ;
+   iptr := GetIndice (objects, i) ;
+   id1 := iptr^.s.id1 ;
+   id2 := iptr^.s.id2 ;
+   t := -1.0 ;
+   (*
+      1/2 * k (l0 - l1) ^ 2  =  ke
+            k (l0 - l1) ^ 2  =  ke * 2
+              (l0 - l1) ^ 2  =  (ke * 2) / k
+              (l0 - l1)      =  sqrt ((ke * 2) / k)
+              (l0 - l1)      =  sqrt ((ke * 2) / k)
+               l0 - sqrt ((ke * 2) / k) = l1
+               l1            =  l0 - sqrt ((ke * 2) / k)
+   *)
+
+   l1 := iptr^.s.l0 - sqrt ((iptr^.ke * 2.0) / iptr^.s.k) ;
+   d := iptr^.s.l1 - l1 ;   (* the length of change in spring, i  *)
+   getSpringEndValues (id1, c1, v1, a1) ;
+   getSpringEndValues (id2, c2, v2, a2) ;
+   IF earlierSpringLength (edesc, i, t, ts,
+                           c1, v1, a1, c2, v2, a2, d)
+   THEN
+      IF NOT isDuplicateS (currentTime, t, i, endPoint)
+      THEN
+         ts := t ;
+         IF trace
+         THEN
+            printf ("found when spring %d exhausts its kinetic energy, time at %g\n", i, t)
+         END ;
+         edesc := makeSpringDesc (edesc, i, endPoint)
+      END
+   END
+*)
+END calcSpringEndEventsKE ;
+
+
+(*
+   calcSpringEventTime - calculates the time in the future when spring, i, either
+                         reaches its:
+
+                         point of rest, or minimum or maximum extension.
+*)
+
+PROCEDURE calcSpringEventTime (VAR ts: REAL; i: CARDINAL; VAR edesc: eventDesc) : REAL ;
+BEGIN
+   calcSpringLengthEvents (ts, i, edesc) ;
+   (*
+   calcSpringEndEvents (ts, i, edesc) ;
+   calcSpringEndEventsKE (ts, i, edesc) ;
+   *)
+   RETURN ts
+END calcSpringEventTime ;
+
+
+(*
+   addSpringEvent -
+*)
+
+PROCEDURE addSpringEvent (t: REAL; dop: eventProc; edesc: eventDesc) ;
+VAR
+   e: eventQueue ;
+BEGIN
+   IF Debugging
+   THEN
+      printf("spring event will occur in %g simulated seconds\n", t)
+   END ;
+   Assert (t >= 0.0, __LINE__) ;
+   e := newEvent () ;
+   WITH e^ DO
+      kind := springKind ;
+      time := t ;
+      p := dop ;
+      ePtr := edesc ;
+      next := NIL
+   END ;
+   IF Debugging
+   THEN
+      printf("spring event about to be added to this queue at %g in the future\n", t) ;
+      printQueue
+   END ;
+   addRelative (e) ;
+   IF Debugging
+   THEN
+      printf("spring event has been added to this queue at %g in the future\n", t) ;
+      printQueue
+   END
+END addSpringEvent ;
+
+
+(*
+   reverseSpringAccel -
+*)
+
+PROCEDURE reverseSpringAccel (o: Object) ;
+BEGIN
+   IF (NOT o^.deleted) AND (NOT o^.fixed)
+   THEN
+      IF trace
+      THEN
+         printf ("reversing spring acceleration\n")
+      END ;
+      o^.sax := -o^.sax ;
+      o^.say := -o^.say
+   END
+END reverseSpringAccel ;
+
+
+(*
+   zeroSpringAccel -
+*)
+
+PROCEDURE zeroSpringAccel (o: Object) ;
+BEGIN
+   IF (NOT o^.deleted) AND (NOT o^.fixed)
+   THEN
+      printf ("zero spring acceleration\n") ;
+      o^.sax := 0.0 ;
+      o^.say := 0.0
+   END
+END zeroSpringAccel ;
+
+
+(*
+   doSpringMidPoint - reached the mid point of the spring, reverse the
+                      acceleration of the sprung objects.
+*)
+
+PROCEDURE doSpringMidPoint (e: eventQueue) ;
+VAR
+   idPtr,
+   id1ptr, id2ptr: Object ;
+BEGIN
+   IF trace
+   THEN
+      printf ("doSpringMidPoint called at time %g\n", currentTime)
+   END ;
+
+   IF drawCollisionFrame
+   THEN
+      IF Debugging
+      THEN
+         printf ("issuing mid spring draw frame\n")
+      END ;
+      frameNote ;
+      drawFrame (e) ;
+      flipBuffer
+   END ;
+
+   (* gdbif.sleepSpin ;  *)
+
+   (* firstly we remove some energy from the moving objects.  *)
+   idPtr := GetIndice (objects, e^.ePtr^.sp.id) ;
+   id1ptr := GetIndice (objects, idPtr^.s.id1) ;
+   id2ptr := GetIndice (objects, idPtr^.s.id2) ;
+
+   IF trace
+   THEN
+      dumpObject (id1ptr) ;
+      dumpObject (id2ptr)
+   END ;
+
+   (* gdbif.sleepSpin ; *)
+
+   reverseSpringAccel (id1ptr) ;
+   reverseSpringAccel (id2ptr) ;
+
+   checkStationarySpring (id1ptr) ;
+   checkStationarySpring (id2ptr) ;
+
+   IF trace
+   THEN
+      dumpObject (id1ptr) ;
+      dumpObject (id2ptr) ;
+      printf ("doSpringMidPoint finishing\n")
+   END
+END doSpringMidPoint ;
+
+
+(*
+   doSpringEndPoint - reached the end point of the spring, we
+                      remove some energy from the sprung objects.
+*)
+
+PROCEDURE doSpringEndPoint (e: eventQueue) ;
+VAR
+   idPtr,
+   id1ptr, id2ptr: Object ;
+BEGIN
+   (* we remove some energy from the moving objects.  *)
+   idPtr := GetIndice (objects, e^.ePtr^.sp.id) ;
+   id1ptr := GetIndice (objects, idPtr^.s.id1) ;
+   id2ptr := GetIndice (objects, idPtr^.s.id2) ;
+   checkStationary (id1ptr) ;
+   checkStationary (id2ptr)
+END doSpringEndPoint ;
+
+
+(*
+   doSpringCallPoint - reached the user defined call point.
+                       We need to activate the call back.
+*)
+
+PROCEDURE doSpringCallPoint (e: eventQueue) ;
+BEGIN
+   (* we remove some energy from the moving objects.  *)
+   (* --fixme-- finish this.  *)
+END doSpringCallPoint ;
+
+
+(*
+   doSpring - called whenever a spring event is processed.
+*)
+
+PROCEDURE doSpring (e: eventQueue) ;
+BEGIN
+   (* gdbif.sleepSpin () ; *)
+   IF trace
+   THEN
+      printf ("doSpring called\n")
+   END ;
+   updatePhysics ;
+   springOccurred (e^.ePtr) ;
+   CASE e^.ePtr^.sp.type OF
+
+   midPoint :  doSpringMidPoint (e) |
+   endPoint :  doSpringEndPoint (e) |
+   callPoint:  doSpringCallPoint (e)
+
+   END ;
+   addNextObjectEvent
+END doSpring ;
+
+
+(*
+   springOccurred - stores the spring event in the history list.
+*)
+
+PROCEDURE springOccurred (edesc: eventDesc) ;
+BEGIN
+   WITH edesc^ DO
+      CASE etype OF
+
+      springEvent:  occurredS (currentTime, sp.id, sp.type)
+
+      END
+   END
+END springOccurred ;
+
+
+(*
+   anticipateSpring - stores the collision in the anticipated list.
+*)
+
+PROCEDURE anticipateSpring (tc: REAL; edesc: eventDesc) ;
+BEGIN
+   WITH edesc^ DO
+      CASE etype OF
+
+      springEvent:  anticipateS (currentTime+tc, sp.id, sp.type)
+
+      END
+   END
+END anticipateSpring ;
+
+
+(*
    addNextSpringEvent -
 *)
 
@@ -5308,28 +6230,48 @@ VAR
    n, i : CARDINAL ;
    iptr : Object ;
    edesc: eventDesc ;
-   t    : REAL ;
+   ts   : REAL ;
 BEGIN
-   t := -1.0 ;   (* no event needed yet.  *)
-   edesc := NIL ;
+   ts := -1.0 ;
+   edesc := NIL ;   (* no event found yet.  *)
    n := HighIndice (objects) ;
    i := 1 ;
    WHILE i<=n DO
-      IF isSpring (i)
+      IF isSpringObject (i)
       THEN
-         t := calcSpringEventTime (t, i, edesc)
+         ts := calcSpringEventTime (ts, i, edesc)
       END ;
       INC (i)
    END ;
-   IF t >= 0.0
+   IF ts >= 0.0
    THEN
-
+      addSpringEvent (ts, doSpring, edesc) ;
+      anticipateSpring (ts, edesc)
    END
 END addNextSpringEvent ;
 
 
 (*
-   addNextCollisionEvent -
+   draw_spring - draw spring, id, using colour, c, and a width, w.
+*)
+
+PROCEDURE draw_spring (id: CARDINAL; c: CARDINAL; w: REAL) ;
+VAR
+   o: Object ;
+BEGIN
+   o := GetIndice (objects, id) ;
+   IF isSpringObject (id)
+   THEN
+      o^.s.draw := TRUE ;
+      o^.s.width := w
+   ELSE
+      printf ("only spring objects can be modified by the draw primitive\n")
+   END
+END draw_spring ;
+
+
+(*
+   addNextCollisionEvent - recalculate the next collision event time.
 *)
 
 PROCEDURE addNextCollisionEvent ;
@@ -5340,11 +6282,6 @@ VAR
    iptr, jptr: Object ;
    edesc     : eventDesc ;
 BEGIN
-   removeCollisionEvent ;
-   removeSpringEvent ;
-   updateForces ;
-   addNextSpringEvent ;
-   (* gdbif.sleepSpin ; *)
    n := HighIndice (objects) ;
    i := 1 ;
    edesc := NIL ;
@@ -5378,10 +6315,38 @@ BEGIN
    THEN
       addCollisionEvent (tc, doCollision, edesc) ;
       anticipateCollision (tc, edesc)
-   ELSE
+   ELSIF trace
+   THEN
       printf ("no more collisions found\n")
    END
 END addNextCollisionEvent ;
+
+
+(*
+   addNextObjectEvent - removes the next spring and collision event and recalculates
+                        the time of both events.
+*)
+
+PROCEDURE addNextObjectEvent ;
+BEGIN
+   removeCollisionEvent ;
+   removeSpringEvent ;
+   IF trace
+   THEN
+      printf ("no spring or collision events here\n") ;
+      printQueue
+   END ;
+   (* gdbif.sleepSpin ; *)
+   (* addNextSpringEvent must be run before addNextCollisionEvent
+      as it will update the spring acceleration  *)
+   addNextSpringEvent ;
+   addNextCollisionEvent ;
+   IF trace
+   THEN
+      printf ("event queue created and it looks like this\n") ;
+      printQueue
+   END
+END addNextObjectEvent ;
 
 
 (*
@@ -5406,7 +6371,7 @@ BEGIN
    f := NIL ;  (* draw frame event *)
    e := eventQ ;
    WHILE (e#NIL) AND ((c=NIL) OR (f=NIL)) DO
-      IF e^.kind = collisionKind
+      IF (e^.kind = collisionKind) OR (e^.kind = springKind)
       THEN
          c := e
       ELSIF e^.kind = frameKind
@@ -5421,7 +6386,7 @@ BEGIN
    END ;
    IF c=NIL
    THEN
-      addNextCollisionEvent
+      addNextObjectEvent
    END
 END resetQueue ;
 
@@ -5443,13 +6408,19 @@ BEGIN
       IF s<t
       THEN
          pumpQueue ;
-         printQueue ;
+         IF trace
+         THEN
+            printQueue
+         END ;
          WHILE s<t DO
             dt := doNextEvent () ;
             s := s + dt
          END ;
          updatePhysics ;
-         printQueue
+         IF trace
+         THEN
+            printQueue
+         END
       END
    ELSE
       printf ("the game engine cannot be run as you have a moving object without a mass\n")
@@ -5721,6 +6692,21 @@ BEGIN
    pumpQueue ;
    RETURN isEvent (functionKind)
 END isFunction ;
+
+
+(*
+   isSpring - returns TRUE if the next event is a spring event.
+*)
+
+PROCEDURE isSpring () : BOOLEAN ;
+BEGIN
+   IF Debugging
+   THEN
+      printf ("isFunction before pumpQueue\n")
+   END ;
+   pumpQueue ;
+   RETURN isEvent (springKind)
+END isSpring ;
 
 
 (*
@@ -6074,6 +7060,17 @@ END writeFunction ;
 
 
 (*
+   writeSpring -
+*)
+
+PROCEDURE writeSpring (sp: spDesc) ;
+BEGIN
+   writeCard (file, sp.id) ;
+   writeCard (file, ORD (sp.type))
+END writeSpring ;
+
+
+(*
    writeDesc -
 *)
 
@@ -6091,7 +7088,8 @@ BEGIN
          circlesEvent       :  writeCircles (cc) |
          circlePolygonEvent :  writeCirclePolygon (cp) |
          polygonPolygonEvent:  writePolygonPolygon (pp) |
-	 functionEvent      :  writeFunction (fc)
+	 functionEvent      :  writeFunction (fc) |
+	 springEvent        :  writeSpring (sp)
 
          END
       END
@@ -6288,6 +7286,7 @@ BEGIN
    drawPrediction := FALSE ;
    fileOpened := FALSE ;
    writeTimeDelay := TRUE ;
+   haveSpringColour := FALSE ;
    haveCollisionColour := FALSE ;
    (* gdbif.sleepSpin *)
 END Init ;
