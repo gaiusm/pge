@@ -60,7 +60,7 @@ def main ():
         s = pge.spring (prev, step, 1000.0, 0.1).draw (yellow, 0.002)
         prev = step
     s = pge.spring (right, prev, 100.0, 0.1).draw (yellow, 0.002)
-    gb = placeBall (gold, 0.7, 0.8, 0.01).mass (0.4)
+    gb = placeBall (gold, 0.7, 0.8, 0.01).mass (0.1)
     print "before run"
     pge.record ()
     pge.draw_collision (True, False)

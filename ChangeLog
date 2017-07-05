@@ -1,6 +1,7 @@
 2017-07-04      Gaius Mulley <gaius@gnu.org>
 
 	* introduced the spring objects and simple examples.
+	* minor debugging printf's added.
 
 2017-01-01      Gaius Mulley <gaius@gnu.org>
 	* first release of pge

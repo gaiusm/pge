@@ -1717,10 +1717,14 @@ BEGIN
             THEN
                printf ("moving object %d needs a mass before a force can be applied\n", i)
             ELSE
+               printf ("object %d has force vector (%g,  %g)\n", iptr^.forceVec.x, iptr^.forceVec.y) ;
+               printf ("object %d has (sax = %g, say = %g)\n", iptr^.sax, iptr^.say) ;
                iptr^.sax := iptr^.forceVec.x / get_mass (i) ;
                iptr^.say := iptr^.forceVec.y / get_mass (i) ;
+               printf ("object %d now has (sax = %g, say = %g)\n", iptr^.sax, iptr^.say) ;
                inElasticSpring (iptr^.say) ;
                inElasticSpring (iptr^.sax) ;
+               printf ("after enery cal, object %d has (sax = %g, say = %g)\n", iptr^.sax, iptr^.say) ;
                (* iptr^.stationary := NOT (nearZero (iptr^.sax) AND nearZero (iptr^.say)) *)
             END
          END
@@ -1743,7 +1747,7 @@ VAR
 BEGIN
    Assert (isSpringObject (i), __LINE__) ;
    iptr := GetIndice (objects, i) ;
-   iptr^.ke := 0.0 ;   (* no kinetic energy as it has no mass.  *)
+   iptr^.ke := 0.0 ;   (* no kinetic energy as a spring has no mass.  *)
    iptr^.pe := iptr^.s.k * sqr (iptr^.s.l0 - iptr^.s.l1) / 2.0 ;
 
    id1ptr := GetIndice (objects, iptr^.s.id1) ;
@@ -1807,7 +1811,7 @@ BEGIN
    zeroForceEnergy ;
    dumpWorld ;
    calcForce ;
-   calcEnergy ;
+   (* calcEnergy ; *)
    applyForce ;
    dumpWorld
 END recalculateForceEnergy ;
@@ -2709,9 +2713,7 @@ END doUpdatePhysics ;
 PROCEDURE updatePhysics ;
 BEGIN
    doUpdatePhysics (currentTime-lastUpdateTime) ;
-   (*
-      recalculateForceEnergy
-   *)
+   recalculateForceEnergy ;
    lastUpdateTime := currentTime
 END updatePhysics ;
 
