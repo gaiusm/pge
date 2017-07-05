@@ -2486,6 +2486,7 @@ VAR
    i, n    : CARDINAL ;
    optr    : Object ;
 BEGIN
+   (* updatePhysics ; *)    (* --fixme-- ?  *)
    Assert ((e = NIL) OR (e^.kind = collisionKind) OR (e^.kind = springKind), __LINE__) ;
    IF DebugTrace
    THEN
@@ -2644,9 +2645,9 @@ END updateCircle ;
    updateSpring - update the current length, l1, field of the spring.
 *)
 
-PROCEDURE updateSpring (optr: Object) ;
+PROCEDURE updateSpring (optr: Object; dt: REAL) ;
 BEGIN
-   optr^.s.l1 := lengthCoord (subCoord (getCofG (optr^.s.id1), getCofG (optr^.s.id2))) ;
+   optr^.s.l1 := lengthCoord (subCoord (getCofG (optr^.s.id1), getCofG (optr^.s.id2)))
 END updateSpring ;
 
 
@@ -2663,7 +2664,7 @@ BEGIN
 
          polygonOb :  updatePolygon (optr, dt) |
          circleOb  :  updateCircle (optr, dt) |
-         springOb  :  updateSpring (optr)
+         springOb  :  updateSpring (optr, dt)
 
          END
       END
