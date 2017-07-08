@@ -336,6 +336,7 @@ END findQuadratic ;
 PROCEDURE findQuadraticRoots (a, b, c: REAL; VAR x: ARRAY OF REAL) : CARDINAL ;
 VAR
    q, discriminant: REAL ;
+   n              : CARDINAL ;
 BEGIN
    IF tracing
    THEN
@@ -361,7 +362,7 @@ BEGIN
          THEN
             printf ("findQuadratic a == 0, x0 = %g -> 1\n", x[0])
          END ;
-         RETURN 1
+	 n := 1
       END
    ELSE
       discriminant := sqr (b) - 4.0*a*c ;
@@ -376,8 +377,8 @@ BEGIN
          THEN
             printf ("findQuadratic discriminant > 0.0, x0 = %g, x1 = %g  -> 2\n", x[0], x[1]) ;
          END ;
-         RETURN 2
-      ELSIF discriminant = 0.0
+         n := 2
+      ELSIF nearZero (discriminant)
       THEN
          x[0] := -b / (2.0 * a) ;
 	 x[0] := roundRoot (x[0]) ;
@@ -386,7 +387,7 @@ BEGIN
          THEN
             printf ("findQuadratic discriminant = 0.0, x0 = %g -> 1\n", x[0])
          END ;
-         RETURN 1
+         n := 1
       ELSE
          IF tracing
          THEN
@@ -394,7 +395,8 @@ BEGIN
          END ;
          RETURN 0
       END
-   END
+   END ;
+   RETURN removeSort (x, n)
 END findQuadraticRoots ;
 
 

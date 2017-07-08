@@ -92,6 +92,16 @@ END scaleCoord ;
 
 
 (*
+   negateCoord - negates both components of the vector, c.
+*)
+
+PROCEDURE negateCoord (c: Coord) : Coord ;
+BEGIN
+   RETURN initCoord (-c.x, -c.y)
+END negateCoord ;
+
+
+(*
    subCoord - returns a - b.
 *)
 

@@ -72,6 +72,13 @@ PROCEDURE scaleCoord (c: Coord; s: REAL) : Coord ;
 
 
 (*
+   negateCoord - negates both components of the vector, c.
+*)
+
+PROCEDURE negateCoord (c: Coord) : Coord ;
+
+
+(*
    subCoord - returns a - b.
 *)
 

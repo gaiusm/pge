@@ -30,7 +30,8 @@ DEFINITION MODULE roots ;
 
 FROM coord IMPORT Coord ;
 
-EXPORT QUALIFIED findQuadratic, findQuartic, findAllRootsQuartic, findOctic,
+EXPORT QUALIFIED findQuadratic, findQuadraticRoots, findQuartic,
+                 findAllRootsQuartic, findOctic,
                  findQuarticRoots, nearZero, nearSame, nearCoord, setTrace ;
 
 
@@ -53,6 +54,19 @@ PROCEDURE findOctic (a, b, c, d, e, f, g, h, i: REAL; VAR x0: REAL) : BOOLEAN ;
 *)
 
 PROCEDURE findQuadratic (a, b, c: REAL; VAR x0, x1: REAL) : BOOLEAN ;
+
+
+(*
+   findQuadraticRoots - returns the number of scalar values of x >= 0 which satisfy:
+
+                          2
+                        ax  +  bx + c == 0
+
+                        x[0] will be the smallest root >= 0
+                        x[1] is the next root.
+*)
+
+PROCEDURE findQuadraticRoots (a, b, c: REAL; VAR x: ARRAY OF REAL) : CARDINAL ;
 
 
 (*

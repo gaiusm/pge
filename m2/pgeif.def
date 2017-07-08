@@ -50,7 +50,7 @@ EXPORT UNQUALIFIED ExceptionKind,
    		   put_xvel, put_yvel,
 		   put_xaccel, put_yaccel,
 		   apply_impulse, moving_towards, set_colour,
-		   draw_spring,
+		   draw_spring, end_spring, mid_spring,
 		   skip_until, fps ;
 
 
@@ -202,10 +202,11 @@ PROCEDURE fix (id: CARDINAL) : CARDINAL ;
             by hooks constant, k, the spring is at rest if it has
             length, l.  If l < 0 then the game engine considers
             the spring to naturally be at rest for the distance
-            between id1 and id2.
+            between id1 and id2.  The parameter, d, is used to
+            calculate the damping force.
 *)
 
-PROCEDURE spring (id1, id2: CARDINAL; k, l: REAL) : CARDINAL ;
+PROCEDURE spring (id1, id2: CARDINAL; k, d, l: REAL) : CARDINAL ;
 
 
 (*
@@ -392,6 +393,23 @@ PROCEDURE set_colour (id: CARDINAL; c: CARDINAL) ;
 *)
 
 PROCEDURE draw_spring (id: CARDINAL; c: CARDINAL; w: REAL) ;
+
+
+(*
+   end_spring - draw the objects at the end of the spring with
+                colour, c, when the object comes to rest.
+*)
+
+PROCEDURE end_spring (id: CARDINAL; c: CARDINAL) ;
+
+
+(*
+   mid_spring - when the spring reaches its rest point draw
+                the objects connected by the spring with
+                colour, c.
+*)
+
+PROCEDURE mid_spring (id: CARDINAL; c: CARDINAL) ;
 
 
 (*

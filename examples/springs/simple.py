@@ -43,6 +43,9 @@ def placeBoarders (thickness, color):
     e4 = pge.box (0.0, 1.0-thickness, 1.0, thickness, color).fix ()
     return e1, e2, e3, e4
 
+def midline (height, thickness):
+    m = pge.box (0.0, height, 1.0, thickness, white, -1)
+
 def placeBall (kind, x, y, r):
     return pge.circle (x, y, r, kind)
 
@@ -53,12 +56,13 @@ def main ():
 
     first = placeBall (wood_light, 0.55, 0.95, 0.03).fix ()
     second = placeBall (wood_dark, 0.55, 0.35, 0.03).mass (1.0)
-    s = pge.spring (first, second, 100.0, 0.5).draw (yellow, 0.002)
+    s = pge.spring (first, second, 100.0, 10.0, 0.5).draw (yellow, 0.005).end (blue).mid (white)
+    midline (0.95-0.5, 0.01)
     print "before run"
     pge.record ()
     pge.draw_collision (True, False)
     pge.collision_colour (red)
-    # pge.gravity ()
+    pge.gravity ()
     pge.dump_world ()
     pge.slow_down (6.0)  # slows down real time by a factor of
     pge.register_handler (myquit, [QUIT])

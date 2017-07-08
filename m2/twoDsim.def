@@ -222,10 +222,11 @@ PROCEDURE fix (id: CARDINAL) : CARDINAL ;
             by hooks constant, k, the spring is at rest if it has
             length, l.  If l < 0 then the game engine considers
             the spring to naturally be at rest for the distance
-            between id1 and id2.
+            between id1 and id2.  The parameter, d, is used to
+            calculate the damping force.
 *)
 
-PROCEDURE spring (id1, id2: CARDINAL; k, l: REAL) : CARDINAL ;
+PROCEDURE spring (id1, id2: CARDINAL; k, d, l: REAL) : CARDINAL ;
 
 
 (*
@@ -233,6 +234,21 @@ PROCEDURE spring (id1, id2: CARDINAL; k, l: REAL) : CARDINAL ;
 *)
 
 PROCEDURE draw_spring (id: CARDINAL; c: CARDINAL; w: REAL) ;
+
+
+(*
+   end_spring - draw the spring using colour, c, when it reaches the end.
+*)
+
+PROCEDURE end_spring (id: CARDINAL; c: CARDINAL) ;
+
+
+(*
+   mid_spring - when the string reaches its rest point draw the objects
+                connected.
+*)
+
+PROCEDURE mid_spring (id: CARDINAL; c: CARDINAL) ;
 
 
 (*

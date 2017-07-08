@@ -54,8 +54,8 @@ def main ():
     first = placeBall (wood_light, 0.55, 0.95, 0.02).fix ()
     second = placeBall (wood_dark, 0.55, 0.55, 0.02).mass (1.0)
     third = placeBall (wood_dark, 0.55, 0.25, 0.02).mass (1.0)
-    s = pge.spring (first, second, 100.0, 0.3).draw (yellow, 0.002)
-    s = pge.spring (second, third, 100.0, 0.2).draw (yellow, 0.002)
+    s = pge.spring (first, second, 100.0, 80.0, 0.3).draw (yellow, 0.002)
+    s = pge.spring (second, third, 100.0, 80.0, 0.2).draw (yellow, 0.002)
     print "before run"
     pge.record ()
     pge.draw_collision (True, False)

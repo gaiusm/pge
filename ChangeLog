@@ -1,3 +1,32 @@
+2017-07-08      Gaius Mulley <gaius@gnu.org>
+
+	* examples/springs/bridge.py:  updated with the new
+	spring api.
+	* examples/springs/double.py:  updated with the new
+	spring api.
+	* examples/springs/simple.py:  updated with the new
+	spring api.
+	* i/pgeif.i:  extra parameter to spring
+	and new debug spring colour routines.
+	* m2/coord.def:  negateCoord (New procedure function).
+	* m2/coord.mod:  negateCoord (New procedure function).
+	* m2/pgeif.def:  extra parameter to spring
+	and new debug spring colour routines.
+	* m2/pgeif.mod:  extra parameter to spring
+	and new debug spring colour routines.
+	* m2/roots.def:  findQuadraticRoots (New procedure
+	function).
+	* m2/roots.mod:  findQuadraticRoots (New procedure
+	function).  Many bug fixes to avoid testing against
+	0.0.
+	* m2/twoDsim.def:  introduce spring debug colours
+	and spring damping.
+	* m2/twoDsim.mod:  implement spring debug colours
+	and spring damping.
+	* python/pge.py:  introduce spring debug colours
+	and spring damping.
+	runme:  remove the execution of the test code.
+
 2017-07-05      Gaius Mulley <gaius@gnu.org>
 
 	* more bugfixes surrounding the springs.

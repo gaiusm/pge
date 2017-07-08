@@ -393,8 +393,34 @@ END put_yaccel ;
 
 PROCEDURE draw_spring (id: CARDINAL; c: CARDINAL; w: REAL) ;
 BEGIN
-   twoDsim.draw_spring (lookupDef (object, id), c, w)
+   twoDsim.draw_spring (lookupDef (object, id),
+                        lookupDef (colour, c), w)
 END draw_spring ;
+
+
+(*
+   end_spring - draw the objects at the end of the spring with
+                colour, c, when the object comes to rest.
+*)
+
+PROCEDURE end_spring (id: CARDINAL; c: CARDINAL) ;
+BEGIN
+   twoDsim.end_spring (lookupDef (object, id),
+                       lookupDef (colour, c))
+END end_spring ;
+
+
+(*
+   mid_spring - when the spring reaches its rest point draw
+                the objects connected by the spring with
+                colour, c.
+*)
+
+PROCEDURE mid_spring (id: CARDINAL; c: CARDINAL) ;
+BEGIN
+   twoDsim.mid_spring (lookupDef (object, id),
+                       lookupDef (colour, c))
+END mid_spring ;
 
 
 (*
@@ -617,12 +643,12 @@ END fix ;
             between id1 and id2.
 *)
 
-PROCEDURE spring (id1, id2: CARDINAL; k, l: REAL) : CARDINAL ;
+PROCEDURE spring (id1, id2: CARDINAL; k, d, l: REAL) : CARDINAL ;
 VAR
    ti, id: CARDINAL ;
 BEGIN
    printf ("before twoDsim.spring\n") ;
-   ti := twoDsim.spring (lookupDef (object, id1), lookupDef (object, id2), k, l) ;
+   ti := twoDsim.spring (lookupDef (object, id1), lookupDef (object, id2), k, d, l) ;
    printf ("before addDef\n") ;
    id := addDef (object, ti) ;
    printf ("before lookupDef\n") ;

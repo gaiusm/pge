@@ -44,7 +44,7 @@ extern "C" void process_event (void);
 extern "C" unsigned int rotate (unsigned int id, double angle);
 extern "C" unsigned int accel (unsigned int id, double ax, double ay);
 extern "C" unsigned int velocity (unsigned int id, double vx, double vy);
-extern "C" unsigned int spring (unsigned int id1, unsigned int id2, double k, double l);
+extern "C" unsigned int spring (unsigned int id1, unsigned int id2, double k, double d, double l);
 extern "C" unsigned int circle (double x0, double y0, double radius, unsigned int c);
 extern "C" unsigned int fix (unsigned int id);
 extern "C" unsigned int mass (unsigned int id, double m);
@@ -73,6 +73,8 @@ extern "C" void put_xaccel (unsigned int id, double d);
 extern "C" void put_yaccel (unsigned int id, double d);
 extern "C" void set_colour (unsigned int id, unsigned int c);
 extern "C" void draw_spring (unsigned int id, unsigned int c, double w);
+extern "C" void end_spring (unsigned int id, unsigned int c);
+extern "C" void mid_spring (unsigned int id, unsigned int c);
 
 extern "C" void gravity (double g);
 
@@ -114,7 +116,7 @@ extern "C" void process_event (void);
 extern "C" unsigned int rotate (unsigned int id, double angle);
 extern "C" unsigned int accel (unsigned int id, double ax, double ay);
 extern "C" unsigned int velocity (unsigned int id, double vx, double vy);
-extern "C" unsigned int spring (unsigned int id1, unsigned int id2, double k, double l);
+extern "C" unsigned int spring (unsigned int id1, unsigned int id2, double k, double d, double l);
 extern "C" unsigned int circle (double x0, double y0, double radius, unsigned int c);
 extern "C" unsigned int fix (unsigned int id);
 extern "C" unsigned int mass (unsigned int id, double m);
@@ -144,6 +146,8 @@ extern "C" void put_yaccel (unsigned int id, double d);
 
 extern "C" void set_colour (unsigned int id, unsigned int c);
 extern "C" void draw_spring (unsigned int id, unsigned int c, double w);
+extern "C" void end_spring (unsigned int id, unsigned int c);
+extern "C" void mid_spring (unsigned int id, unsigned int c);
 
 extern "C" void gravity (double g);
 extern "C" unsigned int purple (void);

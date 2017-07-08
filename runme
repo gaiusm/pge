@@ -18,7 +18,7 @@ function compile () {
    # ../${PGE}/configure --enable-langc
    ../${PGE}/configure --enable-langm2 --enable-maintainer
    make
-   ./localrun.sh ../${PGE}/examples/springs/simple.py
+   # ./localrun.sh ../${PGE}/examples/springs/simple.py
    # ./localrun.sh ../${PGE}/examples/trapped/trapped.py
    # ./localrun.sh ../${PGE}/examples/test/test.py
    # make pge-maintainer && make && make trapped

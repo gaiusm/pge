@@ -588,9 +588,35 @@ class object:
     def draw (self, c, w):
         self._check_not_deleted ("spring no longer exists")
         self._check_type ([spring_t], "expected a spring")
-        c._param_colour ("the second parameter to draw is expected to be a colour")
+        c._param_colour ("the first parameter to draw is expected to be a colour")
         print self.o, c._get_pgeif_colour (), w
         pgeif.draw_spring (self.o, c._get_pgeif_colour (), w)
+        return self
+
+    #
+    #  end - draw the objects at the end of the spring with
+    #        colour, c, when the object comes to rest.
+    #
+    def end (self, c):
+        self._check_not_deleted ("spring no longer exists")
+        self._check_type ([spring_t], "expected a spring")
+        c._param_colour ("the parameter to end is expected to be a colour")
+        print self.o, c._get_pgeif_colour ()
+        pgeif.end_spring (self.o, c._get_pgeif_colour ())
+        print "assigned c", c._get_pgeif_colour ()
+        return self
+
+    #
+    #  mid - draw a debugging frame when the spring reaches its rest point.
+    #        The objects connected by the spring are drawn with colour, c.
+    #
+    def mid (self, c):
+        self._check_not_deleted ("spring no longer exists")
+        self._check_type ([spring_t], "expected a spring")
+        c._param_colour ("the parameter to mid is expected to be a colour")
+        print self.o, c._get_pgeif_colour ()
+        pgeif.mid_spring (self.o, c._get_pgeif_colour ())
+        print "assigned c", c._get_pgeif_colour ()
         return self
 
 #
@@ -796,7 +822,7 @@ def _sub (ob, level):
 #           spring starts at rest between, ob1, and, ob2.
 #
 
-def spring (ob1, ob2, k, l = None):
+def spring (ob1, ob2, k, d, l = None):
     ob1._check_not_deleted ("a spring attachment")
     ob2._check_not_deleted ("a spring attachment")
     ob1._check_type ([box_t, circle_t], "creating a spring, first parameter")
@@ -804,7 +830,7 @@ def spring (ob1, ob2, k, l = None):
     if l == None:
         l = -1
     print "before pgeif.spring"
-    id = pgeif.spring (ob1.o, ob2.o, k, l)
+    id = pgeif.spring (ob1.o, ob2.o, k, d, l)
     print "after pgeif.spring"
     ob = object (spring_t, id, None, 0)
     _register (id, ob)

@@ -57,7 +57,7 @@ def main ():
     prev = left
     for x in range (35, 75, 10):
         step = placeBall (wood_dark, float (x) / 100.0, 0.5, 0.04).mass (0.3)
-        s = pge.spring (prev, step, 1000.0, 0.1).draw (yellow, 0.002)
+        s = pge.spring (prev, step, 1000.0, 900.0, 0.1).draw (yellow, 0.002)
         prev = step
     s = pge.spring (right, prev, 100.0, 0.1).draw (yellow, 0.002)
     gb = placeBall (gold, 0.7, 0.8, 0.01).mass (0.1)
