@@ -1,3 +1,26 @@
+2017-07-10      Gaius Mulley <gaius@gnu.org>
+
+	* i/pgeif.i:  (create_function_event) uses another
+          parameter for a possible object.  (when_spring)
+          new function.
+	* m2/pgeif.def:  (create_function_event) uses another
+          parameter for a possible object.  (when_spring)
+          new function.
+	* m2/pgeif.mod:  (create_function_event) pass through
+          extra parameter.  (when_spring) new function.
+	* m2/twoDsim.mod:  turn off DebugTrace.  Set FrameSprings
+          on.  Add an extra field to fcDesc (param).  New
+          field to spDesc (func).  (doCalcSpringForce) New procedure.
+          (doCalcSpringForce) New procedure.
+          (doApplyForce) New procedure.  Implement frame based
+          physics for springs.  Hide printfs behind trace conditions.
+          Only apply forces for active objects.  Calculate spring
+          length events independantly from each other.  Implement
+          when_spring.
+	* python/pge.py:  (when) New function.  Add optional
+          extra parameter to the function call back
+	  (an object parameter or None if zero).
+
 2017-07-08      Gaius Mulley <gaius@gnu.org>
 
 	* examples/springs/bridge.py:  updated with the new

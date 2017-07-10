@@ -4,7 +4,7 @@ import pge, sys
 from pygame.locals import *
 
 
-print "starting exampleBoxes"
+print "starting unequal"
 # pge.batch ()
 pge.interactive ()
 
@@ -46,32 +46,26 @@ def placeBoarders (thickness, color):
 def placeBall (kind, x, y, r):
     return pge.circle (x, y, r, kind)
 
-def snapIt (e, o):
-    o.rm ()
-
 def main ():
-    global gb, sides, springs
+    global gb, sides
 
     spring_power = 500.0
     damping = 20.0
 
     placeBoarders (0.01, wood_dark)
 
-    left = placeBall (wood_light, 0.25, 0.45, 0.03).fix ()
-    right = placeBall (wood_light, 0.75, 0.45, 0.03).fix ()
+    left = placeBall (wood_light, 0.25, 0.65, 0.03).fix ()
+    right = placeBall (wood_light, 0.75, 0.65, 0.03).fix ()
 
     prev = left
-    springs = []
     for x in range (35, 75, 10):
-        step = placeBall (wood_dark, float (x) / 100.0, 0.37, 0.03).mass (0.3)
+        step = placeBall (wood_dark, float (x) / 100.0, 0.5, 0.04).mass (0.3)
         s = pge.spring (prev, step, spring_power, damping, 0.1).draw (yellow, 0.002)
-        s.when (0.17, snapIt)
-        springs += [s]
         prev = step
-
-    s = pge.spring (right, prev, spring_power, damping, 0.1).draw (yellow, 0.002)
-    s.when (0.17, snapIt)
-    gb = placeBall (steel, 0.7, 0.95, 0.01).mass (2.0)
+    gb = placeBall (steel, 0.7, 0.95, 0.01).mass (1.0)
+    fb1 = placeBall (blue_dark, 0.3, 0.8, 0.04).mass (0.3)
+    fb2 = placeBall (red, 0.4, 0.8, 0.04).mass (0.3)
+    fs = pge.spring (fb1, fb2, spring_power, damping, 0.1).draw (yellow, 0.002)
     print "before run"
     pge.record ()
     pge.draw_collision (True, False)

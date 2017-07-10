@@ -154,6 +154,7 @@ class object:
         self.kg = None
         self.collisionWith = []
         self.collisionp = None
+        self.springp = None
         self.w = None
         if c == None:
             self.c = self
@@ -619,6 +620,23 @@ class object:
         print "assigned c", c._get_pgeif_colour ()
         return self
 
+    #
+    #  when - when spring reaches a length, l, call function, p.
+    #         p is a function with two parameters, o and e.
+    #            o is this object.
+    #            e is the event.
+    #
+    def when (self, l, p):
+        global idcount, id2func
+        self._check_not_deleted ("spring no longer exists")
+        self._check_type ([spring_t], "expected a spring")
+        self.springp = p
+        idcount += 1
+        id2func[idcount] = p
+        pgeif.when_spring (self.o, l, idcount)
+        return self
+
+
 #
 #  _colspace - convert a float value 0.0..1.0 into integer 0..255.
 #
@@ -831,7 +849,7 @@ def spring (ob1, ob2, k, d, l = None):
         l = -1
     print "before pgeif.spring"
     id = pgeif.spring (ob1.o, ob2.o, k, d, l)
-    print "after pgeif.spring"
+    print "after pgeif.spring =", id
     ob = object (spring_t, id, None, 0)
     _register (id, ob)
     return ob
@@ -980,6 +998,7 @@ class event:
         self.__etype = 0
         self.__kind = 0
         self.__id = None
+        self.__param = 0
         if self._edata == None:
             _debugf ("final or timer event\n")
         else:
@@ -1004,11 +1023,12 @@ class event:
                 _debugf ("function event %d in %f seconds\n", t, self.__etime)
                 self.__etype = _unpackCard (self._edata[8:12]) # 4 bytes etype
                 self.__id = _unpackCard (self._edata[12:16]) # 4 bytes id
+                self.__param = _unpackCard (self._edata[16:20]) # 4 bytes unsigned int parameter
             elif t == spring_event:
                 _debugf ("spring event %d in %f seconds\n", t, self.__etime)
                 self.__etype = _unpackCard (self._edata[8:12]) # 4 bytes etype
                 self.__id = _unpackCard (self._edata[12:16]) # 4 bytes id
-                self.__kind = _unpackCard (self._edata[16:20]) # 4 bytes id
+                self.__kind = _unpackCard (self._edata[16:20]) # 4 bytes kind
             else:
                 _printf ("unknown event %d in %f seconds\n", t, self.__etime)
     def _set_frame_contents (self, data, length):
@@ -1037,9 +1057,13 @@ class event:
         elif self._type == function_event:
             # print "_process found timer_event", self.__id
             i = self.__id
+            p = self.__param
             if id2func.has_key (i):
-                # print "function", i, "about to be called"
-                id2func[i] (self)
+                # print "function", i, "about to be called with parameter", p
+                if p == 0:
+                    id2func[i] (self, None)
+                else:
+                    id2func[i] (self, id2ob[pgeif.l2h (p)])
                 # print "function", i, "finished"
             else:
                 # print "function", i, "has been cancelled"
@@ -1298,7 +1322,7 @@ def _finish_event ():
 def at_time (t, p):
     global idcount, id2func, slow_down_factor
     idcount += 1
-    pgeif.create_function_event (t / slow_down_factor, idcount)
+    pgeif.create_function_event (t / slow_down_factor, idcount, 0)
     id2func[idcount] = p
     return idcount
 

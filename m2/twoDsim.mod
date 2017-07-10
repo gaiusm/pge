@@ -49,11 +49,12 @@ CONST
    MaxPolygonPoints       =     6 ;
    DefaultFramesPerSecond =   100.0 ;
    Debugging              = FALSE ;
-   DebugTrace             =  TRUE ;
+   DebugTrace             = FALSE ;
    BufferedTime           =     0.1 ;
    InactiveTime           =     1.0 ;  (* the time we keep simulating after all collision events have expired *)
    Elasticity             =     0.98 ; (* how elastic are the collisions?                                     *)
    ElasticitySpring       =     0.9 ;  (* how much energy is lost in a spring bounce?                         *)
+   FrameSprings           =  TRUE ;
 
 TYPE
    ObjectType = (polygonOb, circleOb, springOb) ;
@@ -93,7 +94,8 @@ TYPE
             END ;
 
    fcDesc = RECORD
-               id: CARDINAL ;  (* id of the function to be called *)
+               id,                (* id of the function to be called *)
+	       param: CARDINAL ;  (* parameter of the function.  *)
             END ;
 
    spDesc = RECORD
@@ -150,7 +152,8 @@ TYPE
                midColour        : CARDINAL ; (* colour to draw the end of the spring.  *)
 	       draw, drawEnd,
                drawMid,                      (* should the spring be drawn?  *)
-	       hasCallBackLength: BOOLEAN ;  (* has user specified the call back length?  *)
+               hasCallBackLength: BOOLEAN ;  (* has user specified the call back length?  *)
+	       func             : CARDINAL ; (* the function to call when length is reached.  *)
             END ;
 
    Circle = RECORD
@@ -1209,8 +1212,11 @@ BEGIN
                v := scaleCoord (v, (r+d)/d) ;
                iptr^.c.pos := addCoord (jptr^.p.cOfG, v) ;
                *)
-               printf ("distance is nearzero, seen collision between circle and line, new position %g, %g\n",
-                       iptr^.c.pos.x, iptr^.c.pos.y)
+               IF trace
+               THEN
+                  printf ("distance is nearzero, seen collision between circle and line, new position %g, %g\n",
+                          iptr^.c.pos.x, iptr^.c.pos.y)
+               END
             ELSE
                (*
                printf ("line p1 = %g, %g -> %g, %g and point %g, %g nearest point %g, %g\n",
@@ -1626,21 +1632,33 @@ BEGIN
    getObjectValues (fixedp, fvx, fvy, fax, fay) ;
    getObjectValues (movingp, mvx, mvy, max, may) ;
    (* gdbif.sleepSpin ;  *)
-   printf ("fvx, fvy = %g, %g   ", fvx, fvy) ;
-   printf ("fax, fay = %g, %g\n", fvx, fvy) ;
-   printf ("mvx, mvy = %g, %g   ", mvx, mvy) ;
-   printf ("max, may = %g, %g\n", mvx, mvy) ;
+   IF trace
+   THEN
+      printf ("fvx, fvy = %g, %g   ", fvx, fvy) ;
+      printf ("fax, fay = %g, %g\n", fvx, fvy) ;
+      printf ("mvx, mvy = %g, %g   ", mvx, mvy) ;
+      printf ("max, may = %g, %g\n", mvx, mvy)
+   END ;
    vfm := subCoord (initCoord (fvx, fvy), initCoord (mvx, mvy)) ;
    s := subCoord (getCofG (fixed), getCofG (moving)) ;
    n := normaliseCoord (s) ;
-   printf ("damping value = %g\n", d * (dotProd (vfm, s) / lengthCoord (s))) ;
-   f1 := scaleCoord (n, k * (l1 - l0) - d * (dotProd (vfm, s) / lengthCoord (s))) ;
-
-   printf ("f1 = [%g, %g]\n", f1.x, f1.y) ;
+   IF trace
+   THEN
+      printf ("spring value = %g\n", k * (l1 - l0)) ;
+      printf ("damping value = %g\n", d * (dotProd (vfm, s) / lengthCoord (s)))
+   END ;
+   f1 := scaleCoord (n, k * (l1 - l0) + d * (dotProd (vfm, s) / lengthCoord (s))) ;
+   IF trace
+   THEN
+      printf ("vector f1 = [%g, %g]\n", f1.x, f1.y)
+   END ;
    movingp^.forceVec := addCoord (movingp^.forceVec, f1) ;
    sprp^.s.f1 := negateCoord (f1) ;
    sprp^.s.f2 := f1 ;
-   printf ("force = [%g, %g]\n", movingp^.forceVec.x, movingp^.forceVec.y)
+   IF trace
+   THEN
+      printf ("force = [%g, %g]\n", movingp^.forceVec.x, movingp^.forceVec.y)
+   END
 END calcSpringFixed ;
 
 
@@ -1670,17 +1688,27 @@ BEGIN
    getObjectValues (o1p, fvx, fvy, fax, fay) ;
    getObjectValues (o2p, mvx, mvy, max, may) ;
    (* gdbif.sleepSpin ;  *)
-   printf ("fvx, fvy = %g, %g   ", fvx, fvy) ;
-   printf ("fax, fay = %g, %g\n", fvx, fvy) ;
-   printf ("mvx, mvy = %g, %g   ", mvx, mvy) ;
-   printf ("max, may = %g, %g\n", mvx, mvy) ;
+   IF trace
+   THEN
+      printf ("fvx, fvy = %g, %g   ", fvx, fvy) ;
+      printf ("fax, fay = %g, %g\n", fvx, fvy) ;
+      printf ("mvx, mvy = %g, %g   ", mvx, mvy) ;
+      printf ("max, may = %g, %g\n", mvx, mvy)
+   END ;
    vfm := subCoord (initCoord (fvx, fvy), initCoord (mvx, mvy)) ;
    s := subCoord (getCofG (o1), getCofG (o2)) ;
    n := normaliseCoord (s) ;
-   printf ("damping value = %g\n", d * (dotProd (vfm, s) / lengthCoord (s))) ;
-   f1 := scaleCoord (n, k * (l1 - l0) - d * (dotProd (vfm, s) / lengthCoord (s))) ;
-
-   printf ("f1 = [%g, %g]\n", f1.x, f1.y) ;
+   IF trace
+   THEN
+      printf ("spring value = %g\n", k * (l1 - l0)) ;
+      printf ("damping value = %g\n", d * (dotProd (vfm, s) / lengthCoord (s)))
+   END ;
+   f1 := scaleCoord (n, k * (l1 - l0) + d * (dotProd (vfm, s) / lengthCoord (s))) ;
+   IF trace
+   THEN
+      printf ("vector f1 = [%g, %g]\n", f1.x, f1.y) ;
+      printf ("f1 = [%g, %g]\n", f1.x, f1.y)
+   END ;
    o1p^.forceVec := subCoord (o1p^.forceVec, f1) ;
    o2p^.forceVec := addCoord (o2p^.forceVec, f1) ;
    sprp^.s.f1 := negateCoord (f1) ;
@@ -1718,15 +1746,13 @@ END calcSpringMoving ;
 
 
 (*
-   calcSpringForce - calculate the forces a spring, id, has on its components.
+   doCalcSpringForce -
 *)
 
-PROCEDURE calcSpringForce (id: CARDINAL) ;
+PROCEDURE doCalcSpringForce (id: CARDINAL; idp: Object) ;
 VAR
-   idp     : Object ;
    id1, id2: CARDINAL ;
 BEGIN
-   idp := GetIndice (objects, id) ;
    CASE idp^.object OF
 
    springOb:  id1 := idp^.s.id1 ;
@@ -1748,6 +1774,22 @@ BEGIN
 
    ELSE
    END
+END doCalcSpringForce ;
+
+
+(*
+   calcSpringForce - calculate the forces a spring, id, has on its components.
+*)
+
+PROCEDURE calcSpringForce (id: CARDINAL) ;
+VAR
+   idp: Object ;
+BEGIN
+   idp := GetIndice (objects, id) ;
+   IF objectExists (idp)
+   THEN
+      doCalcSpringForce (id, idp)
+   END
 END calcSpringForce ;
 
 
@@ -1765,12 +1807,66 @@ BEGIN
    i := 1 ;
    WHILE i<=n DO
       iptr := GetIndice (objects, i) ;
-      iptr^.forceVec := initCoord (0.0, 0.0) ;
-      iptr^.ke := 0.0 ;
-      iptr^.pe := 0.0 ;
+      IF objectExists (iptr)
+      THEN
+         iptr^.forceVec := initCoord (0.0, 0.0) ;
+         iptr^.ke := 0.0 ;
+         iptr^.pe := 0.0
+      END ;
       INC (i)
    END
 END zeroForceEnergy ;
+
+
+(*
+   doApplyForce -
+*)
+
+PROCEDURE doApplyForce (i: CARDINAL; iptr: Object) ;
+BEGIN
+   IF (isCircle (i) OR isPolygon (i)) AND (NOT isFixed (i))
+   THEN
+      IF nearZero (get_mass (i))
+      THEN
+         printf ("moving object %d needs a mass before a force can be applied\n", i)
+      ELSE
+         IF trace
+         THEN
+            printf ("object %d has force vector (%g,  %g)\n", i, iptr^.forceVec.x, iptr^.forceVec.y) ;
+            printf ("object %d has (saccel = (%g, %g)\n", i, iptr^.saccel.x, iptr^.saccel.y)
+         END ;
+         iptr^.saccel := initCoord (iptr^.forceVec.x / get_mass (i), iptr^.forceVec.y / get_mass (i)) ;
+         IF trace
+         THEN
+            printf ("object %d now has (saccel (%g, %g)\n", i, iptr^.saccel.x, iptr^.saccel.y)
+         END
+         (* iptr^.stationary := NOT (nearZero (iptr^.saccel.x) AND nearZero (iptr^.saccel.y)) *)
+      END
+   ELSIF isSpringObject (i)
+   THEN
+      (* work out the acceleration due to the spring on each attached object.  *)
+      IF NOT isFixed (iptr^.s.id1)
+      THEN
+         IF nearZero (get_mass (iptr^.s.id1))
+         THEN
+            printf ("object %d must be given a mass\n", iptr^.s.id1) ;
+            exit (1)
+         ELSE
+            iptr^.s.a1 := scaleCoord (iptr^.s.f1, 1.0/get_mass (iptr^.s.id1))
+         END
+      END ;
+      IF NOT isFixed (iptr^.s.id2)
+      THEN
+         IF nearZero (get_mass (iptr^.s.id2))
+         THEN
+            printf ("object %d must be given a mass\n", iptr^.s.id2) ;
+            exit (1)
+         ELSE
+            iptr^.s.a2 := scaleCoord (iptr^.s.f2, 1.0/get_mass (iptr^.s.id2))
+         END
+      END
+   END
+END doApplyForce ;
 
 
 (*
@@ -1787,41 +1883,9 @@ BEGIN
    i := 1 ;
    WHILE i<=n DO
       iptr := GetIndice (objects, i) ;
-      IF (isCircle (i) OR isPolygon (i)) AND (NOT isFixed (i))
+      IF objectExists (iptr)
       THEN
-         IF nearZero (get_mass (i))
-         THEN
-            printf ("moving object %d needs a mass before a force can be applied\n", i)
-         ELSE
-            printf ("object %d has force vector (%g,  %g)\n", i, iptr^.forceVec.x, iptr^.forceVec.y) ;
-            printf ("object %d has (saccel = (%g, %g)\n", i, iptr^.saccel.x, iptr^.saccel.y) ;
-            iptr^.saccel := initCoord (iptr^.forceVec.x / get_mass (i), iptr^.forceVec.y / get_mass (i)) ;
-            printf ("object %d now has (saccel (%g, %g)\n", i, iptr^.saccel.x, iptr^.saccel.y) ;
-            (* iptr^.stationary := NOT (nearZero (iptr^.saccel.x) AND nearZero (iptr^.saccel.y)) *)
-         END
-      ELSIF isSpringObject (i)
-      THEN
-         (* work out the acceleration due to the spring on each attached object.  *)
-         IF NOT isFixed (iptr^.s.id1)
-         THEN
-            IF nearZero (get_mass (iptr^.s.id1))
-            THEN
-               printf ("object %d must be given a mass\n", iptr^.s.id1) ;
-               exit (1)
-            ELSE
-               iptr^.s.a1 := scaleCoord (iptr^.s.f1, 1.0/get_mass (iptr^.s.id1))
-            END
-         END ;
-         IF NOT isFixed (iptr^.s.id2)
-         THEN
-            IF nearZero (get_mass (iptr^.s.id2))
-            THEN
-               printf ("object %d must be given a mass\n", iptr^.s.id2) ;
-               exit (1)
-            ELSE
-               iptr^.s.a2 := scaleCoord (iptr^.s.f2, 1.0/get_mass (iptr^.s.id2))
-            END
-         END
+         doApplyForce (i, iptr)
       END ;
       INC (i)
    END
@@ -1902,14 +1966,23 @@ END calcEnergy ;
 
 PROCEDURE recalculateForceEnergy ;
 BEGIN
-   printf ("enter recalculateForceEnergy\n") ;
+   IF trace
+   THEN
+      printf ("enter recalculateForceEnergy\n")
+   END ;
    zeroForceEnergy ;
-   dumpWorld ;
+   IF trace
+   THEN
+      dumpWorld
+   END ;
    calcForce ;
    (* calcEnergy ; *)
    applyForce ;
-   dumpWorld ;
-   printf ("exit recalculateForceEnergy\n")
+   IF trace
+   THEN
+      dumpWorld ;
+      printf ("exit recalculateForceEnergy\n")
+   END
 END recalculateForceEnergy ;
 
 
@@ -2592,7 +2665,11 @@ VAR
    i, n    : CARDINAL ;
    optr    : Object ;
 BEGIN
-   (* updatePhysics (TRUE) ;     (* --fixme-- ?  *) *)
+   IF FrameSprings
+   THEN
+      (* are we using frame based simulation to solve spring motion.  *)
+      updatePhysics (TRUE)
+   END ;
    Assert ((e = NIL) OR (e^.kind = collisionKind) OR (e^.kind = springKind), __LINE__) ;
    IF DebugTrace
    THEN
@@ -2880,7 +2957,7 @@ BEGIN
                                    ELSE
                                       printf (" polygon (%d) on edge %d\n", pp.pid2, pp.lineCorner2)
                                    END |
-            functionEvent      :   printf ("function event %d\n", fc.id) |
+            functionEvent      :   printf ("function event %d (%d)\n", fc.id, fc.param) |
             springEvent        :   printf ("spring %d reached ", sp.id) ;
 
                                    CASE sp.type OF
@@ -4209,7 +4286,10 @@ BEGIN
                RETURN TRUE
             END
          ELSE
-            printf ("false the collisions points do not touch ignoring = %g, %g\n", cp.x, cp.y)
+            IF trace
+            THEN
+               printf ("false the collisions points do not touch ignoring = %g, %g\n", cp.x, cp.y)
+            END
          END
       END
    END ;
@@ -5951,6 +6031,8 @@ BEGIN
    END ;
    IF iptr^.s.hasCallBackLength
    THEN
+      t := -1.0 ;
+      edesc := NIL ;
       getSpringEndValues (id1, c1, v1, a1) ;
       getSpringEndValues (id2, c2, v2, a2) ;
       IF earlierSpringLength (edesc, i, t, ts,
@@ -5963,7 +6045,11 @@ BEGIN
          END ;
          edesc := makeSpringDesc (edesc, i, callPoint) ;
          addSpringEvent (ts, doSpring, edesc) ;
-         anticipateSpring (ts, edesc)
+         anticipateSpring (ts, edesc) ;
+         IF trace
+         THEN
+            printQueue
+         END
       END
    END
 END calcSpringLengthEvents ;
@@ -6222,7 +6308,10 @@ PROCEDURE zeroSpringAccel (o: Object) ;
 BEGIN
    IF (o^.object = springOb) AND (NOT o^.deleted) AND (NOT o^.fixed)
    THEN
-      printf ("zero spring acceleration\n") ;
+      IF trace
+      THEN
+         printf ("zero spring acceleration\n")
+      END ;
       o^.s.a1 := initCoord (0.0, 0.0) ;
       o^.s.a2 := initCoord (0.0, 0.0) ;
       o^.s.f1 := initCoord (0.0, 0.0) ;
@@ -6241,7 +6330,10 @@ VAR
    idptr,
    id1ptr, id2ptr: Object ;
 BEGIN
-   printf ("doSpringMidPoint called at time %g\n", currentTime) ;
+   IF trace
+   THEN
+      printf ("doSpringMidPoint called at time %g\n", currentTime)
+   END ;
 
    (* gdbif.sleepSpin () ;  *)
 
@@ -6255,35 +6347,41 @@ BEGIN
 
    IF idptr^.s.drawMid
    THEN
-      printf ("about to draw spring mid frame\n") ;
+      IF trace
+      THEN
+         printf ("about to draw spring mid frame\n")
+      END ;
       frameNote ;
       drawFrame (NIL) ;
-      printf ("drawing mid points of the spring\n") ;
+      IF trace
+      THEN
+         printf ("drawing mid points of the spring\n")
+      END ;
       doDrawFrame (id1ptr, 0.0, idptr^.s.midColour) ;
       doDrawFrame (id2ptr, 0.0, idptr^.s.midColour) ;
       flipBuffer
    END ;
 
-   dumpObject (idptr) ;
+   IF NOT FrameSprings
+   THEN
+      IF trace
+      THEN
+         dumpObject (idptr)
+      END ;
 
-   reverseSpringAccel (idptr) ;
+      reverseSpringAccel (idptr) ;
 
-   dumpObject (id1ptr) ;
-   dumpObject (id2ptr) ;
+      IF trace
+      THEN
+         dumpObject (id1ptr) ;
+         dumpObject (id2ptr)
+      END
+   END ;
 
-   (* gdbif.sleepSpin ; *)
-(*
-   reverseSpringAccel (id1ptr) ;
-   reverseSpringAccel (id2ptr) ;
-
-   checkStationarySpring (id1ptr) ;
-   checkStationarySpring (id2ptr) ;
-
-   dumpObject (id1ptr) ;
-   dumpObject (id2ptr) ;
-*)
-
-   printf ("doSpringMidPoint finishing\n")
+   IF trace
+   THEN
+      printf ("doSpringMidPoint finishing\n")
+   END
 END doSpringMidPoint ;
 
 
@@ -6303,23 +6401,32 @@ BEGIN
 
    IF idptr^.s.drawEnd
    THEN
-      printf ("about to draw spring end frame\n") ;
+      IF trace
+      THEN
+         printf ("about to draw spring end frame\n")
+      END ;
       frameNote ;
       drawFrame (NIL) ;
-      printf ("drawing end points of the spring\n") ;
+      IF trace
+      THEN
+         printf ("drawing end points of the spring\n")
+      END ;
       doDrawFrame (id1ptr, 0.0, idptr^.s.endColour) ;
       doDrawFrame (id2ptr, 0.0, idptr^.s.endColour) ;
       flipBuffer
    END ;
 
-   (* we remove some energy from the moving objects.  *)
+   IF NOT FrameSprings
+   THEN
+      (* we remove some energy from the moving objects.  *)
 
-   recalculateForceEnergy ;
+      recalculateForceEnergy ;
 
-   inElasticSpring (id1ptr^.saccel.x) ;
-   inElasticSpring (id1ptr^.saccel.y) ;
-   inElasticSpring (id2ptr^.saccel.x) ;
-   inElasticSpring (id2ptr^.saccel.y)
+      inElasticSpring (id1ptr^.saccel.x) ;
+      inElasticSpring (id1ptr^.saccel.y) ;
+      inElasticSpring (id2ptr^.saccel.x) ;
+      inElasticSpring (id2ptr^.saccel.y)
+   END
 END doSpringEndPoint ;
 
 
@@ -6329,9 +6436,22 @@ END doSpringEndPoint ;
 *)
 
 PROCEDURE doSpringCallPoint (e: eventQueue) ;
+VAR
+   o : Object ;
+   fc: fcDesc ;
 BEGIN
-   (* we remove some energy from the moving objects.  *)
-   (* --fixme-- finish this.  *)
+   (* gdbif.sleepSpin ;  *)
+   Assert (e^.ePtr^.etype = springEvent, __LINE__) ;
+   Assert (e^.ePtr^.sp.type = callPoint, __LINE__) ;
+   o := GetIndice (objects, e^.ePtr^.sp.id) ;
+   Assert (isSpringObject (e^.ePtr^.sp.id), __LINE__) ;
+   o^.s.hasCallBackLength := FALSE ;  (* turn this off.  *)
+   (* now invoke the call.  *)
+   createFunctionEvent (0.0, o^.s.func, o^.id) ;
+   IF trace
+   THEN
+      printQueue
+   END
 END doSpringCallPoint ;
 
 
@@ -6354,7 +6474,8 @@ BEGIN
          (* gdbif.sleepSpin *)
       END
    END ;
-   updatePhysics (e^.ePtr^.sp.type = endPoint) ;
+
+   updatePhysics ((e^.ePtr^.sp.type = endPoint) OR FrameSprings) ;
 
    springOccurred (e^.ePtr) ;
    CASE e^.ePtr^.sp.type OF
@@ -6479,6 +6600,26 @@ BEGIN
       printf ("only spring objects can be modified by the mid primitive\n")
    END
 END mid_spring ;
+
+
+(*
+   when_spring - when the spring, id, reaches, length call, func.
+*)
+
+PROCEDURE when_spring (id: CARDINAL; length: REAL; func: CARDINAL) ;
+VAR
+   o: Object ;
+BEGIN
+   o := GetIndice (objects, id) ;
+   IF isSpringObject (id)
+   THEN
+      o^.s.hasCallBackLength := TRUE ;
+      o^.s.cbl := length ;
+      o^.s.func := func
+   ELSE
+      printf ("only spring objects can be modified by the when primitive\n")
+   END
+END when_spring ;
 
 
 (*
@@ -6925,7 +7066,7 @@ END isSpring ;
                          in the future.
 *)
 
-PROCEDURE createFunctionEvent (t: REAL; id: CARDINAL) ;
+PROCEDURE createFunctionEvent (t: REAL; id: CARDINAL; param: CARDINAL) ;
 VAR
    e    : eventQueue ;
    edesc: eventDesc ;
@@ -6938,6 +7079,7 @@ BEGIN
    edesc := newDesc () ;
    edesc^.etype := functionEvent ;
    edesc^.fc.id := id ;
+   edesc^.fc.param := param ;
    e := newEvent () ;
    WITH e^ DO
       kind := functionKind ;
@@ -7266,7 +7408,8 @@ END writePolygonPolygon ;
 
 PROCEDURE writeFunction (fc: fcDesc) ;
 BEGIN
-   writeCard (file, fc.id)
+   writeCard (file, fc.id) ;
+   writeCard (file, fc.param)
 END writeFunction ;
 
 

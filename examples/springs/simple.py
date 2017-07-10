@@ -56,7 +56,7 @@ def main ():
 
     first = placeBall (wood_light, 0.55, 0.95, 0.03).fix ()
     second = placeBall (wood_dark, 0.55, 0.35, 0.03).mass (1.0)
-    s = pge.spring (first, second, 100.0, 10.0, 0.5).draw (yellow, 0.005).end (blue).mid (white)
+    s = pge.spring (first, second, 500.0, 5.0, 0.5).draw (yellow, 0.005)# .end (blue).mid (white)
     midline (0.95-0.5, 0.01)
     print "before run"
     pge.record ()

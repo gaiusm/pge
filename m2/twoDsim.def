@@ -252,6 +252,13 @@ PROCEDURE mid_spring (id: CARDINAL; c: CARDINAL) ;
 
 
 (*
+   when_spring - when the spring, id, reaches, length call, func.
+*)
+
+PROCEDURE when_spring (id: CARDINAL; length: REAL; func: CARDINAL) ;
+
+
+(*
    circle - adds a circle to the world.  Center
             defined by: x0, y0 radius, radius.
 *)
@@ -369,10 +376,11 @@ PROCEDURE isSpring () : BOOLEAN ;
 
 (*
    createFunctionEvent - creates a function event at time, t,
-                         in the future.
+                         in the future.  The function id is called
+                         with parameter, param.  For example: id (param).
 *)
 
-PROCEDURE createFunctionEvent (t: REAL; id: CARDINAL) ;
+PROCEDURE createFunctionEvent (t: REAL; id, param: CARDINAL) ;
 
 
 (*

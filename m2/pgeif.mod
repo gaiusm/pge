@@ -424,6 +424,16 @@ END mid_spring ;
 
 
 (*
+   when_spring - when the spring, id, reaches, length call, func.
+*)
+
+PROCEDURE when_spring (id: CARDINAL; length: REAL; func: CARDINAL) ;
+BEGIN
+   twoDsim.when_spring (lookupDef (object, id), length, func)
+END when_spring ;
+
+
+(*
    apply_impulse - applies an impulse of magnitude along vector
                    [x, y] for object, id.
 *)
@@ -764,12 +774,13 @@ END is_spring ;
 
 (*
    create_function_event - creates a function event at time, t,
-                           in the future.
+                           in the future.  Function id is called
+                           with parameter, param.
 *)
 
-PROCEDURE create_function_event (t: REAL; id: CARDINAL) ;
+PROCEDURE create_function_event (t: REAL; id, param: CARDINAL) ;
 BEGIN
-   twoDsim.createFunctionEvent (t, id)
+   twoDsim.createFunctionEvent (t, id, param)
 END create_function_event ;
 
 

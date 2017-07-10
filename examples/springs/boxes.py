@@ -46,32 +46,28 @@ def placeBoarders (thickness, color):
 def placeBall (kind, x, y, r):
     return pge.circle (x, y, r, kind)
 
-def snapIt (e, o):
-    o.rm ()
-
 def main ():
-    global gb, sides, springs
+    global gb, sides
 
-    spring_power = 500.0
-    damping = 20.0
+    spring_power = 100.0
+    damping = 1.0
 
     placeBoarders (0.01, wood_dark)
 
-    left = placeBall (wood_light, 0.25, 0.45, 0.03).fix ()
-    right = placeBall (wood_light, 0.75, 0.45, 0.03).fix ()
+    top_left = placeBall (wood_light, 0.25, 0.85, 0.02).mass (0.1)
+    top_right = placeBall (wood_light, 0.45, 0.80, 0.02).mass (0.1)
+    bot_left = placeBall (wood_light, 0.25, 0.65, 0.02).mass (0.1)
+    bot_right = placeBall (wood_light, 0.45, 0.60, 0.02).mass (0.1)
+    s0 = pge.spring (top_left, top_right, spring_power, damping).draw (yellow, 0.002)
+    s1 = pge.spring (top_right, bot_right, spring_power, damping).draw (yellow, 0.002)
+    s2 = pge.spring (bot_right, bot_left, spring_power, damping).draw (yellow, 0.002)
+    s3 = pge.spring (bot_left, top_left, spring_power, damping).draw (yellow, 0.002)
+    s4 = pge.spring (top_left, bot_right, spring_power, damping).draw (yellow, 0.002)
+    s5 = pge.spring (bot_left, top_right, spring_power, damping).draw (yellow, 0.002)
 
-    prev = left
-    springs = []
-    for x in range (35, 75, 10):
-        step = placeBall (wood_dark, float (x) / 100.0, 0.37, 0.03).mass (0.3)
-        s = pge.spring (prev, step, spring_power, damping, 0.1).draw (yellow, 0.002)
-        s.when (0.17, snapIt)
-        springs += [s]
-        prev = step
-
-    s = pge.spring (right, prev, spring_power, damping, 0.1).draw (yellow, 0.002)
-    s.when (0.17, snapIt)
-    gb = placeBall (steel, 0.7, 0.95, 0.01).mass (2.0)
+    for i in range (2, 7):
+        gb1 = placeBall (steel, float (i)/10.0, 0.9, 0.01).mass (1.0)
+    gb1 = placeBall (steel, 0.4, 0.9, 0.01).mass (1.0)
     print "before run"
     pge.record ()
     pge.draw_collision (True, False)

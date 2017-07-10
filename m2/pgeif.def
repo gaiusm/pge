@@ -51,7 +51,7 @@ EXPORT UNQUALIFIED ExceptionKind,
 		   put_xaccel, put_yaccel,
 		   apply_impulse, moving_towards, set_colour,
 		   draw_spring, end_spring, mid_spring,
-		   skip_until, fps ;
+		   when_spring, skip_until, fps ;
 
 
 TYPE
@@ -268,10 +268,11 @@ PROCEDURE is_spring () : BOOLEAN ;
 
 (*
    create_function_event - creates a function event at time, t,
-                           in the future.
+                           in the future.  Function id is called
+                           with parameter, param.
 *)
 
-PROCEDURE create_function_event (t: REAL; id: CARDINAL) ;
+PROCEDURE create_function_event (t: REAL; id, param: CARDINAL) ;
 
 
 (*
@@ -410,6 +411,13 @@ PROCEDURE end_spring (id: CARDINAL; c: CARDINAL) ;
 *)
 
 PROCEDURE mid_spring (id: CARDINAL; c: CARDINAL) ;
+
+
+(*
+   when_spring - when the spring, id, reaches, length call, func.
+*)
+
+PROCEDURE when_spring (id: CARDINAL; length: REAL; func: CARDINAL) ;
 
 
 (*
