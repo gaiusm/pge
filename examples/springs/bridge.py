@@ -25,6 +25,8 @@ gap = 0.01
 captured = None
 sides = []
 yellow = pge.rgb (0.8, 0.6, 0.15)
+fps_text = None
+last_fps = 0
 
 
 def myquit (e):
@@ -46,14 +48,33 @@ def placeBoarders (thickness, color):
 def placeBall (kind, x, y, r):
     return pge.circle (x, y, r, kind)
 
-def snapIt (e, o):
+def snap_it (e, o):
     o.rm ()
+
+def update_fps (e, o):
+    global last_fps, fps_text
+
+    fn = pge.get_frame_no ()
+    s = "fps %d" % (fn - last_fps)
+    if fps_text != None:
+        fps_text.rm ()
+    fps_text = pge.text (0.8, 0.1, s, white, 50, 1)
+    last_fps = fn
+    local_fps ()
+
+def drop_gb (e, o):
+    gb = placeBall (steel, 0.7, 0.92, 0.03).mass (2.0)
+    # pge.at_time (3.0, drop_gb)
+
+def local_fps ():
+    f = pge.at_time (1.0, update_fps)
 
 def main ():
     global gb, sides, springs
 
-    spring_power = 500.0
-    damping = 20.0
+    spring_power = 1000.0
+    damping = 10.0
+    snap_length = 0.16
 
     placeBoarders (0.01, wood_dark)
 
@@ -63,15 +84,16 @@ def main ():
     prev = left
     springs = []
     for x in range (35, 75, 10):
-        step = placeBall (wood_dark, float (x) / 100.0, 0.37, 0.03).mass (0.3)
+        step = placeBall (wood_dark, float (x) / 100.0, 0.33, 0.03).mass (0.9)
         s = pge.spring (prev, step, spring_power, damping, 0.1).draw (yellow, 0.002)
-        s.when (0.17, snapIt)
+        s.when (snap_length, snap_it)
         springs += [s]
         prev = step
 
     s = pge.spring (right, prev, spring_power, damping, 0.1).draw (yellow, 0.002)
-    s.when (0.17, snapIt)
-    gb = placeBall (steel, 0.7, 0.95, 0.01).mass (2.0)
+    s.when (snap_length, snap_it)
+    # pge.at_time (0.5, drop_gb)
+    drop_gb (None, None)
     print "before run"
     pge.record ()
     pge.draw_collision (True, False)
@@ -82,6 +104,7 @@ def main ():
     pge.register_handler (myquit, [QUIT])
     pge.register_handler (key_pressed, [KEYDOWN])
     pge.display_set_mode ([1000, 1000])
+    # local_fps ()
     pge.run (10.0)
     pge.finish_record ()
 

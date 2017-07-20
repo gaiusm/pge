@@ -43,31 +43,42 @@ def placeBoarders (thickness, color):
     e4 = pge.box (0.0, 1.0-thickness, 1.0, thickness, color).fix ()
     return e1, e2, e3, e4
 
-def midline (height, thickness):
-    m = pge.box (0.0, height, 1.0, thickness, white, -1)
-
 def placeBall (kind, x, y, r):
     return pge.circle (x, y, r, kind)
 
+def snapIt (e, o):
+    o.rm ()
+
 def main ():
-    global gb, sides
+    global gb, sides, springs
+
+    spring_power = 500.0
+    damping = 20.0
 
     placeBoarders (0.01, wood_dark)
 
-    first = placeBall (wood_light, 0.55, 0.95, 0.03).fix ()
-    second = placeBall (wood_dark, 0.55, 0.35, 0.03).mass (1.0)
-    s = pge.spring (first, second, 100.0, 3.0, 0.5).draw (yellow, 0.005)# .end (blue).mid (white)
-    midline (0.95-0.5, 0.01)
+    left = placeBall (wood_light, 0.50, 0.75, 0.03).fix ()
+
+    prev = left
+    springs = []
+    for x in range (35, 75, 10):
+        step = placeBall (wood_dark, float (x) / 100.0, 0.70, 0.03).mass (0.3)
+        s = pge.spring (prev, step, spring_power, damping, 0.1).draw (yellow, 0.002)
+        s.when (0.2, snapIt)
+        springs += [s]
+        prev = step
+
+    gb = placeBall (steel, 0.7, 0.95, 0.01).mass (2.0)
     print "before run"
     pge.record ()
     pge.draw_collision (True, False)
     pge.collision_colour (red)
-    # pge.gravity ()
+    pge.gravity ()
     pge.dump_world ()
     pge.slow_down (6.0)  # slows down real time by a factor of
     pge.register_handler (myquit, [QUIT])
     pge.register_handler (key_pressed, [KEYDOWN])
-    pge.display_set_mode ([800, 800])
+    pge.display_set_mode ([1000, 1000])
     pge.run (10.0)
     pge.finish_record ()
 

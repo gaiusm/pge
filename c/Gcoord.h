@@ -63,6 +63,12 @@ EXTERN coord_Coord coord_perpendicular (coord_Coord c);
 EXTERN coord_Coord coord_scaleCoord (coord_Coord c, double s);
 
 /*
+   negateCoord - negates both components of the vector, c.
+*/
+
+EXTERN coord_Coord coord_negateCoord (coord_Coord c);
+
+/*
    subCoord - returns a - b.
 */
 
@@ -91,6 +97,12 @@ EXTERN coord_Coord coord_rotateCoord (coord_Coord c, double theta);
 */
 
 EXTERN double coord_dotProd (coord_Coord a, coord_Coord b);
+
+/*
+   nearZeroCoord - returns TRUE if, a, is very close to (0, 0)
+*/
+
+EXTERN unsigned int coord_nearZeroCoord (coord_Coord a);
 #   ifdef __cplusplus
 }
 #   endif

@@ -42,6 +42,18 @@ EXTERN unsigned int roots_findOctic (double a, double b, double c, double d, dou
 EXTERN unsigned int roots_findQuadratic (double a, double b, double c, double *x0, double *x1);
 
 /*
+   findQuadraticRoots - returns the number of scalar values of x >= 0 which satisfy:
+
+                          2
+                        ax  +  bx + c == 0
+
+                        x[0] will be the smallest root >= 0
+                        x[1] is the next root.
+*/
+
+EXTERN unsigned int roots_findQuadraticRoots (double a, double b, double c, double *x, unsigned int _x_high);
+
+/*
    findQuartic - returns TRUE if a scalar root can be found for:
 
                    4      3      2
@@ -52,6 +64,15 @@ EXTERN unsigned int roots_findQuadratic (double a, double b, double c, double *x
 */
 
 EXTERN unsigned int roots_findQuartic (double a, double b, double c, double d, double e, double *x);
+
+/*
+   findQuarticRoots - returns the number of positive scalar roots which can be found for:
+
+                        4      3      2
+                      ax  +  bx  +  cx  +  dx +  e  == 0
+*/
+
+EXTERN unsigned int roots_findQuarticRoots (double a, double b, double c, double d, double e, double *x, unsigned int _x_high);
 
 /*
    findAllRootsQuartic - returns all the real roots for:

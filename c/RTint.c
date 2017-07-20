@@ -1,4 +1,4 @@
-/* automatically created by mc from /home/gaius/GM2/graft-5.2.0/gcc-5.2.0/gcc/gm2/gm2-libs/RTint.mod.  */
+/* automatically created by mc from /home/gaius/GM2/graft-5.4.0/gcc-5.4.0/gcc/gm2/gm2-libs/RTint.mod.  */
 
 #   if !defined (PROC_D)
 #      define PROC_D
@@ -533,7 +533,7 @@ void RTint_ReArmTimeVector (unsigned int vec, unsigned int micro, unsigned int s
   Assertion_Assert (micro < Microseconds);
   v = FindVectorNo (vec);
   if (v == NULL)
-    M2RTS_Halt ((char *) "/home/gaius/GM2/graft-5.2.0/gcc-5.2.0/gcc/gm2/gm2-libs/RTint.mod", 64, 256, (char *) "ReArmTimeVector", 15, (char *) "cannot find vector supplied", 27);
+    M2RTS_Halt ((char *) "/home/gaius/GM2/graft-5.4.0/gcc-5.4.0/gcc/gm2/gm2-libs/RTint.mod", 64, 256, (char *) "ReArmTimeVector", 15, (char *) "cannot find vector supplied", 27);
   else
     Selective_SetTime (v->rel, secs+DebugTime, micro);
 }
@@ -552,7 +552,7 @@ void RTint_GetTimeVector (unsigned int vec, unsigned int *micro, unsigned int *s
 
   v = FindVectorNo (vec);
   if (v == NULL)
-    M2RTS_Halt ((char *) "/home/gaius/GM2/graft-5.2.0/gcc-5.2.0/gcc/gm2/gm2-libs/RTint.mod", 64, 280, (char *) "GetTimeVector", 13, (char *) "cannot find vector supplied", 27);
+    M2RTS_Halt ((char *) "/home/gaius/GM2/graft-5.4.0/gcc-5.4.0/gcc/gm2/gm2-libs/RTint.mod", 64, 280, (char *) "GetTimeVector", 13, (char *) "cannot find vector supplied", 27);
   else
     {
       Selective_GetTime (v->rel, secs, micro);
@@ -574,14 +574,14 @@ void * RTint_AttachVector (unsigned int vec, void * p)
 
   v = FindVectorNo (vec);
   if (v == NULL)
-    M2RTS_Halt ((char *) "/home/gaius/GM2/graft-5.2.0/gcc-5.2.0/gcc/gm2/gm2-libs/RTint.mod", 64, 305, (char *) "AttachVector", 12, (char *) "cannot find vector supplied", 27);
+    M2RTS_Halt ((char *) "/home/gaius/GM2/graft-5.4.0/gcc-5.4.0/gcc/gm2/gm2-libs/RTint.mod", 64, 305, (char *) "AttachVector", 12, (char *) "cannot find vector supplied", 27);
   else
     {
       l = v->arg;
       v->arg = p;
       return l;
     }
-  ReturnException ("/home/gaius/GM2/graft-5.2.0/gcc-5.2.0/gcc/gm2/gm2-libs/RTint.def", 2, 1);
+  ReturnException ("/home/gaius/GM2/graft-5.4.0/gcc-5.4.0/gcc/gm2/gm2-libs/RTint.mod", 667, 27);
 }
 
 
@@ -602,7 +602,7 @@ void RTint_IncludeVector (unsigned int vec)
     {
       v = FindVectorNo (vec);
       if (v == NULL)
-        M2RTS_Halt ((char *) "/home/gaius/GM2/graft-5.2.0/gcc-5.2.0/gcc/gm2/gm2-libs/RTint.mod", 64, 331, (char *) "IncludeVector", 13, (char *) "cannot find vector supplied", 27);
+        M2RTS_Halt ((char *) "/home/gaius/GM2/graft-5.4.0/gcc-5.4.0/gcc/gm2/gm2-libs/RTint.mod", 64, 331, (char *) "IncludeVector", 13, (char *) "cannot find vector supplied", 27);
       else
         {
           v->pending = Pending.array[v->priority-(COROUTINES_UnassignedPriority)];
@@ -641,7 +641,7 @@ void RTint_ExcludeVector (unsigned int vec)
 
   v = FindPendingVector (vec);
   if (v == NULL)
-    M2RTS_Halt ((char *) "/home/gaius/GM2/graft-5.2.0/gcc-5.2.0/gcc/gm2/gm2-libs/RTint.mod", 64, 372, (char *) "ExcludeVector", 13, (char *) "cannot find pending vector supplied", 35);
+    M2RTS_Halt ((char *) "/home/gaius/GM2/graft-5.4.0/gcc-5.4.0/gcc/gm2/gm2-libs/RTint.mod", 64, 372, (char *) "ExcludeVector", 13, (char *) "cannot find pending vector supplied", 35);
   else
     {
       if (Pending.array[v->priority-(COROUTINES_UnassignedPriority)] == v)
@@ -727,7 +727,7 @@ void RTint_Listen (unsigned int untilInterrupt, RTint_DespatchVector call, unsig
 
 
                   default:
-                    CaseException ("/home/gaius/GM2/graft-5.2.0/gcc-5.2.0/gcc/gm2/gm2-libs/RTint.def", 2, 1);
+                    CaseException ("/home/gaius/GM2/graft-5.4.0/gcc-5.4.0/gcc/gm2/gm2-libs/RTint.def", 2, 1);
                 }
               v = v->pending;
             }
@@ -736,7 +736,7 @@ void RTint_Listen (unsigned int untilInterrupt, RTint_DespatchVector call, unsig
       if (! untilInterrupt)
         Selective_SetTime (t, 0, 0);
       if (((untilInterrupt && (i == NULL)) && (o == NULL)) && ! found)
-        M2RTS_Halt ((char *) "/home/gaius/GM2/graft-5.2.0/gcc-5.2.0/gcc/gm2/gm2-libs/RTint.mod", 64, 592, (char *) "Listen", 6, (char *) "deadlock found, no more processes to run and no interrupts active", 65);
+        M2RTS_Halt ((char *) "/home/gaius/GM2/graft-5.4.0/gcc-5.4.0/gcc/gm2/gm2-libs/RTint.mod", 64, 592, (char *) "Listen", 6, (char *) "deadlock found, no more processes to run and no interrupts active", 65);
       if (((! found && (maxFd == -1)) && (i == NULL)) && (o == NULL))
         {
           t = Selective_KillTime (t);
@@ -836,7 +836,7 @@ void RTint_Listen (unsigned int untilInterrupt, RTint_DespatchVector call, unsig
 
 
                   default:
-                    CaseException ("/home/gaius/GM2/graft-5.2.0/gcc-5.2.0/gcc/gm2/gm2-libs/RTint.def", 2, 1);
+                    CaseException ("/home/gaius/GM2/graft-5.4.0/gcc-5.4.0/gcc/gm2/gm2-libs/RTint.def", 2, 1);
                 }
               v = v->pending;
             }

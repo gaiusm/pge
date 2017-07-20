@@ -1621,6 +1621,9 @@ VAR
    vfm,
    fvec,
    s, n    : Coord ;
+   factor,
+   springval,
+   damping,
    fax, fay,
    fvx, fvy,
    mvx, mvy,
@@ -1637,27 +1640,39 @@ BEGIN
       printf ("fvx, fvy = %g, %g   ", fvx, fvy) ;
       printf ("fax, fay = %g, %g\n", fvx, fvy) ;
       printf ("mvx, mvy = %g, %g   ", mvx, mvy) ;
-      printf ("max, may = %g, %g\n", mvx, mvy)
+      printf ("max, may = %g, %g\n", mvx, mvy) ;
+      printf ("starting with force on moving object %d = [%g, %g]\n",
+              movingp^.id, movingp^.forceVec.x, movingp^.forceVec.y)
    END ;
    vfm := subCoord (initCoord (fvx, fvy), initCoord (mvx, mvy)) ;
    s := subCoord (getCofG (fixed), getCofG (moving)) ;
    n := normaliseCoord (s) ;
+   springval := k * (l1 - l0) ;
+   damping := d * (dotProd (vfm, s) / lengthCoord (s)) ;
+   f1 := scaleCoord (n, -(springval + damping)) ;
    IF trace
    THEN
-      printf ("spring value = %g\n", k * (l1 - l0)) ;
-      printf ("damping value = %g\n", d * (dotProd (vfm, s) / lengthCoord (s)))
-   END ;
-   f1 := scaleCoord (n, k * (l1 - l0) + d * (dotProd (vfm, s) / lengthCoord (s))) ;
-   IF trace
-   THEN
+      printf ("spring value = %g\n", springval) ;
+      printf ("damping value = %g\n", damping) ;
       printf ("vector f1 = [%g, %g]\n", f1.x, f1.y)
    END ;
-   movingp^.forceVec := addCoord (movingp^.forceVec, f1) ;
+   movingp^.forceVec := subCoord (movingp^.forceVec, f1) ;
    sprp^.s.f1 := negateCoord (f1) ;
    sprp^.s.f2 := f1 ;
    IF trace
    THEN
-      printf ("force = [%g, %g]\n", movingp^.forceVec.x, movingp^.forceVec.y)
+      printf ("overall force on moving object %d = [%g, %g]\n",
+              movingp^.id, movingp^.forceVec.x, movingp^.forceVec.y) ;
+      factor := sqr (d) - 4.0 * get_mass (movingp^.id) * k ;
+      IF nearZero (factor)
+      THEN
+         printf ("sprung object %d critical damping (increase damping or reduce spring strength of spring %d)\n", movingp^.id, spr)
+      ELSIF factor > 0.0
+      THEN
+         printf ("sprung object %d is safe as it is over damped\n", movingp^.id)
+      ELSE
+         printf ("sprung object %d under damped (increase damping or reduce spring strength of spring %d)\n", movingp^.id, spr)
+      END
    END
 END calcSpringFixed ;
 
@@ -1677,6 +1692,8 @@ VAR
    vfm,
    fvec,
    s, n    : Coord ;
+   springval,
+   damping,
    fax, fay,
    fvx, fvy,
    mvx, mvy,
@@ -1698,21 +1715,19 @@ BEGIN
    vfm := subCoord (initCoord (fvx, fvy), initCoord (mvx, mvy)) ;
    s := subCoord (getCofG (o1), getCofG (o2)) ;
    n := normaliseCoord (s) ;
+   springval := k * (l1 - l0) ;
+   damping := d * (dotProd (vfm, s) / lengthCoord (s)) ;
+   f1 := scaleCoord (n, -(springval + damping)) ;
    IF trace
    THEN
-      printf ("spring value = %g\n", k * (l1 - l0)) ;
-      printf ("damping value = %g\n", d * (dotProd (vfm, s) / lengthCoord (s)))
+      printf ("spring value = %g\n", springval) ;
+      printf ("damping value = %g\n", damping) ;
+      printf ("vector f1 = [%g, %g]\n", f1.x, f1.y)
    END ;
-   f1 := scaleCoord (n, k * (l1 - l0) + d * (dotProd (vfm, s) / lengthCoord (s))) ;
-   IF trace
-   THEN
-      printf ("vector f1 = [%g, %g]\n", f1.x, f1.y) ;
-      printf ("f1 = [%g, %g]\n", f1.x, f1.y)
-   END ;
-   o1p^.forceVec := subCoord (o1p^.forceVec, f1) ;
-   o2p^.forceVec := addCoord (o2p^.forceVec, f1) ;
-   sprp^.s.f1 := negateCoord (f1) ;
-   sprp^.s.f2 := f1
+   o1p^.forceVec := addCoord (o1p^.forceVec, f1) ;
+   o2p^.forceVec := subCoord (o2p^.forceVec, f1) ;
+   sprp^.s.f1 := f1 ;
+   sprp^.s.f2 := negateCoord (f1)
 END calcSpringMoving ;
 
 
@@ -1819,6 +1834,47 @@ END zeroForceEnergy ;
 
 
 (*
+   applyDrag -
+*)
+
+PROCEDURE applyDrag (id: CARDINAL) ;
+VAR
+   o: Object ;
+BEGIN
+   IF NOT isFixed (id)
+   THEN
+      o := GetIndice (objects, id) ;
+      inElastic (o^.vx) ;
+      inElastic (o^.vy)
+   END
+END applyDrag ;
+
+
+(*
+   doApplySpringForce -
+*)
+
+PROCEDURE doApplySpringForce (id: CARDINAL; force: Coord) : Coord ;
+VAR
+   a: Coord ;
+BEGIN
+   IF NOT isFixed (id)
+   THEN
+      IF nearZero (get_mass (id))
+      THEN
+         printf ("object %d must be given a mass\n", id) ;
+         exit (1)
+      ELSE
+         a := scaleCoord (force, 1.0/get_mass (id)) ;
+         a := scaleCoord (a, ElasticitySpring) ;
+         applyDrag (id) ;
+	 RETURN a
+      END
+   END
+END doApplySpringForce ;
+
+
+(*
    doApplyForce -
 *)
 
@@ -1836,35 +1892,23 @@ BEGIN
             printf ("object %d has (saccel = (%g, %g)\n", i, iptr^.saccel.x, iptr^.saccel.y)
          END ;
          iptr^.saccel := initCoord (iptr^.forceVec.x / get_mass (i), iptr^.forceVec.y / get_mass (i)) ;
+	 iptr^.saccel := scaleCoord (iptr^.saccel, ElasticitySpring) ;
          IF trace
          THEN
-            printf ("object %d now has (saccel (%g, %g)\n", i, iptr^.saccel.x, iptr^.saccel.y)
+            printf ("object %d now has (saccel (%g, %g)\n",
+                    i, iptr^.saccel.x, iptr^.saccel.y) ;
+            printf ("object %d has normal acceleration of (%g, %g)\n",
+                    i, iptr^.ax, iptr^.ay) ;
+            printf ("              total acceleration of (%g, %g)\n",
+                    i, iptr^.ax + iptr^.saccel.x, iptr^.ay + iptr^.saccel.y)
          END
          (* iptr^.stationary := NOT (nearZero (iptr^.saccel.x) AND nearZero (iptr^.saccel.y)) *)
       END
    ELSIF isSpringObject (i)
    THEN
       (* work out the acceleration due to the spring on each attached object.  *)
-      IF NOT isFixed (iptr^.s.id1)
-      THEN
-         IF nearZero (get_mass (iptr^.s.id1))
-         THEN
-            printf ("object %d must be given a mass\n", iptr^.s.id1) ;
-            exit (1)
-         ELSE
-            iptr^.s.a1 := scaleCoord (iptr^.s.f1, 1.0/get_mass (iptr^.s.id1))
-         END
-      END ;
-      IF NOT isFixed (iptr^.s.id2)
-      THEN
-         IF nearZero (get_mass (iptr^.s.id2))
-         THEN
-            printf ("object %d must be given a mass\n", iptr^.s.id2) ;
-            exit (1)
-         ELSE
-            iptr^.s.a2 := scaleCoord (iptr^.s.f2, 1.0/get_mass (iptr^.s.id2))
-         END
-      END
+      iptr^.s.a1 := doApplySpringForce (iptr^.s.id1, iptr^.s.f1) ;
+      iptr^.s.a2 := doApplySpringForce (iptr^.s.id2, iptr^.s.f2)
    END
 END doApplyForce ;
 
@@ -6021,7 +6065,7 @@ BEGIN
       AssertRFail (test, t) ;
       *)
       ts := t ;
-      IF trace
+      IF trace OR TRUE
       THEN
          printf ("spring %d reaches midpoint in %g seconds\n", i, t)
       END ;
@@ -6046,7 +6090,7 @@ BEGIN
          edesc := makeSpringDesc (edesc, i, callPoint) ;
          addSpringEvent (ts, doSpring, edesc) ;
          anticipateSpring (ts, edesc) ;
-         IF trace
+         IF trace OR TRUE
          THEN
             printQueue
          END
@@ -6361,6 +6405,25 @@ BEGIN
       doDrawFrame (id2ptr, 0.0, idptr^.s.midColour) ;
       flipBuffer
    END ;
+
+(*
+   IF NOT id1ptr^.fixed
+   THEN
+      inElasticSpring (id1ptr^.vx) ;
+      inElasticSpring (id1ptr^.vy) ;
+      id1ptr^.vx := 0.0 ;
+      id1ptr^.vy := 0.0 ;
+      dumpObject (id1ptr)
+   END ;
+   IF NOT id2ptr^.fixed
+   THEN
+      inElasticSpring (id2ptr^.vx) ;
+      inElasticSpring (id2ptr^.vy) ;
+      id2ptr^.vx := 0.0 ;
+      id2ptr^.vy := 0.0 ;
+      dumpObject (id2ptr)
+   END ;
+*)
 
    IF NOT FrameSprings
    THEN
@@ -6683,7 +6746,7 @@ PROCEDURE addNextObjectEvent ;
 BEGIN
    removeCollisionEvent ;
    removeSpringEvents ;
-   IF trace
+   IF trace OR TRUE
    THEN
       printf ("no spring or collision events here\n") ;
       printQueue

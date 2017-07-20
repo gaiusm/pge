@@ -35,32 +35,39 @@ SUBDIRS = c
 endif
 
 if MAINTAINER
-springs.m: $(srcdir)/src/springs.mxm
-	python $(srcdir)/mxm/max2code.py -v -o $@ $<
+springs.m: $(srcdir)/mxm/springs.mxm
+	python $(srcdir)/python/max2code.py -v -o $@ $<
 
-circles.m: $(srcdir)/src/circles.mxm
-	python $(srcdir)/mxm/max2code.py -v -o $@ $<
+circles.m: $(srcdir)/mxm/circles.mxm
+	python $(srcdir)/python/max2code.py -v -o $@ $<
 
-rotating-circles.m: $(srcdir)/src/rotating-circles.mxm
-	python $(srcdir)/mxm/max2code.py -v -o $@ $<
+rotating-circles.m: $(srcdir)/mxm/rotating-circles.mxm
+	python $(srcdir)/python/max2code.py -v -o $@ $<
 
 rotating-line.m: $(srcdir)/mxm/rotating-line.mxm
-	python $(srcdir)/mxm/max2code.py -v -o $@ $<
+	python $(srcdir)/python/max2code.py -v -o $@ $<
 else
-springs.m: $(srcdir)/src/springs.mxm
+springs.m: $(srcdir)/mxm/springs.mxm
 	cp $(srcdir)/m/springs.m $@
 
-circles.m: $(srcdir)/src/circles.mxm
+circles.m: $(srcdir)/mxm/circles.mxm
 	cp $(srcdir)/m/circles.m $@
 
-rotating-circles.m: $(srcdir)/src/rotating-circles.mxm
+rotating-circles.m: $(srcdir)/mxm/rotating-circles.mxm
 	cp $(srcdir)/m/rotating-circles.m $@
 
-rotating-line.m: $(srcdir)/src/rotating-line.mxm
+rotating-line.m: $(srcdir)/mxm/rotating-line.mxm
 	cp $(srcdir)/m/rotating-line.m $@
 endif
 
 build: all
+
+springs: force
+	./localrun.sh $(srcdir)/examples/springs/simple.py
+	./localrun.sh $(srcdir)/examples/springs/double.py
+	./localrun.sh $(srcdir)/examples/springs/swing.py
+	./localrun.sh $(srcdir)/examples/springs/treble.py
+	./localrun.sh $(srcdir)/examples/springs/bridge.py
 
 trapped: force
 	PYTHONPATH=.:$(srcdir)/python python $(srcdir)/examples/trapped/trapped.py

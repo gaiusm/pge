@@ -25,6 +25,8 @@ gap = 0.01
 captured = None
 sides = []
 yellow = pge.rgb (0.8, 0.6, 0.15)
+fps_text = None
+last_fps = 0
 
 
 def myquit (e):
@@ -46,16 +48,31 @@ def placeBoarders (thickness, color):
 def placeBall (kind, x, y, r):
     return pge.circle (x, y, r, kind)
 
+def update_fps (e, o):
+    global last_fps, fps_text
+
+    fn = pge.get_frame_no ()
+    s = "fps %d" % (fn - last_fps)
+    if fps_text != None:
+        fps_text.rm ()
+    fps_text = pge.text (0.8, 0.1, s, white, 50, 1)
+    last_fps = fn
+    local_fps ()
+
+
+def local_fps ():
+    f = pge.at_time (1.0, update_fps)
+
 def main ():
     global gb, sides
 
     placeBoarders (0.01, wood_dark)
 
-    first = placeBall (wood_light, 0.55, 0.95, 0.02).fix ()
-    second = placeBall (wood_dark, 0.55, 0.55, 0.02).mass (1.0)
-    third = placeBall (wood_dark, 0.55, 0.25, 0.02).mass (1.0)
-    s = pge.spring (first, second, 700.0, 5.0, 0.3).draw (yellow, 0.002)
-    s = pge.spring (second, third, 1000.0, 5.0, 0.2).draw (yellow, 0.002)
+    first = placeBall (wood_dark, 0.55, 0.95, 0.02).fix ()
+    second = placeBall (wood_light, 0.56, 0.55, 0.02).mass (1.0)
+    third = placeBall (wood_dark, 0.54, 0.25, 0.02).mass (1.0)
+    s = pge.spring (first, second, 100.0, 2.0, 0.1).draw (yellow, 0.002)
+    s = pge.spring (second, third, 100.0, 2.0, 0.2).draw (yellow, 0.002)
     print "before run"
     pge.record ()
     pge.draw_collision (True, False)
@@ -66,6 +83,7 @@ def main ():
     pge.register_handler (myquit, [QUIT])
     pge.register_handler (key_pressed, [KEYDOWN])
     pge.display_set_mode ([800, 800])
+    local_fps ()
     pge.run (10.0)
     pge.finish_record ()
 

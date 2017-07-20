@@ -139,10 +139,39 @@ unsigned int poly6 (double x0, double y0, double x1, double y1, double x2, doubl
 unsigned int mass (unsigned int id, double m);
 
 /*
+   get_mass - returns the mass of a circle or polygon object.
+*/
+
+double get_mass (unsigned int id);
+
+/*
+   get_gravity - returns the gravity of a circle or polygon object.
+*/
+
+double get_gravity (unsigned int id);
+
+/*
+   set_gravity - sets the per object gravity, g, to a circle or
+                 polygon object.
+*/
+
+void set_gravity (unsigned int id, double g);
+
+/*
    fix - fix the object to the world.
 */
 
 unsigned int fix (unsigned int id);
+
+/*
+   spring - join object, id1, and, id2, with a string of defined
+            by hooks constant, k, the spring is at rest if it has
+            length, l.  If l < 0 then the game engine considers
+            the spring to naturally be at rest for the distance
+            between id1 and id2.
+*/
+
+unsigned int spring (unsigned int id1, unsigned int id2, double k, double d, double l);
 
 /*
    circle - adds a circle to the world.  Center
@@ -188,11 +217,18 @@ unsigned int is_frame (void);
 unsigned int is_function (void);
 
 /*
-   create_function_event - creates a function event at time, t,
-                           in the future.
+   is_spring - returns TRUE if the next event is a spring event.
 */
 
-void create_function_event (double t, unsigned int id);
+unsigned int is_spring (void);
+
+/*
+   create_function_event - creates a function event at time, t,
+                           in the future.  Function id is called
+                           with parameter, param.
+*/
+
+void create_function_event (double t, unsigned int id, unsigned int param);
 
 /*
    time_until - returns the relative time from now until the next event.
@@ -295,6 +331,33 @@ void put_yaccel (unsigned int id, double r);
 void set_colour (unsigned int id, unsigned int c);
 
 /*
+   draw_spring - draw spring, id, using colour, c, and a width, w.
+*/
+
+void draw_spring (unsigned int id, unsigned int c, double w);
+
+/*
+   end_spring - draw the objects at the end of the spring with
+                colour, c, when the object comes to rest.
+*/
+
+void end_spring (unsigned int id, unsigned int c);
+
+/*
+   mid_spring - when the spring reaches its rest point draw
+                the objects connected by the spring with
+                colour, c.
+*/
+
+void mid_spring (unsigned int id, unsigned int c);
+
+/*
+   when_spring - when the spring, id, reaches, length call, func.
+*/
+
+void when_spring (unsigned int id, double length, unsigned int func);
+
+/*
    apply_impulse - applies an impulse of magnitude along vector
                    [x, y] for object, id.
 */
@@ -360,10 +423,11 @@ void dump_world (void);
 
 /*
    check_objects - perform a check to make sure that all non fixed
-                   objects have a mass.
+                   objects have a mass and return TRUE if this is
+                   the case.
 */
 
-void check_objects (void);
+unsigned int check_objects (void);
 
 /*
    l2h - translate a twoDsim, id, to the pgeid.
@@ -798,6 +862,37 @@ unsigned int mass (unsigned int id, double m)
 
 
 /*
+   get_mass - returns the mass of a circle or polygon object.
+*/
+
+double get_mass (unsigned int id)
+{
+  return twoDsim_get_mass (lookupDef ((TypeOfDef) object, id));
+}
+
+
+/*
+   get_gravity - returns the gravity of a circle or polygon object.
+*/
+
+double get_gravity (unsigned int id)
+{
+  return twoDsim_get_gravity (lookupDef ((TypeOfDef) object, id));
+}
+
+
+/*
+   set_gravity - sets the per object gravity, g, to a circle or
+                 polygon object.
+*/
+
+void set_gravity (unsigned int id, double g)
+{
+  twoDsim_set_gravity (lookupDef ((TypeOfDef) object, id), g);
+}
+
+
+/*
    fix - fix the object to the world.
 */
 
@@ -807,6 +902,30 @@ unsigned int fix (unsigned int id)
 
   ti = trace (twoDsim_fix (lookupDef ((TypeOfDef) object, id)), (char *) "fix", 3);
   return id;
+}
+
+
+/*
+   spring - join object, id1, and, id2, with a string of defined
+            by hooks constant, k, the spring is at rest if it has
+            length, l.  If l < 0 then the game engine considers
+            the spring to naturally be at rest for the distance
+            between id1 and id2.
+*/
+
+unsigned int spring (unsigned int id1, unsigned int id2, double k, double d, double l)
+{
+  unsigned int ti;
+  unsigned int id;
+
+  libc_printf ((char *) "before twoDsim.spring\\n", 23);
+  ti = twoDsim_spring (lookupDef ((TypeOfDef) object, id1), lookupDef ((TypeOfDef) object, id2), k, d, l);
+  libc_printf ((char *) "before addDef\\n", 15);
+  id = addDef ((TypeOfDef) object, ti);
+  libc_printf ((char *) "before lookupDef\\n", 18);
+  Assert (ti == (lookupDef ((TypeOfDef) object, id)));
+  libc_printf ((char *) "before trace\\n", 14);
+  return trace (id, (char *) "spring", 6);
 }
 
 
@@ -899,13 +1018,24 @@ unsigned int is_function (void)
 
 
 /*
-   create_function_event - creates a function event at time, t,
-                           in the future.
+   is_spring - returns TRUE if the next event is a spring event.
 */
 
-void create_function_event (double t, unsigned int id)
+unsigned int is_spring (void)
 {
-  twoDsim_createFunctionEvent (t, id);
+  return twoDsim_isSpring ();
+}
+
+
+/*
+   create_function_event - creates a function event at time, t,
+                           in the future.  Function id is called
+                           with parameter, param.
+*/
+
+void create_function_event (double t, unsigned int id, unsigned int param)
+{
+  twoDsim_createFunctionEvent (t, id, param);
 }
 
 
@@ -1077,6 +1207,49 @@ void set_colour (unsigned int id, unsigned int c)
 
 
 /*
+   draw_spring - draw spring, id, using colour, c, and a width, w.
+*/
+
+void draw_spring (unsigned int id, unsigned int c, double w)
+{
+  twoDsim_draw_spring (lookupDef ((TypeOfDef) object, id), lookupDef ((TypeOfDef) colour, c), w);
+}
+
+
+/*
+   end_spring - draw the objects at the end of the spring with
+                colour, c, when the object comes to rest.
+*/
+
+void end_spring (unsigned int id, unsigned int c)
+{
+  twoDsim_end_spring (lookupDef ((TypeOfDef) object, id), lookupDef ((TypeOfDef) colour, c));
+}
+
+
+/*
+   mid_spring - when the spring reaches its rest point draw
+                the objects connected by the spring with
+                colour, c.
+*/
+
+void mid_spring (unsigned int id, unsigned int c)
+{
+  twoDsim_mid_spring (lookupDef ((TypeOfDef) object, id), lookupDef ((TypeOfDef) colour, c));
+}
+
+
+/*
+   when_spring - when the spring, id, reaches, length call, func.
+*/
+
+void when_spring (unsigned int id, double length, unsigned int func)
+{
+  twoDsim_when_spring (lookupDef ((TypeOfDef) object, id), length, func);
+}
+
+
+/*
    apply_impulse - applies an impulse of magnitude along vector
                    [x, y] for object, id.
 */
@@ -1185,12 +1358,13 @@ void dump_world (void)
 
 /*
    check_objects - perform a check to make sure that all non fixed
-                   objects have a mass.
+                   objects have a mass and return TRUE if this is
+                   the case.
 */
 
-void check_objects (void)
+unsigned int check_objects (void)
 {
-  twoDsim_checkObjects ();
+  return twoDsim_checkObjects ();
 }
 
 

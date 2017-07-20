@@ -1,4 +1,4 @@
-/* automatically created by mc from /home/gaius/GM2/graft-5.2.0/gcc-5.2.0/gcc/gm2/gm2-libs-iso/M2EXCEPTION.mod.  */
+/* automatically created by mc from /home/gaius/GM2/graft-5.4.0/gcc-5.4.0/gcc/gm2/gm2-libs-iso/M2EXCEPTION.mod.  */
 
 #   if !defined (PROC_D)
 #      define PROC_D
@@ -23,8 +23,8 @@ M2EXCEPTION_M2Exceptions M2EXCEPTION_M2Exception (void)
   if (M2EXCEPTION_IsM2Exception ())
     return (M2EXCEPTION_M2Exceptions) (RTExceptions_GetNumber (RTExceptions_GetExceptionBlock ()));
   else
-    RTExceptions_Raise ((unsigned int) (M2EXCEPTION_exException), "/home/gaius/GM2/graft-5.2.0/gcc-5.2.0/gcc/gm2/gm2-libs-iso/M2EXCEPTION.mod", 36, 25, "M2Exception", "current coroutine is not in the exceptional execution state");
-  ReturnException ("/home/gaius/GM2/graft-5.2.0/gcc-5.2.0/gcc/gm2/gm2-libs-iso/M2EXCEPTION.def", 8, 1);
+    RTExceptions_Raise ((unsigned int) (M2EXCEPTION_exException), "/home/gaius/GM2/graft-5.4.0/gcc-5.4.0/gcc/gm2/gm2-libs-iso/M2EXCEPTION.mod", 36, 25, "M2Exception", "current coroutine is not in the exceptional execution state");
+  ReturnException ("", 0, 0);
 }
 
 unsigned int M2EXCEPTION_IsM2Exception (void)

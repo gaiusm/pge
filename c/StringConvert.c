@@ -1,4 +1,4 @@
-/* automatically created by mc from /home/gaius/GM2/graft-5.2.0/gcc-5.2.0/gcc/gm2/gm2-libs/StringConvert.mod.  */
+/* automatically created by mc from /home/gaius/GM2/graft-5.4.0/gcc-5.4.0/gcc/gm2/gm2-libs/StringConvert.mod.  */
 
 #   if !defined (PROC_D)
 #      define PROC_D
@@ -1543,7 +1543,7 @@ DynamicStrings_String StringConvert_ToSigFig (DynamicStrings_String s, unsigned 
   int point;
   unsigned int poTen;
 
-  Assert ((IsDigit (DynamicStrings_char (s, 0))) || ((DynamicStrings_char (s, 0)) == '.'), (char *) "/home/gaius/GM2/graft-5.2.0/gcc-5.2.0/gcc/gm2/gm2-libs/StringConvert.mod", 72, 1220, (char *) "ToSigFig", 8);
+  Assert ((IsDigit (DynamicStrings_char (s, 0))) || ((DynamicStrings_char (s, 0)) == '.'), (char *) "/home/gaius/GM2/graft-5.4.0/gcc-5.4.0/gcc/gm2/gm2-libs/StringConvert.mod", 72, 1220, (char *) "ToSigFig", 8);
   point = DynamicStrings_Index (s, '.', 0);
   if (point < 0)
     poTen = DynamicStrings_Length (s);
@@ -1584,7 +1584,7 @@ DynamicStrings_String StringConvert_ToDecimalPlaces (DynamicStrings_String s, un
 {
   int point;
 
-  Assert ((IsDigit (DynamicStrings_char (s, 0))) || ((DynamicStrings_char (s, 0)) == '.'), (char *) "/home/gaius/GM2/graft-5.2.0/gcc-5.2.0/gcc/gm2/gm2-libs/StringConvert.mod", 72, 1067, (char *) "ToDecimalPlaces", 15);
+  Assert ((IsDigit (DynamicStrings_char (s, 0))) || ((DynamicStrings_char (s, 0)) == '.'), (char *) "/home/gaius/GM2/graft-5.4.0/gcc-5.4.0/gcc/gm2/gm2-libs/StringConvert.mod", 72, 1067, (char *) "ToDecimalPlaces", 15);
   point = DynamicStrings_Index (s, '.', 0);
   if (point < 0)
     {

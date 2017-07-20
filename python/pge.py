@@ -35,6 +35,7 @@ program_name = 'pge'
 version_number = '2.0'
 Black = (0, 0, 0)
 framesPerSecond = 100.0
+frame_no = 0
 slow_down_factor = 1.0
 allowed_events = [USEREVENT+1]
 id2func = {}
@@ -1355,8 +1356,9 @@ def record ():
 #
 
 def _draw_frame (cdata, clength, fdata, flength):
-    global device
+    global device, frame_no
 
+    frame_no += 1
     if device == pyg_d:
         _pyg_draw_frame (cdata, clength, fdata, flength)
     else:
@@ -1630,6 +1632,13 @@ def fps (f):
     global framesPerSecond
     framesPerSecond = f
 
+#
+#  get_frame_no - return the current frame number.
+#
+
+def get_frame_no ():
+    global frame_no
+    return frame_no
 
 #
 #  run - Pre-condition:  all objects and any screen resolution must be configured.

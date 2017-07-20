@@ -1,13 +1,12 @@
 #!/usr/bin/env python
 
-import pge, sys, time
+import pge, sys
 from pygame.locals import *
 
 
-print "starting snooker"
+print "starting exampleBoxes"
 # pge.batch ()
 pge.interactive ()
-pge.record ()
 
 t = pge.rgb (1.0/2.0, 2.0/3.0, 3.0/4.0)
 wood_light = pge.rgb (166.0/256.0, 124.0/256.0, 54.0/256.0)
@@ -15,22 +14,21 @@ wood_dark = pge.rgb (76.0/256.0, 47.0/256.0, 0.0)
 red = pge.rgb (1.0, 0.0, 0.0)
 green = pge.rgb (0.0, 1.0, 0.0)
 blue = pge.rgb (0.0, 0.0, 1.0)
-
+blue_dark = pge.rgb (0.1, 0.1, 0.7)
+steel = pge.rgb (0.5, 0.5, 0.5)
+copper = pge.rgb (0.5, 0.3, 0.2)
+gold = pge.rgb (0.8, 0.6, 0.15)
 ball_size = 0.02
 boarder = 0.01
 white = pge.rgb (1.0, 1.0, 1.0)
+yellow = pge.rgb (0.8, 0.6, 0.15)
 gap = 0.01
-captured = []
+captured = None
 sides = []
-slowdown = 5
-simulatedtime = 6
 
 
 def myquit (e):
     print "goodbye"
-    sys.exit (0)
-
-def finish_game (e = None):
     sys.exit (0)
 
 def key_pressed (e):
@@ -44,18 +42,6 @@ def placeBoarders (thickness, color):
     e3 = pge.box (1.0-thickness, 0.0, thickness, 1.0, color).fix ()
     e4 = pge.box (0.0, 1.0-thickness, 1.0, thickness, color).fix ()
     return e1, e2, e3, e4
-
-def delete_ball (o, e):
-    global winner, loser, captured
-    for b in e.collision_between ():
-        if b in captured:
-            b.rm ()
-            captured.remove (b)
-            if captured == []:
-                if not loser:
-                    winner = True
-                    pge.text (0.2, 0.3, "Winner", white, 100, 1)
-                    pge.at_time (4.0, finish_game)
 
 
 def placeBall (kind, x, y, r):
@@ -75,8 +61,40 @@ def push_it (o, e):
                 i.put_xvel (i.get_xvel () * 1.15)
                 i.put_yvel (i.get_yvel () * 1.15)
 
+def placeRamps ():
+    r1 = pge.poly4 (0.3 , 0.4,
+                    0.85, 0.42,
+                    0.85, 0.43,
+                    0.3 , 0.41, wood_dark).fix ()
+    r2 = pge.poly4 (0.15, 0.6,
+                    0.75, 0.58,
+                    0.75, 0.57,
+                    0.15, 0.59, wood_dark).fix ()
+
+
 def placeTriangle (p0, p1, p2, colour):
     t = pge.poly3 (p0[0], p0[1], p1[0], p1[1], p2[0], p2[1], colour).on_collision (push_it).fix ()
+
+
+def placeSilos ():
+    for x in [0.3, 0.6]:
+        s = pge.poly4 (x, 0.0,
+                       x, 0.07,
+                       x+0.01, 0.07,
+                       x+0.01, 0.0, wood_dark).fix ()
+
+
+def callMe (p):
+    print "box has collided!"
+
+def play_wood (o, e):
+    pass
+
+def play_crack (o, e):
+    pass
+
+def play_bounce (o, e):
+    pass
 
 def delete_it (o, e):
     global sides
@@ -92,8 +110,8 @@ def box_of (thickness, pos, width, color):
     left = pge.box (pos[0], pos[1], thickness, width, color).fix ()
     right = pge.box (pos[0]+width-thickness, pos[1], thickness, width, color).fix ()
     top = pge.box (pos[0], pos[1]+width-thickness, width, thickness, color).fix ()
-    sides += [floor, left, right, top]
-    captured += [placeBall (blue, pos[0]+2.0*thickness+0.05, pos[1]+1.0*thickness+0.05, 0.05).mass (1.5)]
+    sides = [floor, left, right, top]
+    # captured = placeBall (blue_dark, pos[0]+2.0*thickness+0.05, pos[1]+1.0*thickness+0.05, 0.05).mass (1.5)
 
 def mouse_hit (e):
     global gb
@@ -109,27 +127,39 @@ def mouse_hit (e):
     else:
         gb.put_yvel (gb.get_yvel ()+0.3)
 
-def main ():
-    global gb, sides, winner, loser, seconds_left, slowdown, simulatedtime
 
+def main ():
+    global gb, sides
+
+    a = placeBall (blue_dark, 0.07, 0.95, 0.015).fix ()
+    for e in range (8):
+        b = placeBall (blue_dark, 0.08, 0.90-float (e)/30.0, 0.015).mass (1.0)
+        s = pge.spring (a, b, 1000, 20).draw (yellow, 0.002)
+        a = b
+
+    f = placeBall (wood_light, 0.95, 0.05, 0.1).fix ()
     t1 = placeTriangle ([0.2, 0.3], [0.4, 0.3], [0.3, 0.4], white)
     t2 = placeTriangle ([0.6, 0.3], [0.8, 0.3], [0.7, 0.4], white)
+    placeRamps ()
     b1, b2, b3, b4 = placeBoarders (boarder, wood_dark)
-    b1.on_collision (delete_ball)
-
-    gb = placeBall (green, 0.19, 0.8, 0.05).mass (1.25).on_collision_with (sides, delete_it)
+    for b in [b1, b2, b3, b4]:
+        b.on_collision (play_crack)
+    box_of (boarder, [0.1, 0.08], 0.2, wood_light)
+    gb = placeBall (gold, 0.19, 0.7, 0.025).mass (1.25).on_collision_with (sides, delete_it)
+    sb = placeBall (steel, 0.57, 0.8, 0.025).mass (1).on_collision_with (sides, delete_it)
+    cb = placeBall (copper, 0.81, 0.8, 0.025).mass (.75).on_collision_with (sides, delete_it)
+    placeSilos ()
 
     print "before run"
+    pge.gravity ()
+    pge.dump_world ()
     pge.draw_collision (True, False)
-    pge.slow_down (slowdown)  # slows down real time by a factor of
+    pge.slow_down (6.0)  # slows down real time by a factor of
     pge.register_handler (myquit, [QUIT])
     pge.register_handler (key_pressed, [KEYDOWN])
     pge.register_handler (mouse_hit, [MOUSEBUTTONDOWN])
-    pge.display_set_mode ([800, 800])
-    seconds_left = simulatedtime * slowdown
-    pge.gravity ()
-    pge.run (simulatedtime)
-    pge.run (4.0)
+    pge.display_set_mode ([1000, 1000])
+    pge.run (18.0)
     pge.finish_record ()
 
 print "before main()"

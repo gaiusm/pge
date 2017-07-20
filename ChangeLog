@@ -1,3 +1,10 @@
+2017-07-20      Gaius Mulley <gaius@gnu.org>
+
+	* m/springs.m:  (New file)
+	* regenerated the C version of the library.
+	* improved spring examples.
+	* added drag to moving objects.
+
 2017-07-10      Gaius Mulley <gaius@gnu.org>
 
 	* i/pgeif.i:  (create_function_event) uses another

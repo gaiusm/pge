@@ -51,8 +51,8 @@ def main ():
 
     placeBoarders (0.01, wood_dark)
 
-    first = placeBall (wood_light, 0.25, 0.95, 0.02).fix ()
-    second = placeBall (wood_dark, 0.85, 0.95, 0.02).fix ()
+    first = placeBall (wood_light, 0.25, 0.85, 0.02).fix ()
+    second = placeBall (wood_dark, 0.85, 0.85, 0.02).fix ()
     third = placeBall (wood_dark, 0.55, 0.25, 0.02).mass (1.0)
     s = pge.spring (first, third, 500.0, 15.0, 0.45).draw (yellow, 0.002)
     s = pge.spring (second, third, 600.0, 15.0, 0.2).draw (yellow, 0.002)

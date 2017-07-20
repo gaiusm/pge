@@ -85,6 +85,12 @@ coord_Coord coord_perpendicular (coord_Coord c);
 coord_Coord coord_scaleCoord (coord_Coord c, double s);
 
 /*
+   negateCoord - negates both components of the vector, c.
+*/
+
+coord_Coord coord_negateCoord (coord_Coord c);
+
+/*
    subCoord - returns a - b.
 */
 
@@ -113,6 +119,12 @@ coord_Coord coord_rotateCoord (coord_Coord c, double theta);
 */
 
 double coord_dotProd (coord_Coord a, coord_Coord b);
+
+/*
+   nearZeroCoord - returns TRUE if, a, is very close to (0, 0)
+*/
+
+unsigned int coord_nearZeroCoord (coord_Coord a);
 double libm_sin (double x);
 long double libm_sinl (long double x);
 float libm_sinf (float x);
@@ -157,7 +169,9 @@ long double libm_ceill (long double x);
 float libm_ceilf (float x);
 unsigned int roots_findOctic (double a, double b, double c, double d, double e, double f, double g, double h, double i, double *x0);
 unsigned int roots_findQuadratic (double a, double b, double c, double *x0, double *x1);
+unsigned int roots_findQuadraticRoots (double a, double b, double c, double *x, unsigned int _x_high);
 unsigned int roots_findQuartic (double a, double b, double c, double d, double e, double *x);
+unsigned int roots_findQuarticRoots (double a, double b, double c, double d, double e, double *x, unsigned int _x_high);
 unsigned int roots_findAllRootsQuartic (double a, double b, double c, double d, double e, double *x, unsigned int _x_high);
 unsigned int roots_nearZero (double r);
 unsigned int roots_nearSame (double a, double b);
@@ -232,6 +246,16 @@ coord_Coord coord_scaleCoord (coord_Coord c, double s)
 
 
 /*
+   negateCoord - negates both components of the vector, c.
+*/
+
+coord_Coord coord_negateCoord (coord_Coord c)
+{
+  return coord_initCoord (-c.x, -c.y);
+}
+
+
+/*
    subCoord - returns a - b.
 */
 
@@ -278,6 +302,16 @@ coord_Coord coord_rotateCoord (coord_Coord c, double theta)
 double coord_dotProd (coord_Coord a, coord_Coord b)
 {
   return (a.x*b.x)+(a.y*b.y);
+}
+
+
+/*
+   nearZeroCoord - returns TRUE if, a, is very close to (0, 0)
+*/
+
+unsigned int coord_nearZeroCoord (coord_Coord a)
+{
+  return (roots_nearZero (a.x)) && (roots_nearZero (a.y));
 }
 
 void _M2_coord_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])

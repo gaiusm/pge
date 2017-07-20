@@ -120,10 +120,40 @@ EXTERN unsigned int poly6 (double x0, double y0, double x1, double y1, double x2
 EXTERN unsigned int mass (unsigned int id, double m);
 
 /*
+   get_mass - returns the mass of a circle or polygon object.
+*/
+
+EXTERN double get_mass (unsigned int id);
+
+/*
+   get_gravity - returns the gravity of a circle or polygon object.
+*/
+
+EXTERN double get_gravity (unsigned int id);
+
+/*
+   set_gravity - sets the per object gravity, g, to a circle or
+                 polygon object.
+*/
+
+EXTERN void set_gravity (unsigned int id, double g);
+
+/*
    fix - fix the object to the world.
 */
 
 EXTERN unsigned int fix (unsigned int id);
+
+/*
+   spring - join object, id1, and, id2, with a string of defined
+            by hooks constant, k, the spring is at rest if it has
+            length, l.  If l < 0 then the game engine considers
+            the spring to naturally be at rest for the distance
+            between id1 and id2.  The parameter, d, is used to
+            calculate the damping force.
+*/
+
+EXTERN unsigned int spring (unsigned int id1, unsigned int id2, double k, double d, double l);
 
 /*
    circle - adds a circle to the world.  Center
@@ -169,11 +199,18 @@ EXTERN unsigned int is_frame (void);
 EXTERN unsigned int is_function (void);
 
 /*
-   create_function_event - creates a function event at time, t,
-                           in the future.
+   is_spring - returns TRUE if the next event is a spring event.
 */
 
-EXTERN void create_function_event (double t, unsigned int id);
+EXTERN unsigned int is_spring (void);
+
+/*
+   create_function_event - creates a function event at time, t,
+                           in the future.  Function id is called
+                           with parameter, param.
+*/
+
+EXTERN void create_function_event (double t, unsigned int id, unsigned int param);
 
 /*
    time_until - returns the relative time from now until the next event.
@@ -274,6 +311,33 @@ EXTERN void put_yaccel (unsigned int id, double r);
 EXTERN void set_colour (unsigned int id, unsigned int c);
 
 /*
+   draw_spring - draw a spring, id, using colour, c, with a width, w.
+*/
+
+EXTERN void draw_spring (unsigned int id, unsigned int c, double w);
+
+/*
+   end_spring - draw the objects at the end of the spring with
+                colour, c, when the object comes to rest.
+*/
+
+EXTERN void end_spring (unsigned int id, unsigned int c);
+
+/*
+   mid_spring - when the spring reaches its rest point draw
+                the objects connected by the spring with
+                colour, c.
+*/
+
+EXTERN void mid_spring (unsigned int id, unsigned int c);
+
+/*
+   when_spring - when the spring, id, reaches, length call, func.
+*/
+
+EXTERN void when_spring (unsigned int id, double length, unsigned int func);
+
+/*
    apply_impulse - applies an impulse of magnitude along vector
                    [x, y] for object, id.
 */
@@ -334,10 +398,11 @@ EXTERN void dump_world (void);
 
 /*
    check_objects - perform a check to make sure that all non fixed
-                   objects have a mass.
+                   objects have a mass and returns TRUE if this is the
+                   case.
 */
 
-EXTERN void check_objects (void);
+EXTERN unsigned int check_objects (void);
 
 /*
    l2h - translate a twoDsim, id, to the pgeid.

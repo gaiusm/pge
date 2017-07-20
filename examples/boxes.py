@@ -24,12 +24,13 @@ def placeBox (p, w, c):
     return pge.box (p[0], p[1], w, w, c)
 
 def main ():
+    pge.record ()
     placeBox ([0.4, 0.4], 0.1, red).fix ()
     placeBoarders (boarder, wood_dark)
-    placeBox ([0.47, 0.7], 0.1, blue)
+    placeBox ([0.47, 0.7], 0.1, blue).mass (1.0)
     pge.gravity ()
     pge.run (3.0)
-    pge.finish ()
+    pge.finish_record ()
 
 print "before main()"
 main ()

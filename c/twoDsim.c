@@ -52,6 +52,8 @@
 #   define BufferedTime 0.1
 #   define InactiveTime 1.0
 #   define Elasticity 0.98
+#   define ElasticitySpring 0.9
+#   define FrameSprings TRUE
 typedef struct descP_p descP;
 
 typedef struct cDesc_r cDesc;
@@ -61,6 +63,8 @@ typedef struct cpDesc_r cpDesc;
 typedef struct ppDesc_r ppDesc;
 
 typedef struct fcDesc_r fcDesc;
+
+typedef struct spDesc_r spDesc;
 
 typedef struct Spring_r Spring;
 
@@ -86,9 +90,9 @@ typedef _T4 *eventQueue;
 
 typedef enum {polygonOb, circleOb, springOb} ObjectType;
 
-typedef enum {frameKind, functionKind, collisionKind} eventKind;
+typedef enum {frameKind, functionKind, collisionKind, springKind} eventKind;
 
-typedef enum {frameEvent, circlesEvent, circlePolygonEvent, polygonPolygonEvent, functionEvent} eventType;
+typedef enum {frameEvent, circlesEvent, circlePolygonEvent, polygonPolygonEvent, functionEvent, springEvent} eventType;
 
 #   define thickness 0.01
 typedef eventDesc (*descP_t) (eventDesc, unsigned int, unsigned int, unsigned int, unsigned int, history_whereHit, history_whereHit, coord_Coord);
@@ -121,12 +125,35 @@ struct ppDesc_r {
 
 struct fcDesc_r {
                   unsigned int id;
+                  unsigned int param;
+                };
+
+struct spDesc_r {
+                  unsigned int id;
+                  history_springPoint type;
                 };
 
 struct Spring_r {
                   unsigned int id1;
                   unsigned int id2;
+                  coord_Coord f1;
+                  coord_Coord f2;
+                  coord_Coord a1;
+                  coord_Coord a2;
                   double k;
+                  double d;
+                  double l0;
+                  double cbl;
+                  double l1;
+                  double width;
+                  unsigned int drawColour;
+                  unsigned int endColour;
+                  unsigned int midColour;
+                  unsigned int draw;
+                  unsigned int drawEnd;
+                  unsigned int drawMid;
+                  unsigned int hasCallBackLength;
+                  unsigned int func;
                 };
 
 struct Circle_r {
@@ -155,6 +182,7 @@ struct _T1_r {
                        cpDesc cp;
                        ppDesc pp;
                        fcDesc fc;
+                       spDesc sp;
                      };
                eventDesc next;
              };
@@ -172,10 +200,15 @@ struct _T2_r {
                unsigned int deleted;
                unsigned int fixed;
                unsigned int stationary;
+               double gravity;
+               coord_Coord saccel;
+               coord_Coord forceVec;
                double vx;
                double vy;
                double ax;
                double ay;
+               double ke;
+               double pe;
                double inertia;
                double angleOrientation;
                double angularVelocity;
@@ -204,7 +237,9 @@ static unsigned int trace;
 static unsigned int writeTimeDelay;
 static unsigned int drawPrediction;
 static unsigned int drawCollisionFrame;
+static unsigned int haveSpringColour;
 static unsigned int haveCollisionColour;
+static deviceIf_Colour springColour;
 static deviceIf_Colour collisionColour;
 static void * bufferStart;
 static unsigned int bufferLength;
@@ -341,6 +376,26 @@ unsigned int twoDsim_moving_towards (unsigned int id, double x, double y);
 void twoDsim_set_colour (unsigned int id, deviceIf_Colour colour);
 
 /*
+   set_gravity - set the gravity of object, id, to, g.
+                 id must be a box or circle.
+*/
+
+void twoDsim_set_gravity (unsigned int id, double g);
+
+/*
+   get_gravity - return the gravity of object, id.
+                 id must be a box or circle.
+*/
+
+double twoDsim_get_gravity (unsigned int id);
+
+/*
+   get_mass - returns the mass of object, id.
+*/
+
+double twoDsim_get_mass (unsigned int id);
+
+/*
    mass - specify the mass of an object and return the, id.
           Only polygon (and box) and circle objects may have
           a mass.
@@ -353,6 +408,42 @@ unsigned int twoDsim_mass (unsigned int id, double m);
 */
 
 unsigned int twoDsim_fix (unsigned int id);
+
+/*
+   spring - join object, id1, and, id2, with a string of defined
+            by hooks constant, k, the spring is at rest if it has
+            length, l.  If l < 0 then the game engine considers
+            the spring to naturally be at rest for the distance
+            between id1 and id2.  The parameter, d, is used to
+            calculate the damping force.
+*/
+
+unsigned int twoDsim_spring (unsigned int id1, unsigned int id2, double k, double d, double l);
+
+/*
+   draw_spring - draw spring, id, using colour, c, and a width, w.
+*/
+
+void twoDsim_draw_spring (unsigned int id, unsigned int c, double w);
+
+/*
+   end_spring - draw the spring using colour, c, when it reaches the end.
+*/
+
+void twoDsim_end_spring (unsigned int id, unsigned int c);
+
+/*
+   mid_spring - when the string reaches its rest point draw the objects
+                connected.
+*/
+
+void twoDsim_mid_spring (unsigned int id, unsigned int c);
+
+/*
+   when_spring - when the spring, id, reaches, length call, func.
+*/
+
+void twoDsim_when_spring (unsigned int id, double length, unsigned int func);
 
 /*
    circle - adds a circle to the world.  Center
@@ -449,11 +540,17 @@ unsigned int twoDsim_isFrame (void);
 unsigned int twoDsim_isFunction (void);
 
 /*
+   isSpring - returns TRUE if the next event is a spring event.
+*/
+
+unsigned int twoDsim_isSpring (void);
+
+/*
    createFunctionEvent - creates a function event at time, t,
                          in the future.
 */
 
-void twoDsim_createFunctionEvent (double t, unsigned int id);
+void twoDsim_createFunctionEvent (double t, unsigned int id, unsigned int param);
 
 /*
    rm - delete this object from the simulated world.
@@ -518,7 +615,7 @@ void twoDsim_dumpWorld (void);
    checkObjects - perform a check to make sure that all non fixed objects have a mass.
 */
 
-void twoDsim_checkObjects (void);
+unsigned int twoDsim_checkObjects (void);
 
 /*
    Assert -
@@ -533,10 +630,22 @@ static void Assert (unsigned int b, unsigned int line);
 static void AssertR (double a, double b);
 
 /*
+   AssertRFail -
+*/
+
+static void AssertRFail (double a, double b);
+
+/*
    AssertRDebug -
 */
 
 static void AssertRDebug (double a, double b, char *message_, unsigned int _message_high);
+
+/*
+   dumpSpring -
+*/
+
+static void dumpSpring (Object o);
 
 /*
    dumpCircle -
@@ -557,10 +666,10 @@ static void dumpPolygon (Object o);
 static void checkDeleted (Object o);
 
 /*
-   DumpObject -
+   dumpObject -
 */
 
-static void DumpObject (Object o);
+static void dumpObject (Object o);
 
 /*
    c2p - returns a Point given a Coord.
@@ -680,11 +789,124 @@ static void checkInterpen (void);
 static void resetStationary (void);
 
 /*
-   spring - join object, id1, and, id2, with a string of defined
-            by hooks constant, k.
+   getCofG - returns the CofG of an object.
 */
 
-static unsigned int spring (unsigned int id1, unsigned int id2, double k);
+static coord_Coord getCofG (unsigned int id);
+
+/*
+   isFixed - returns TRUE if object, id, fixed.
+*/
+
+static unsigned int isFixed (unsigned int id);
+
+/*
+   isCircle - return TRUE if object, id, is a circle.
+*/
+
+static unsigned int isCircle (unsigned int id);
+
+/*
+   isPolygon - return TRUE if object, id, is a polygon.
+*/
+
+static unsigned int isPolygon (unsigned int id);
+
+/*
+   isSpringObject - return TRUE if object, id, is a spring.
+*/
+
+static unsigned int isSpringObject (unsigned int id);
+
+/*
+   calcSpringFixed - calculate the forces on, moving object which is attached to, fixed.
+                     Given spring properties of, k, and, l0.
+*/
+
+static void calcSpringFixed (double k, double d, double l0, double l1, unsigned int spr, unsigned int fixed, unsigned int moving);
+
+/*
+   calcSpringMoving - calculate the forces on, moving objects o1 and o2 attached to
+                      spring, spr.
+                      The spring has properties of, k, d, l0 and l1.
+*/
+
+static void calcSpringMoving (double k, double d, double l0, double l1, unsigned int spr, unsigned int o1, unsigned int o2);
+
+/*
+   doCalcSpringForce -
+*/
+
+static void doCalcSpringForce (unsigned int id, Object idp);
+
+/*
+   calcSpringForce - calculate the forces a spring, id, has on its components.
+*/
+
+static void calcSpringForce (unsigned int id);
+
+/*
+   zeroForceEnergy - assign force vector, potential energy and kinetic energy
+                     to zero for all objects
+*/
+
+static void zeroForceEnergy (void);
+
+/*
+   applyDrag -
+*/
+
+static void applyDrag (unsigned int id);
+
+/*
+   doApplySpringForce -
+*/
+
+static coord_Coord doApplySpringForce (unsigned int id, coord_Coord force);
+
+/*
+   doApplyForce -
+*/
+
+static void doApplyForce (unsigned int i, Object iptr);
+
+/*
+   applyForce - translate the force into acceleration
+                and update stationary boolean.
+*/
+
+static void applyForce (void);
+
+/*
+   calcSpringEnergy -
+*/
+
+static void calcSpringEnergy (unsigned int i);
+
+/*
+   calcObjectEnergy -
+*/
+
+static void calcObjectEnergy (unsigned int i);
+
+/*
+   calcEnergy -
+*/
+
+static void calcEnergy (void);
+
+/*
+   recalculateForceEnergy - recalculate all forces and energy
+                            for all objects.
+*/
+
+static void recalculateForceEnergy (void);
+
+/*
+   calcForce - calculate all forces for objects attached by springs.
+*/
+
+static void calcForce (void);
 
 /*
    calculateCofG -
@@ -747,23 +969,58 @@ static coord_Coord getVelCoord (Object o);
 static coord_Coord getAccelCoord (Object o);
 
 /*
-   getCollisionColour - returns the collision colour if requiredDebug,
-                        otherwise return, c.
+   doCircleFrame -
 */
 
-static deviceIf_Colour getCollisionColour (deviceIf_Colour c, unsigned int requiredDebug);
+static void doCircleFrame (Object optr, double dt, deviceIf_Colour col);
+
+/*
+   doPolygonFrame -
+*/
+
+static void doPolygonFrame (Object optr, double dt, deviceIf_Colour col);
+
+/*
+   doSpringFrame -
+*/
+
+static void doSpringFrame (Object optr, double dt, unsigned int col);
 
 /*
    doDrawFrame -
 */
 
-static void doDrawFrame (Object optr, double dt, unsigned int needsDebug);
+static void doDrawFrame (Object optr, double dt, deviceIf_Colour col);
 
 /*
-   getCollisionObjects -
+   getEventObjects -
 */
 
-static void getCollisionObjects (Object *id1, Object *id2, eventQueue e);
+static void getEventObjects (Object *id1, Object *id2, eventQueue e);
+
+/*
+   getColour -
+*/
+
+static deviceIf_Colour getColour (Object optr);
+
+/*
+   getSpringColour -
+*/
+
+static deviceIf_Colour getSpringColour (void);
+
+/*
+   getCollisionColour -
+*/
+
+static deviceIf_Colour getCollisionColour (void);
+
+/*
+   getEventObjectColour -
+*/
+
+static deviceIf_Colour getEventObjectColour (eventQueue e, Object optr);
 
 /*
    drawFrame - draws the current world into the frame buffer.
@@ -800,6 +1057,12 @@ static void updatePolygon (Object optr, double dt);
 static void updateCircle (Object optr, double dt);
 
 /*
+   updateSpring - update the current length, l1, field of the spring.
+*/
+
+static void updateSpring (Object optr, double dt);
+
+/*
    updateOb -
 */
 
@@ -817,7 +1080,7 @@ static void doUpdatePhysics (double dt);
                    the elapsed time from the last collision until now.
 */
 
-static void updatePhysics (void);
+static void updatePhysics (unsigned int recalculateForce);
 
 /*
    displayEvent -
@@ -862,6 +1125,12 @@ static void checkZero (double *v);
 static coord_Coord checkZeroCoord (coord_Coord c);
 
 /*
+   inElasticSpring -
+*/
+
+static void inElasticSpring (double *v);
+
+/*
    inElastic -
 */
 
@@ -879,6 +1148,13 @@ static unsigned int nearZeroVelocity (double r);
 */
 
 static void checkStationary (Object o);
+
+/*
+   checkStationarySpring - checks to see if object, o, should be put into
+                           the stationary state.
+*/
+
+static void checkStationarySpring (Object o);
 
 /*
    checkStationaryCollision - stationary object, a, has been bumped by
@@ -1381,6 +1657,15 @@ static unsigned int earlierPointLineCollision (double *timeOfCollision, coord_Co
 */
 
 static void sortLine (coord_Coord *p1, coord_Coord *p2);
+
+/*
+   findEarlierCircleEdgeCollision - return TRUE if an earlier time, t, is found than tc for when circle
+                                    hits a line.  The circle is defined by a, center, radius and has
+                                    acceleration, accelCircle, and velocity, velCircle.
+                                    The line is between p1 and p2 and has velocity, velLine, and
+                                    acceleration, accelLine.
+*/
+
 static void findEarlierCircleEdgeCollision (double *timeOfCollision, unsigned int cid, unsigned int pid, unsigned int lineP, unsigned int lineC, eventDesc *edesc, coord_Coord center, double radius, coord_Coord velCircle, coord_Coord accelCircle, coord_Coord p1, coord_Coord p2, coord_Coord velLine, coord_Coord accelLine, descP createDesc);
 
 /*
@@ -1580,10 +1865,186 @@ static void subEvent (eventQueue e);
 static void removeCollisionEvent (void);
 
 /*
-   addNextCollisionEvent -
+   removeSpringEvents - removes all spring events.
+*/
+
+static void removeSpringEvents (void);
+
+/*
+   getSpringEndValues - it retrieves the:
+
+                        CofG        :  c
+                        velocity    :  v
+                        acceleration:  a
+
+                        of object, o.
+*/
+
+static void getSpringEndValues (unsigned int o, coord_Coord *c, coord_Coord *v, coord_Coord *a);
+
+/*
+   manualCircleCollision -
+*/
+
+static void manualCircleCollision (double *array, unsigned int _array_high, double a, double b, double c, double d, double e, double f, double g, double h, double k, double l, double m, double n, double o, double p);
+
+/*
+   earlierSpringLength - i is a spring.
+                         c1, c2 are the c of g of the objects 1 and 2.
+                         v1, v2 are the velocities of objects 1 and 2.
+                         a1, a2 are the acceleration of objects 1 and 2.
+
+                         Single letter variables are used since wxmaxima
+                         only operates with these.  Thus the output from wxmaxima
+                         can be cut and pasted into the program.
+
+                            a = c1.x
+                            b = c1.y
+                            c = v1.x
+                            d = v1.y
+                            e = a1.x
+                            f = a1.y
+                            g = c2.x
+                            h = c2.y
+                            k = v2.x
+                            l = v2.y
+                            m = a2.x
+                            n = a2.y
+
+                            t                       is the time of this collision (if any)
+                            bestTimeOfCollision     is earlier known collision so far.
+*/
+
+static unsigned int earlierSpringLength (eventDesc edesc, unsigned int id, double *t, double bestTime, coord_Coord c1, coord_Coord v1, coord_Coord a1, coord_Coord c2, coord_Coord v2, coord_Coord a2, double l, history_springPoint sp);
+
+/*
+   makeSpringDesc - creates and fills in the spring descriptor.
+*/
+
+static eventDesc makeSpringDesc (eventDesc edesc, unsigned int i, history_springPoint stype);
+
+/*
+   calcSpringLengthEvents -
+*/
+
+static void calcSpringLengthEvents (unsigned int i);
+
+/*
+   manualSpringVelocityZero -
+*/
+
+static void manualSpringVelocityZero (double *array, unsigned int _array_high, double a, double b, double c, double d, double e, double f, double g, double h);
+
+/*
+   earlierSpringEnd - records the earliest time in the future when the
+                      relative velocity between the two bodies is zero.
+*/
+
+static void earlierSpringEnd (unsigned int id, coord_Coord v1, coord_Coord a1, coord_Coord v2, coord_Coord a2);
+
+/*
+   calcSpringEndEvents - the spring reaches maximum compression or extension when the
+                         relative velocity between the objects attached to the spring
+                         is zero.
+*/
+
+static void calcSpringEndEvents (unsigned int i);
+
+/*
+   calcSpringEndEventsKE - calcalate the time at which there is no Kinetic energy
+                           in spring, i.  This will be when the spring reaches
+                           its end point.
+*/
+
+static void calcSpringEndEventsKE (double *ts, unsigned int i, eventDesc *edesc);
+
+/*
+   calcSpringEventTime - calculates the time in the future when spring, i,
+                         reaches its:
+
+                         mid point and minimum or maximum extension.
+                         Both events are stored as they may be independent.
+                         If they are not independent, it wont matter as the
+                         event queue will be recreated.
+*/
+
+static void calcSpringEventTime (unsigned int i);
+
+/*
+   addSpringEvent -
+*/
+
+static void addSpringEvent (double t, eventProc dop, eventDesc edesc);
+
+/*
+   reverseSpringAccel -
+*/
+
+static void reverseSpringAccel (Object o);
+
+/*
+   zeroSpringAccel - assign (0.0, 0.0) to the acceration and force vectors.
+*/
+
+static void zeroSpringAccel (Object o);
+
+/*
+   doSpringMidPoint - reached the mid point of the spring, reverse the
+                      acceleration of the sprung objects.
+*/
+
+static void doSpringMidPoint (eventQueue e);
+
+/*
+   doSpringEndPoint - reached the end point of the spring, we
+                      remove some energy from the sprung objects.
+*/
+
+static void doSpringEndPoint (eventQueue e);
+
+/*
+   doSpringCallPoint - reached the user defined call point.
+                       We need to activate the call back.
+*/
+
+static void doSpringCallPoint (eventQueue e);
+
+/*
+   doSpring - called whenever a spring event is processed.
+*/
+
+static void doSpring (eventQueue e);
+
+/*
+   springOccurred - stores the spring event in the history list.
+*/
+
+static void springOccurred (eventDesc edesc);
+
+/*
+   anticipateSpring - stores the collision in the anticipated list.
+*/
+
+static void anticipateSpring (double tc, eventDesc edesc);
+
+/*
+   addNextSpringEvent -
+*/
+
+static void addNextSpringEvent (void);
+
+/*
+   addNextCollisionEvent - recalculate the next collision event time.
 */
 
 static void addNextCollisionEvent (void);
+
+/*
+   addNextObjectEvent - removes the next spring and collision event and recalculates
+                        the time of both events.
+*/
+
+static void addNextObjectEvent (void);
 
 /*
    skipFor - skip displaying any frames for, t, simulated seconds.
@@ -1722,6 +2183,12 @@ static void writePolygonPolygon (ppDesc p);
 static void writeFunction (fcDesc fc);
 
 /*
+   writeSpring -
+*/
+
+static void writeSpring (spDesc sp);
+
+/*
    writeDesc -
 */
 
@@ -1762,6 +2229,7 @@ static void Assert (unsigned int b, unsigned int line)
   if (! b)
     {
       libc_printf ((char *) "twoDsim.mod:%d:error assert failed\\n", 36, line);
+      gdbif_sleepSpin ();
       M2RTS_HALT (0);
     }
 }
@@ -1775,6 +2243,20 @@ static void AssertR (double a, double b)
 {
   if (! (roots_nearZero (a-b)))
     libc_printf ((char *) "error assert failed: %g should equal %g difference is %g\\n", 58, a, b, a-b);
+}
+
+
+/*
+   AssertRFail -
+*/
+
+static void AssertRFail (double a, double b)
+{
+  if (! (roots_nearZero (a-b)))
+    {
+      libc_printf ((char *) "error assert failed: %g should equal %g difference is %g\\n", 58, a, b, a-b);
+      libc_exit (1);
+    }
 }
 
 
@@ -1798,6 +2280,22 @@ static void AssertRDebug (double a, double b, char *message_, unsigned int _mess
       StrLib_StrCopy ((char *) message, _message_high, (char *) &copy.array[0], 10);
       libc_printf ((char *) "%s failed  %g should equal %g difference is %g\\n", 48, &copy, a, b, a-b);
     }
+}
+
+
+/*
+   dumpSpring -
+*/
+
+static void dumpSpring (Object o)
+{
+  libc_printf ((char *) "spring exists between object %d and object %d (at rest %g, Hook %g, current length %g", 85, o->s.id1, o->s.id2, o->s.l0, o->s.k, o->s.l1);
+  if (o->s.hasCallBackLength)
+    libc_printf ((char *) ", call back %g)\\n", 17, o->s.cbl);
+  else
+    libc_printf ((char *) ")\\n", 3);
+  libc_printf ((char *) "  spring is responsible for force (%g, %g) and acceleration (%g, %g) on object %d\\n", 83, o->s.f1.x, o->s.f1.y, o->s.a1.x, o->s.a1.y, o->s.id1);
+  libc_printf ((char *) "  spring is responsible for force (%g, %g) and acceleration (%g, %g) on object %d\\n", 83, o->s.f2.x, o->s.f2.y, o->s.a2.x, o->s.a2.y, o->s.id2);
 }
 
 
@@ -1842,10 +2340,10 @@ static void checkDeleted (Object o)
 
 
 /*
-   DumpObject -
+   dumpObject -
 */
 
-static void DumpObject (Object o)
+static void dumpObject (Object o)
 {
   libc_printf ((char *) "object %d ", 10, o->id);
   if (o->deleted)
@@ -1861,9 +2359,9 @@ static void DumpObject (Object o)
       if (o->stationary)
         libc_printf ((char *) "but is now stationary ", 22);
       else if (! (roots_nearZero (o->angularVelocity)))
-        libc_printf ((char *) " and has a rotating velocity of %g\\n", 36, o->angularVelocity);
+        libc_printf ((char *) "and has a rotating velocity of %g\\n", 35, o->angularVelocity);
       else if (! (roots_nearZero (o->angleOrientation)))
-        libc_printf ((char *) " and its current orientation is %g\\n", 36, o->angleOrientation);
+        libc_printf ((char *) "and its current orientation is %g\\n", 35, o->angleOrientation);
     }
   switch (o->object)
     {
@@ -1876,7 +2374,7 @@ static void DumpObject (Object o)
         break;
 
       case springOb:
-        libc_printf ((char *) "spring\\n", 8);
+        dumpSpring (o);
         break;
 
 
@@ -1884,7 +2382,10 @@ static void DumpObject (Object o)
         break;
     }
   if (! o->fixed && ! o->stationary)
-    libc_printf ((char *) "    velocity (%g, %g) acceleration (%g, %g)\\n", 45, o->vx, o->vy, o->ax, o->ay);
+    {
+      libc_printf ((char *) "    velocity (%g, %g) acceleration (%g, %g)", 43, o->vx, o->vy, o->ax, o->ay);
+      libc_printf ((char *) " forces (%g, %g) spring acceleration (%g, %g) object gravity (%g)\\n", 67, o->forceVec.x, o->forceVec.y, o->saccel.x, o->saccel.y, o->gravity);
+    }
 }
 
 
@@ -1912,6 +2413,9 @@ static unsigned int newObject (ObjectType type)
   optr->deleted = FALSE;
   optr->fixed = FALSE;
   optr->stationary = FALSE;
+  optr->saccel = coord_initCoord (0.0, 0.0);
+  optr->gravity = 0.0;
+  optr->forceVec = coord_initCoord (0.0, 0.0);
   optr->object = type;
   optr->vx = 0.0;
   optr->vy = 0.0;
@@ -2165,8 +2669,8 @@ static unsigned int doCheckInterpenCirclePolygon (Object iptr, Object jptr)
   coord_Coord p2;
   coord_Coord p3;
 
-  Assert (iptr->object == circleOb, 1117);
-  Assert (jptr->object == polygonOb, 1118);
+  Assert (iptr->object == circleOb, 1182);
+  Assert (jptr->object == polygonOb, 1183);
   c = checkZeroCoord (iptr->c.pos);
   r = iptr->c.r;
   n = jptr->p.nPoints;
@@ -2178,7 +2682,11 @@ static unsigned int doCheckInterpenCirclePolygon (Object iptr, Object jptr)
         if (! iptr->fixed)
           {
             if (roots_nearZero (d))
-              libc_printf ((char *) "distance is nearzero, seen collision between circle and line, new position %g, %g\\n", 83, iptr->c.pos.x, iptr->c.pos.y);
+              {
+                /* avoid dangling else.  */
+                if (trace)
+                  libc_printf ((char *) "distance is nearzero, seen collision between circle and line, new position %g, %g\\n", 83, iptr->c.pos.x, iptr->c.pos.y);
+              }
             else
               {
                 v = coord_subCoord (c, p3);
@@ -2381,21 +2889,480 @@ static void resetStationary (void)
 
 
 /*
-   spring - join object, id1, and, id2, with a string of defined
-            by hooks constant, k.
+   getCofG - returns the CofG of an object.
 */
 
-static unsigned int spring (unsigned int id1, unsigned int id2, double k)
+static coord_Coord getCofG (unsigned int id)
 {
-  unsigned int id;
-  Object optr;
+  Object idp;
 
-  id = newObject ((ObjectType) springOb);
-  optr = Indexing_GetIndice (objects, id);
-  optr->s.k = k;
-  optr->s.id1 = id1;
-  optr->s.id2 = id2;
-  return id;
+  idp = Indexing_GetIndice (objects, id);
+  switch (idp->object)
+    {
+      case circleOb:
+        return idp->c.pos;
+        break;
+
+      case polygonOb:
+        return idp->p.cOfG;
+        break;
+
+
+      default:
+        CaseException ("../pge/m2/twoDsim.def", 2, 1);
+    }
+}
+
+
+/*
+   isFixed - returns TRUE if object, id, fixed.
+*/
+
+static unsigned int isFixed (unsigned int id)
+{
+  Object idp;
+
+  idp = Indexing_GetIndice (objects, id);
+  return idp->fixed;
+}
+
+
+/*
+   isCircle - return TRUE if object, id, is a circle.
+*/
+
+static unsigned int isCircle (unsigned int id)
+{
+  Object idp;
+
+  idp = Indexing_GetIndice (objects, id);
+  return idp->object == circleOb;
+}
+
+
+/*
+   isPolygon - return TRUE if object, id, is a polygon.
+*/
+
+static unsigned int isPolygon (unsigned int id)
+{
+  Object idp;
+
+  idp = Indexing_GetIndice (objects, id);
+  return idp->object == polygonOb;
+}
+
+
+/*
+   isSpringObject - return TRUE if object, id, is a spring.
+*/
+
+static unsigned int isSpringObject (unsigned int id)
+{
+  Object idp;
+
+  idp = Indexing_GetIndice (objects, id);
+  return (idp != NULL) && (idp->object == springOb);
+}
+
+
+/*
+   calcSpringFixed - calculate the forces on, moving object which is attached to, fixed.
+                     Given spring properties of, k, and, l0.
+*/
+
+static void calcSpringFixed (double k, double d, double l0, double l1, unsigned int spr, unsigned int fixed, unsigned int moving)
+{
+  Object sprp;
+  Object fixedp;
+  Object movingp;
+  Object o;
+  coord_Coord f1;
+  coord_Coord vfm;
+  coord_Coord fvec;
+  coord_Coord s;
+  coord_Coord n;
+  double factor;
+  double springval;
+  double damping;
+  double fax;
+  double fay;
+  double fvx;
+  double fvy;
+  double mvx;
+  double mvy;
+  double max;
+  double may;
+
+  sprp = Indexing_GetIndice (objects, spr);
+  fixedp = Indexing_GetIndice (objects, fixed);
+  movingp = Indexing_GetIndice (objects, moving);
+  getObjectValues (fixedp, &fvx, &fvy, &fax, &fay);
+  getObjectValues (movingp, &mvx, &mvy, &max, &may);
+  if (trace)
+    {
+      libc_printf ((char *) "fvx, fvy = %g, %g   ", 20, fvx, fvy);
+      libc_printf ((char *) "fax, fay = %g, %g\\n", 19, fvx, fvy);
+      libc_printf ((char *) "mvx, mvy = %g, %g   ", 20, mvx, mvy);
+      libc_printf ((char *) "max, may = %g, %g\\n", 19, mvx, mvy);
+      libc_printf ((char *) "starting with force on moving object %d = [%g, %g]\\n", 52, movingp->id, movingp->forceVec.x, movingp->forceVec.y);
+    }
+  vfm = coord_subCoord (coord_initCoord (fvx, fvy), coord_initCoord (mvx, mvy));
+  s = coord_subCoord (getCofG (fixed), getCofG (moving));
+  n = coord_normaliseCoord (s);
+  springval = k*(l1-l0);
+  damping = d*((coord_dotProd (vfm, s))/(coord_lengthCoord (s)));
+  f1 = coord_scaleCoord (n, -(springval+damping));
+  if (trace)
+    {
+      libc_printf ((char *) "spring value = %g\\n", 19, springval);
+      libc_printf ((char *) "damping value = %g\\n", 20, damping);
+      libc_printf ((char *) "vector f1 = [%g, %g]\\n", 22, f1.x, f1.y);
+    }
+  movingp->forceVec = coord_subCoord (movingp->forceVec, f1);
+  sprp->s.f1 = coord_negateCoord (f1);
+  sprp->s.f2 = f1;
+  if (trace)
+    {
+      libc_printf ((char *) "overall force on moving object %d = [%g, %g]\\n", 46, movingp->id, movingp->forceVec.x, movingp->forceVec.y);
+      factor = (sqr (d))-((4.0*(twoDsim_get_mass (movingp->id)))*k);
+      if (roots_nearZero (factor))
+        libc_printf ((char *) "sprung object %d critical damping (increase damping or reduce spring strength of spring %d)\\n", 93, movingp->id, spr);
+      else if (factor > 0.0)
+        libc_printf ((char *) "sprung object %d is safe as it is over damped\\n", 47, movingp->id);
+      else
+        libc_printf ((char *) "sprung object %d under damped (increase damping or reduce spring strength of spring %d)\\n", 89, movingp->id, spr);
+    }
+}
+
+
+/*
+   calcSpringMoving - calculate the forces on, moving objects o1 and o2 attached to
+                      spring, spr.
+                      The spring has properties of, k, d, l0 and l1.
+*/
+
+static void calcSpringMoving (double k, double d, double l0, double l1, unsigned int spr, unsigned int o1, unsigned int o2)
+{
+  Object sprp;
+  Object o1p;
+  Object o2p;
+  coord_Coord f1;
+  coord_Coord vfm;
+  coord_Coord fvec;
+  coord_Coord s;
+  coord_Coord n;
+  double springval;
+  double damping;
+  double fax;
+  double fay;
+  double fvx;
+  double fvy;
+  double mvx;
+  double mvy;
+  double max;
+  double may;
+
+  sprp = Indexing_GetIndice (objects, spr);
+  o1p = Indexing_GetIndice (objects, o1);
+  o2p = Indexing_GetIndice (objects, o2);
+  getObjectValues (o1p, &fvx, &fvy, &fax, &fay);
+  getObjectValues (o2p, &mvx, &mvy, &max, &may);
+  if (trace)
+    {
+      libc_printf ((char *) "fvx, fvy = %g, %g   ", 20, fvx, fvy);
+      libc_printf ((char *) "fax, fay = %g, %g\\n", 19, fvx, fvy);
+      libc_printf ((char *) "mvx, mvy = %g, %g   ", 20, mvx, mvy);
+      libc_printf ((char *) "max, may = %g, %g\\n", 19, mvx, mvy);
+    }
+  vfm = coord_subCoord (coord_initCoord (fvx, fvy), coord_initCoord (mvx, mvy));
+  s = coord_subCoord (getCofG (o1), getCofG (o2));
+  n = coord_normaliseCoord (s);
+  springval = k*(l1-l0);
+  damping = d*((coord_dotProd (vfm, s))/(coord_lengthCoord (s)));
+  f1 = coord_scaleCoord (n, -(springval+damping));
+  if (trace)
+    {
+      libc_printf ((char *) "spring value = %g\\n", 19, springval);
+      libc_printf ((char *) "damping value = %g\\n", 20, damping);
+      libc_printf ((char *) "vector f1 = [%g, %g]\\n", 22, f1.x, f1.y);
+    }
+  o1p->forceVec = coord_addCoord (o1p->forceVec, f1);
+  o2p->forceVec = coord_subCoord (o2p->forceVec, f1);
+  sprp->s.f1 = f1;
+  sprp->s.f2 = coord_negateCoord (f1);
+}
+
+
+/*
+   doCalcSpringForce -
+*/
+
+static void doCalcSpringForce (unsigned int id, Object idp)
+{
+  unsigned int id1;
+  unsigned int id2;
+
+  switch (idp->object)
+    {
+      case springOb:
+        id1 = idp->s.id1;
+        id2 = idp->s.id2;
+        if ((isFixed (id1)) && (! (isFixed (id2))))
+          calcSpringFixed (idp->s.k, idp->s.d, idp->s.l0, idp->s.l1, id, id1, id2);
+        else if ((isFixed (id2)) && (! (isFixed (id1))))
+          calcSpringFixed (idp->s.k, idp->s.d, idp->s.l0, idp->s.l1, id, id2, id1);
+        else if ((! (isFixed (id1))) && (! (isFixed (id2))))
+          calcSpringMoving (idp->s.k, idp->s.d, idp->s.l0, idp->s.l1, id, id2, id1);
+        break;
+
+
+      default:
+        break;
+    }
+}
+
+
+/*
+   calcSpringForce - calculate the forces a spring, id, has on its components.
+*/
+
+static void calcSpringForce (unsigned int id)
+{
+  Object idp;
+
+  idp = Indexing_GetIndice (objects, id);
+  if (objectExists (idp))
+    doCalcSpringForce (id, idp);
+}
+
+
+/*
+   zeroForceEnergy - assign force vector, potential energy and kinetic energy
+                     to zero for all objects
+*/
+
+static void zeroForceEnergy (void)
+{
+  unsigned int n;
+  unsigned int i;
+  Object iptr;
+
+  n = Indexing_HighIndice (objects);
+  i = 1;
+  while (i <= n)
+    {
+      iptr = Indexing_GetIndice (objects, i);
+      if (objectExists (iptr))
+        {
+          iptr->forceVec = coord_initCoord (0.0, 0.0);
+          iptr->ke = 0.0;
+          iptr->pe = 0.0;
+        }
+      i += 1;
+    }
+}
+
+
+/*
+   applyDrag -
+*/
+
+static void applyDrag (unsigned int id)
+{
+  Object o;
+
+  if (! (isFixed (id)))
+    {
+      o = Indexing_GetIndice (objects, id);
+      inElastic (&o->vx);
+      inElastic (&o->vy);
+    }
+}
+
+
+/*
+   doApplySpringForce -
+*/
+
+static coord_Coord doApplySpringForce (unsigned int id, coord_Coord force)
+{
+  coord_Coord a;
+
+  if (! (isFixed (id)))
+    {
+      /* avoid gcc warning by using compound statement even if not strictly necessary.  */
+      if (roots_nearZero (twoDsim_get_mass (id)))
+        {
+          libc_printf ((char *) "object %d must be given a mass\\n", 32, id);
+          libc_exit (1);
+        }
+      else
+        {
+          a = coord_scaleCoord (force, 1.0/(twoDsim_get_mass (id)));
+          a = coord_scaleCoord (a, ElasticitySpring);
+          applyDrag (id);
+          return a;
+        }
+    }
+  ReturnException ("../pge/m2/twoDsim.def", 2, 1);
+}
+
+
+/*
+   doApplyForce -
+*/
+
+static void doApplyForce (unsigned int i, Object iptr)
+{
+  if (((isCircle (i)) || (isPolygon (i))) && (! (isFixed (i))))
+    if (roots_nearZero (twoDsim_get_mass (i)))
+      libc_printf ((char *) "moving object %d needs a mass before a force can be applied\\n", 61, i);
+    else
+      {
+        if (trace)
+          {
+            libc_printf ((char *) "object %d has force vector (%g,  %g)\\n", 38, i, iptr->forceVec.x, iptr->forceVec.y);
+            libc_printf ((char *) "object %d has (saccel = (%g, %g)\\n", 34, i, iptr->saccel.x, iptr->saccel.y);
+          }
+        iptr->saccel = coord_initCoord (iptr->forceVec.x/(twoDsim_get_mass (i)), iptr->forceVec.y/(twoDsim_get_mass (i)));
+        iptr->saccel = coord_scaleCoord (iptr->saccel, ElasticitySpring);
+        if (trace)
+          {
+            libc_printf ((char *) "object %d now has (saccel (%g, %g)\\n", 36, i, iptr->saccel.x, iptr->saccel.y);
+            libc_printf ((char *) "object %d has normal acceleration of (%g, %g)\\n", 47, i, iptr->ax, iptr->ay);
+            libc_printf ((char *) "              total acceleration of (%g, %g)\\n", 46, i, iptr->ax+iptr->saccel.x, iptr->ay+iptr->saccel.y);
+          }
+      }
+  else if (isSpringObject (i))
+    {
+      iptr->s.a1 = doApplySpringForce (iptr->s.id1, iptr->s.f1);
+      iptr->s.a2 = doApplySpringForce (iptr->s.id2, iptr->s.f2);
+    }
+}
+
+
+/*
+   applyForce - translate the force into acceleration
+                and update stationary boolean.
+*/
+
+static void applyForce (void)
+{
+  unsigned int n;
+  unsigned int i;
+  Object iptr;
+
+  n = Indexing_HighIndice (objects);
+  i = 1;
+  while (i <= n)
+    {
+      iptr = Indexing_GetIndice (objects, i);
+      if (objectExists (iptr))
+        doApplyForce (i, iptr);
+      i += 1;
+    }
+}
+
+
+/*
+   calcSpringEnergy -
+*/
+
+static void calcSpringEnergy (unsigned int i)
+{
+  double M;
+  Object id1ptr;
+  Object id2ptr;
+  Object iptr;
+
+  Assert (isSpringObject (i), 1950);
+  iptr = Indexing_GetIndice (objects, i);
+  iptr->ke = 0.0;
+  iptr->pe = (iptr->s.k*(sqr (iptr->s.l0-iptr->s.l1)))/2.0;
+  id1ptr = Indexing_GetIndice (objects, iptr->s.id1);
+  id2ptr = Indexing_GetIndice (objects, iptr->s.id2);
+  if (id1ptr->fixed && ! id2ptr->fixed)
+    id2ptr->pe = id2ptr->pe+iptr->pe;
+  else if (id2ptr->fixed && ! id1ptr->fixed)
+    id1ptr->pe = id1ptr->pe+iptr->pe;
+  else if (! id2ptr->fixed && ! id1ptr->fixed)
+    {
+      M = (twoDsim_get_mass (iptr->s.id1))+(twoDsim_get_mass (iptr->s.id2));
+      id1ptr->pe = id1ptr->pe+((iptr->pe*(twoDsim_get_mass (iptr->s.id1)))/M);
+      id2ptr->pe = id2ptr->pe+((iptr->pe*(twoDsim_get_mass (iptr->s.id2)))/M);
+    }
+}
+
+
+/*
+   calcObjectEnergy -
+*/
+
+static void calcObjectEnergy (unsigned int i)
+{
+  if (isSpringObject (i))
+    calcSpringEnergy (i);
+}
+
+
+/*
+   calcEnergy -
+*/
+
+static void calcEnergy (void)
+{
+  unsigned int n;
+  unsigned int i;
+
+  n = Indexing_HighIndice (objects);
+  i = 1;
+  while (i <= n)
+    {
+      calcObjectEnergy (i);
+      i += 1;
+    }
+}
+
+
+/*
+   recalculateForceEnergy - recalculate all forces and energy
+                            for all objects.
+*/
+
+static void recalculateForceEnergy (void)
+{
+  if (trace)
+    libc_printf ((char *) "enter recalculateForceEnergy\\n", 30);
+  zeroForceEnergy ();
+  if (trace)
+    twoDsim_dumpWorld ();
+  calcForce ();
+  applyForce ();
+  if (trace)
+    {
+      twoDsim_dumpWorld ();
+      libc_printf ((char *) "exit recalculateForceEnergy\\n", 29);
+    }
+}
+
+
+/*
+   calcForce - calculate all forces for objects attached by springs.
+*/
+
+static void calcForce (void)
+{
+  unsigned int n;
+  unsigned int i;
+
+  n = Indexing_HighIndice (objects);
+  i = 1;
+  while (i <= n)
+    {
+      calcSpringForce (i);
+      i += 1;
+    }
 }
 
 
@@ -2624,21 +3591,97 @@ static coord_Coord getAccelCoord (Object o)
   if (o->fixed || o->stationary)
     return coord_initCoord (0.0, 0.0);
   else
-    return coord_initCoord (o->ax, o->ay+simulatedGravity);
+    return coord_addCoord (coord_initCoord (o->ax, (o->ay+simulatedGravity)+o->gravity), o->saccel);
 }
 
 
 /*
-   getCollisionColour - returns the collision colour if requiredDebug,
-                        otherwise return, c.
+   doCircleFrame -
 */
 
-static deviceIf_Colour getCollisionColour (deviceIf_Colour c, unsigned int requiredDebug)
+static void doCircleFrame (Object optr, double dt, deviceIf_Colour col)
 {
-  if (requiredDebug && haveCollisionColour)
-    return collisionColour;
-  else
-    return c;
+  coord_Coord vc;
+  coord_Coord ac;
+
+  vc = getVelCoord (optr);
+  ac = getAccelCoord (optr);
+  doCircle (newPositionCoord (optr->c.pos, vc, ac, dt), optr->c.r, col);
+}
+
+
+/*
+   doPolygonFrame -
+*/
+
+static void doPolygonFrame (Object optr, double dt, deviceIf_Colour col)
+{
+  typedef struct _T10_a _T10;
+
+  struct _T10_a { coord_Coord array[MaxPolygonPoints+1]; };
+  unsigned int i;
+  _T10 po;
+  coord_Coord co;
+  coord_Coord vc;
+  coord_Coord ac;
+
+  vc = getVelCoord (optr);
+  ac = getAccelCoord (optr);
+  for (i=0; i<=optr->p.nPoints-1; i++)
+    {
+      po.array[i] = newPositionRotationCoord (optr->p.cOfG, vc, ac, dt, optr->angularVelocity, optr->angleOrientation, (polar_Polar) optr->p.points.array[i]);
+      if (Debugging)
+        libc_printf ((char *) "po[%d].x = %g, po[%d].y = %g\\n", 30, i, po.array[i].x, i, po.array[i].y);
+      co = coord_addCoord (optr->p.cOfG, polar_polarToCoord (polar_rotatePolar ((polar_Polar) optr->p.points.array[i], optr->angleOrientation)));
+      if (Debugging)
+        libc_printf ((char *) " [co.x = %g, co.y = %g]\\n", 25, co.x, co.y);
+      if (roots_nearZero (dt))
+        if ((! (roots_nearZero (co.x-po.array[i].x))) || (! (roots_nearZero (co.y-po.array[i].y))))
+          {
+            libc_printf ((char *) "these values should be the same\\n", 33);
+            libc_exit (1);
+          }
+    }
+  doPolygon (optr->p.nPoints, (coord_Coord *) &po.array[0], MaxPolygonPoints, col);
+}
+
+
+/*
+   doSpringFrame -
+*/
+
+static void doSpringFrame (Object optr, double dt, unsigned int col)
+{
+  typedef struct _T11_a _T11;
+
+  struct _T11_a { coord_Coord array[3+1]; };
+  unsigned int i;
+  coord_Coord p;
+  coord_Coord s1;
+  coord_Coord s2;
+  Object o1;
+  Object o2;
+  _T11 po;
+  coord_Coord co;
+  coord_Coord vc;
+  coord_Coord ac;
+  double w2;
+
+  Assert (optr->object == springOb, 2547);
+  if (optr->s.draw)
+    {
+      w2 = optr->s.width/2.0;
+      o1 = Indexing_GetIndice (objects, optr->s.id1);
+      o2 = Indexing_GetIndice (objects, optr->s.id2);
+      s1 = newPositionCoord (getCofG (optr->s.id1), getVelCoord (o1), getAccelCoord (o1), dt);
+      s2 = newPositionCoord (getCofG (optr->s.id2), getVelCoord (o2), getAccelCoord (o2), dt);
+      p = coord_scaleCoord (coord_normaliseCoord (coord_perpendicular (coord_subCoord (s1, s2))), w2);
+      po.array[0] = coord_addCoord (s1, p);
+      po.array[1] = coord_subCoord (s1, p);
+      po.array[2] = coord_subCoord (s2, p);
+      po.array[3] = coord_addCoord (s2, p);
+      doPolygon (4, (coord_Coord *) &po.array[0], 3, (deviceIf_Colour) optr->s.drawColour);
+    }
 }
 
 
@@ -2646,49 +3689,26 @@ static deviceIf_Colour getCollisionColour (deviceIf_Colour c, unsigned int requi
    doDrawFrame -
 */
 
-static void doDrawFrame (Object optr, double dt, unsigned int needsDebug)
+static void doDrawFrame (Object optr, double dt, deviceIf_Colour col)
 {
-  typedef struct _T10_a _T10;
-
-  struct _T10_a { coord_Coord array[MaxPolygonPoints+1]; };
-  unsigned int i;
-  coord_Coord co;
-  coord_Coord vc;
   coord_Coord ac;
-  _T10 po;
-  deviceIf_Colour oc;
+  coord_Coord vc;
 
   if (DebugTrace)
     libc_printf ((char *) "doDrawFrame (%g)\\n", 18, dt);
   checkDeleted (optr);
-  vc = getVelCoord (optr);
-  ac = getAccelCoord (optr);
   switch (optr->object)
     {
       case circleOb:
-        doCircle (newPositionCoord (optr->c.pos, vc, ac, dt), optr->c.r, getCollisionColour (optr->c.col, needsDebug));
+        doCircleFrame (optr, dt, col);
         break;
 
       case springOb:
+        doSpringFrame (optr, dt, (unsigned int) col);
         break;
 
       case polygonOb:
-        for (i=0; i<=optr->p.nPoints-1; i++)
-          {
-            po.array[i] = newPositionRotationCoord (optr->p.cOfG, vc, ac, dt, optr->angularVelocity, optr->angleOrientation, (polar_Polar) optr->p.points.array[i]);
-            if (Debugging)
-              libc_printf ((char *) "po[%d].x = %g, po[%d].y = %g\\n", 30, i, po.array[i].x, i, po.array[i].y);
-            co = coord_addCoord (optr->p.cOfG, polar_polarToCoord (polar_rotatePolar ((polar_Polar) optr->p.points.array[i], optr->angleOrientation)));
-            if (Debugging)
-              libc_printf ((char *) " [co.x = %g, co.y = %g]\\n", 25, co.x, co.y);
-            if (roots_nearZero (dt))
-              if ((! (roots_nearZero (co.x-po.array[i].x))) || (! (roots_nearZero (co.y-po.array[i].y))))
-                {
-                  libc_printf ((char *) "these values should be the same\\n", 33);
-                  libc_exit (1);
-                }
-          }
-        doPolygon (optr->p.nPoints, (coord_Coord *) &po.array[0], MaxPolygonPoints, getCollisionColour (optr->p.col, needsDebug));
+        doPolygonFrame (optr, dt, col);
         break;
 
 
@@ -2699,11 +3719,13 @@ static void doDrawFrame (Object optr, double dt, unsigned int needsDebug)
 
 
 /*
-   getCollisionObjects -
+   getEventObjects -
 */
 
-static void getCollisionObjects (Object *id1, Object *id2, eventQueue e)
+static void getEventObjects (Object *id1, Object *id2, eventQueue e)
 {
+  Object id;
+
   (*id1) = NULL;
   (*id2) = NULL;
   if (e != NULL)
@@ -2722,6 +3744,95 @@ static void getCollisionObjects (Object *id1, Object *id2, eventQueue e)
         case polygonPolygonEvent:
           (*id1) = Indexing_GetIndice (objects, e->ePtr->pp.pid1);
           (*id2) = Indexing_GetIndice (objects, e->ePtr->pp.pid2);
+          break;
+
+        case springEvent:
+          id = Indexing_GetIndice (objects, e->ePtr->sp.id);
+          (*id1) = Indexing_GetIndice (objects, id->s.id1);
+          (*id2) = Indexing_GetIndice (objects, id->s.id2);
+          break;
+
+
+        default:
+          CaseException ("../pge/m2/twoDsim.def", 2, 1);
+      }
+}
+
+
+/*
+   getColour -
+*/
+
+static deviceIf_Colour getColour (Object optr)
+{
+  switch (optr->object)
+    {
+      case polygonOb:
+        return optr->p.col;
+        break;
+
+      case circleOb:
+        return optr->c.col;
+        break;
+
+      case springOb:
+        return deviceIf_white ();
+        break;
+
+
+      default:
+        CaseException ("../pge/m2/twoDsim.def", 2, 1);
+    }
+}
+
+
+/*
+   getSpringColour -
+*/
+
+static deviceIf_Colour getSpringColour (void)
+{
+  if (haveSpringColour)
+    return springColour;
+  else
+    return deviceIf_red ();
+}
+
+
+/*
+   getCollisionColour -
+*/
+
+static deviceIf_Colour getCollisionColour (void)
+{
+  if (haveCollisionColour)
+    return collisionColour;
+  else
+    return deviceIf_blue ();
+}
+
+
+/*
+   getEventObjectColour -
+*/
+
+static deviceIf_Colour getEventObjectColour (eventQueue e, Object optr)
+{
+  Object id1;
+  Object id2;
+
+  getEventObjects (&id1, &id2, e);
+  if ((e == NULL) || ((id1 != optr) && (id2 != optr)))
+    return getColour (optr);
+  else
+    switch (e->kind)
+      {
+        case collisionKind:
+          return getCollisionColour ();
+          break;
+
+        case springKind:
+          return getSpringColour ();
           break;
 
 
@@ -2744,12 +3855,11 @@ static void drawFrame (eventQueue e)
   double dt;
   unsigned int i;
   unsigned int n;
-  Object id1;
-  Object id2;
   Object optr;
 
-  Assert ((e == NULL) || (e->kind == collisionKind), 1914);
-  getCollisionObjects (&id1, &id2, e);
+  if (FrameSprings)
+    updatePhysics (TRUE);
+  Assert (((e == NULL) || (e->kind == collisionKind)) || (e->kind == springKind), 2717);
   if (DebugTrace)
     libc_printf ((char *) "start drawFrame\\n", 17);
   if (writeTimeDelay)
@@ -2769,8 +3879,8 @@ static void drawFrame (eventQueue e)
       if ((optr != NULL) && ! optr->deleted)
         {
           if (Debugging)
-            DumpObject (optr);
-          doDrawFrame (optr, dt, (optr == id1) || (optr == id2));
+            dumpObject (optr);
+          doDrawFrame (optr, dt, getEventObjectColour (e, optr));
         }
       i += 1;
     }
@@ -2829,12 +3939,15 @@ static double incRadians (double a, double b)
 
 static void updatePolygon (Object optr, double dt)
 {
+  coord_Coord ac;
+
   if (! optr->deleted)
     {
-      optr->p.cOfG.x = newPositionScalar (optr->p.cOfG.x, optr->vx, optr->ax, dt);
-      optr->p.cOfG.y = newPositionScalar (optr->p.cOfG.y, optr->vy, optr->ay+simulatedGravity, dt);
+      ac = getAccelCoord (optr);
+      optr->p.cOfG.x = newPositionScalar (optr->p.cOfG.x, optr->vx, ac.x, dt);
+      optr->p.cOfG.y = newPositionScalar (optr->p.cOfG.y, optr->vy, ac.y, dt);
       optr->vx = optr->vx+(optr->ax*dt);
-      optr->vy = optr->vy+((optr->ay+simulatedGravity)*dt);
+      optr->vy = optr->vy+(ac.y*dt);
       optr->angleOrientation = incRadians (optr->angleOrientation, optr->angularVelocity*dt);
     }
 }
@@ -2847,14 +3960,26 @@ static void updatePolygon (Object optr, double dt)
 static void updateCircle (Object optr, double dt)
 {
   double vn;
+  coord_Coord ac;
 
   if (! optr->deleted)
     {
-      optr->c.pos.x = newPositionScalar (optr->c.pos.x, optr->vx, optr->ax, dt);
-      optr->vx = optr->vx+(optr->ax*dt);
-      optr->c.pos.y = newPositionScalar (optr->c.pos.y, optr->vy, optr->ay+simulatedGravity, dt);
-      optr->vy = optr->vy+((optr->ay+simulatedGravity)*dt);
+      ac = getAccelCoord (optr);
+      optr->c.pos.x = newPositionScalar (optr->c.pos.x, optr->vx, ac.x, dt);
+      optr->vx = optr->vx+(ac.x*dt);
+      optr->c.pos.y = newPositionScalar (optr->c.pos.y, optr->vy, ac.y, dt);
+      optr->vy = optr->vy+(ac.y*dt);
     }
+}
+
+
+/*
+   updateSpring - update the current length, l1, field of the spring.
+*/
+
+static void updateSpring (Object optr, double dt)
+{
+  optr->s.l1 = coord_lengthCoord (coord_subCoord (getCofG (optr->s.id1), getCofG (optr->s.id2)));
 }
 
 
@@ -2876,6 +4001,7 @@ static void updateOb (Object optr, double dt)
           break;
 
         case springOb:
+          updateSpring (optr, dt);
           break;
 
 
@@ -2901,7 +4027,16 @@ static void doUpdatePhysics (double dt)
   while (i <= n)
     {
       optr = Indexing_GetIndice (objects, i);
-      updateOb (optr, dt);
+      if (! (isSpringObject (i)))
+        updateOb (optr, dt);
+      i += 1;
+    }
+  i = 1;
+  while (i <= n)
+    {
+      optr = Indexing_GetIndice (objects, i);
+      if (isSpringObject (i))
+        updateOb (optr, dt);
       i += 1;
     }
 }
@@ -2912,9 +4047,11 @@ static void doUpdatePhysics (double dt)
                    the elapsed time from the last collision until now.
 */
 
-static void updatePhysics (void)
+static void updatePhysics (unsigned int recalculateForce)
 {
   doUpdatePhysics (currentTime-lastUpdateTime);
+  if (recalculateForce)
+    recalculateForceEnergy ();
   lastUpdateTime = currentTime;
 }
 
@@ -2932,6 +4069,8 @@ static void displayEvent (eventQueue e)
     libc_printf ((char *) "collisionKind ", 14);
   else if (e->kind == functionKind)
     libc_printf ((char *) "functionEvent ", 14);
+  else if (e->kind == springKind)
+    libc_printf ((char *) "springEvent ", 12);
   else
     libc_printf ((char *) "unknown kind ", 13);
   if (e->ePtr == NULL)
@@ -2968,7 +4107,30 @@ static void displayEvent (eventQueue e)
           break;
 
         case functionEvent:
-          libc_printf ((char *) "function event %d\\n", 19, e->ePtr->fc.id);
+          libc_printf ((char *) "function event %d (%d)\\n", 24, e->ePtr->fc.id, e->ePtr->fc.param);
+          break;
+
+        case springEvent:
+          libc_printf ((char *) "spring %d reached ", 18, e->ePtr->sp.id);
+          switch (e->ePtr->sp.type)
+            {
+              case history_midPoint:
+                libc_printf ((char *) "midpoint", 8);
+                break;
+
+              case history_endPoint:
+                libc_printf ((char *) "endpoint", 8);
+                break;
+
+              case history_callPoint:
+                libc_printf ((char *) "callpoint", 9);
+                break;
+
+
+              default:
+                CaseException ("../pge/m2/twoDsim.def", 2, 1);
+            }
+          libc_printf ((char *) "\\n", 2);
           break;
 
 
@@ -3060,12 +4222,14 @@ static double doNextEvent (void)
     }
   else
     {
+      if (trace)
+        printQueue ();
       e = eventQ;
       eventQ = eventQ->next;
       dt = e->time;
       p = e->p;
       currentTime = currentTime+dt;
-      Assert ((((p.proc == drawFrameEvent) || (p.proc == doCollision)) || (p.proc == debugFrame)) || (p.proc == doFunctionEvent), 2263);
+      Assert (((((p.proc == drawFrameEvent) || (p.proc == doCollision)) || (p.proc == debugFrame)) || (p.proc == doFunctionEvent)) || (p.proc == doSpring), 3114);
       (*p.proc) (e);
       disposeDesc (&e->ePtr);
       disposeEvent (e);
@@ -3098,6 +4262,17 @@ static coord_Coord checkZeroCoord (coord_Coord c)
   if (roots_nearZero (c.y))
     c.y = 0.0;
   return c;
+}
+
+
+/*
+   inElasticSpring -
+*/
+
+static void inElasticSpring (double *v)
+{
+  (*v) = (*v)*ElasticitySpring;
+  checkZero (v);
 }
 
 
@@ -3143,7 +4318,32 @@ static void checkStationary (Object o)
             o->vx = 0.0;
             o->vy = 0.0;
             if (Debugging)
-              DumpObject (o);
+              dumpObject (o);
+          }
+      }
+}
+
+
+/*
+   checkStationarySpring - checks to see if object, o, should be put into
+                           the stationary state.
+*/
+
+static void checkStationarySpring (Object o)
+{
+  if (objectExists (o))
+    if (! o->fixed)
+      {
+        o->forceVec = coord_scaleCoord (o->forceVec, ElasticitySpring);
+        inElasticSpring (&o->vx);
+        inElasticSpring (&o->vy);
+        o->stationary = (nearZeroVelocity (o->vx)) && (nearZeroVelocity (o->vy));
+        if (o->stationary)
+          {
+            o->vx = 0.0;
+            o->vy = 0.0;
+            if (Debugging)
+              dumpObject (o);
           }
       }
 }
@@ -3170,7 +4370,7 @@ static void checkStationaryCollision (Object a, Object b)
       a->c.pos.y = a->c.pos.y+0.001;
       a->stationary = FALSE;
       if (Debugging)
-        DumpObject (a);
+        dumpObject (a);
     }
   else if (b->stationary && ! b->deleted)
     checkStationaryCollision (b, a);
@@ -3346,7 +4546,7 @@ static void collidePolygonAgainstFixedCircle (Object o, coord_Coord collision)
 {
   collideAgainstFixedCircle (o, collision);
   if (Debugging)
-    DumpObject (o);
+    dumpObject (o);
 }
 
 
@@ -3359,7 +4559,7 @@ static void collidePolygonAgainstFixedEdge (Object o, coord_Coord p1, coord_Coor
 {
   collideCircleAgainstFixedEdge (o, p1, p2);
   if (Debugging)
-    DumpObject (o);
+    dumpObject (o);
 }
 
 
@@ -3483,9 +4683,9 @@ static void collidePolygonAgainstFixedPolygon (eventQueue e, Object id1, Object 
   coord_Coord p;
   coord_Coord v;
 
-  Assert (! id1->fixed, 2795);
-  Assert (id2->fixed, 2796);
-  Assert (e->ePtr->etype == polygonPolygonEvent, 2797);
+  Assert (! id1->fixed, 3687);
+  Assert (id2->fixed, 3688);
+  Assert (e->ePtr->etype == polygonPolygonEvent, 3689);
   if (Debugging)
     libc_printf ((char *) "collidePolygonAgainstFixedPolygon\\n", 35);
   drawFrame (e);
@@ -3545,10 +4745,10 @@ static void collidePolygonAgainstMovingPolygon (eventQueue e, Object id1, Object
   if (Debugging)
     {
       displayEvent (e);
-      DumpObject (id1);
-      DumpObject (id2);
+      dumpObject (id1);
+      dumpObject (id2);
     }
-  Assert (e->ePtr->etype == polygonPolygonEvent, 2861);
+  Assert (e->ePtr->etype == polygonPolygonEvent, 3753);
   p = e->ePtr->pp.cPoint;
   deviceIf_frameNote ();
   drawFrame (e);
@@ -3566,7 +4766,7 @@ static void collidePolygonAgainstMovingPolygon (eventQueue e, Object id1, Object
     {
       if (Debugging)
         libc_printf ((char *) "the edge of polygon collides with corner of polygon\\n", 53);
-      Assert (e->ePtr->pp.wpid2 == history_corner, 2886);
+      Assert (e->ePtr->pp.wpid2 == history_corner, 3778);
       getPolygonLine (e->ePtr->pp.lineCorner2, (Object) Indexing_GetIndice (objects, e->ePtr->pp.pid2), &p1, &p2);
       v1 = coord_subCoord (p2, p1);
       coord_perpendiculars (v1, &n, &n2);
@@ -3576,7 +4776,7 @@ static void collidePolygonAgainstMovingPolygon (eventQueue e, Object id1, Object
     {
       if (Debugging)
         libc_printf ((char *) "the edge of polygon collides with corner of polygon\\n", 53);
-      Assert (e->ePtr->pp.wpid1 == history_corner, 2899);
+      Assert (e->ePtr->pp.wpid1 == history_corner, 3791);
       getPolygonLine (e->ePtr->pp.lineCorner1, (Object) Indexing_GetIndice (objects, e->ePtr->pp.pid1), &p1, &p2);
       v1 = coord_subCoord (p2, p1);
       coord_perpendiculars (v1, &n, &n2);
@@ -3688,7 +4888,7 @@ static void physicsCollision (eventQueue e)
 
 static void doCollision (eventQueue e)
 {
-  updatePhysics ();
+  updatePhysics (TRUE);
   collisionOccurred (e->ePtr);
   if (drawCollisionFrame)
     {
@@ -3699,7 +4899,7 @@ static void doCollision (eventQueue e)
       deviceIf_flipBuffer ();
     }
   physicsCollision (e);
-  addNextCollisionEvent ();
+  addNextObjectEvent ();
 }
 
 
@@ -3796,6 +4996,8 @@ static void getCircleValues (Object o, double *x, double *y, double *radius, dou
 
 static void getObjectValues (Object o, double *vx, double *vy, double *ax, double *ay)
 {
+  coord_Coord ac;
+
   if (o->fixed || o->stationary)
     {
       (*vx) = 0.0;
@@ -3805,10 +5007,11 @@ static void getObjectValues (Object o, double *vx, double *vy, double *ax, doubl
     }
   else
     {
+      ac = getAccelCoord (o);
       (*vx) = o->vx;
       (*vy) = o->vy;
-      (*ax) = o->ax;
-      (*ay) = o->ay+simulatedGravity;
+      (*ax) = ac.x;
+      (*ay) = ac.y;
     }
 }
 
@@ -3882,9 +5085,9 @@ static void maximaCircleCollisionOrbiting (double *array, unsigned int _array_hi
 
 static unsigned int earlierCircleCollisionOrbiting (double *t, double *tc, coord_Coord c1p, double c1radius, double c1r, double c1w, coord_Coord c1cofg, coord_Coord c1v, coord_Coord c1a, coord_Coord c2p, double c2radius, double c2r, double c2w, coord_Coord c2cofg, coord_Coord c2v, coord_Coord c2a)
 {
-  typedef struct _T11_a _T11;
+  typedef struct _T12_a _T12;
 
-  struct _T11_a { double array[8+1]; };
+  struct _T12_a { double array[8+1]; };
   double d1;
   double d2;
   double A;
@@ -3897,7 +5100,7 @@ static unsigned int earlierCircleCollisionOrbiting (double *t, double *tc, coord
   double H;
   double I_;
   double T;
-  _T11 array;
+  _T12 array;
 
   d1 = coord_lengthCoord (coord_subCoord (c1p, c1cofg));
   d2 = coord_lengthCoord (coord_subCoord (c2p, c2cofg));
@@ -3963,16 +5166,16 @@ static void maximaCircleCollision (double *array, unsigned int _array_high, doub
 
 static unsigned int earlierCircleCollision (eventDesc edesc, unsigned int id1, unsigned int id2, double *t, double bestTimeOfCollision, coord_Coord *cp, double a, double b, double c, double d, double e, double f, double g, double h, double k, double l, double m, double n, double o, double p)
 {
-  typedef struct _T12_a _T12;
+  typedef struct _T13_a _T13;
 
-  struct _T12_a { double array[4+1]; };
+  struct _T13_a { double array[4+1]; };
   double A;
   double B;
   double C;
   double D;
   double E;
   double T;
-  _T12 array;
+  _T13 array;
   coord_Coord c1;
   coord_Coord c2;
   coord_Coord cp1;
@@ -3985,6 +5188,12 @@ static unsigned int earlierCircleCollision (eventDesc edesc, unsigned int id1, u
   C = (((((((((((4.0*h)-(4.0*g))*n)+(((4.0*g)-(4.0*h))*m))+(4.0*(sqr (l))))-((8.0*k)*l))+(4.0*(sqr (k))))+(((4.0*b)-(4.0*a))*f))+(((4.0*a)-(4.0*b))*e))+(4.0*(sqr (d))))-((8.0*c)*d))+(4.0*(sqr (c)));
   D = (((((8.0*h)-(8.0*g))*l)+(((8.0*g)-(8.0*h))*k))+(((8.0*b)-(8.0*a))*d))+(((8.0*a)-(8.0*b))*c);
   E = ((((((4.0*(sqr (h)))-((8.0*g)*h))+(4.0*(sqr (g))))+(4.0*(sqr (b))))-((8.0*a)*b))+(4.0*(sqr (a))))-(sqr (2.0*(p+o)));
+  manualCircleCollision ((double *) &array.array[0], 4, a, b, c, d, e, f, g, h, k, l, m, n, o, p);
+  AssertRDebug (array.array[4], A, (char *) "A", 1);
+  AssertRDebug (array.array[3], B, (char *) "B", 1);
+  AssertRDebug (array.array[2], C, (char *) "C", 1);
+  AssertRDebug (array.array[1], D, (char *) "D", 1);
+  AssertRDebug (array.array[0], E, (char *) "E", 1);
   if (roots_findQuartic (A, B, C, D, E, t))
     {
       T = ((((A*((sqr ((*t)))*(sqr ((*t)))))+(B*((sqr ((*t)))*(*t))))+(C*(sqr ((*t)))))+(D*(*t)))+E;
@@ -3993,24 +5202,25 @@ static unsigned int earlierCircleCollision (eventDesc edesc, unsigned int id1, u
           libc_printf ((char *) "%gt^4 + %gt^3 +%gt^2 + %gt + %g = %g    (t=%g)\\n", 48, A, B, C, D, E, T, (*t));
           libc_printf ((char *) "found collision at %g\\n", 23, (*t));
         }
-      Assert ((*t) >= 0.0, 3393);
+      Assert ((*t) >= 0.0, 4288);
       if ((edesc == NULL) || ((*t) < bestTimeOfCollision))
         {
           c1 = newPositionCoord (coord_initCoord (a, g), coord_initCoord (c, k), coord_initCoord (e, m), (*t));
           c2 = newPositionCoord (coord_initCoord (b, h), coord_initCoord (d, l), coord_initCoord (f, n), (*t));
           v12 = coord_subCoord (c1, c2);
-          Assert (roots_nearCoord (c1, coord_addCoord (c2, v12)), 3404);
+          Assert (roots_nearCoord (c1, coord_addCoord (c2, v12)), 4299);
           cp2 = coord_addCoord (c2, coord_scaleCoord (v12, o/(o+p)));
           cp1 = coord_subCoord (c1, coord_scaleCoord (v12, p/(o+p)));
           (*cp) = cp2;
           if (roots_nearSame (coord_lengthCoord (v12), o+p))
             {
-              Assert (roots_nearCoord (cp1, cp2), 3421);
-              if (! (history_isDuplicate (currentTime, (*t), id1, id2, (history_whereHit) history_edge, (history_whereHit) history_edge, (*cp))))
+              Assert (roots_nearCoord (cp1, cp2), 4316);
+              if (! (history_isDuplicateC (currentTime, (*t), id1, id2, (history_whereHit) history_edge, (history_whereHit) history_edge, (*cp))))
                 return TRUE;
             }
           else
-            libc_printf ((char *) "false the collisions points do not touch ignoring = %g, %g\\n", 60, (*cp).x, (*cp).y);
+            if (trace)
+              libc_printf ((char *) "false the collisions points do not touch ignoring = %g, %g\\n", 60, (*cp).x, (*cp).y);
         }
     }
   return FALSE;
@@ -4148,7 +5358,7 @@ static void stop (void)
 
 static eventDesc makeCirclesPolygonDesc (eventDesc edesc, unsigned int cid, unsigned int pid, unsigned int lineNo, unsigned int pointNo, history_whereHit wpid1, history_whereHit wpid2, coord_Coord collisionPoint)
 {
-  Assert (wpid1 == history_corner, 3593);
+  Assert (wpid1 == history_corner, 4491);
   if (edesc == NULL)
     edesc = newDesc ();
   edesc->etype = circlePolygonEvent;
@@ -4289,10 +5499,10 @@ static coord_Coord newPositionRotationCoord (coord_Coord c, coord_Coord u, coord
 
 static void hLine (coord_Coord p1, coord_Coord p2, deviceIf_Colour c)
 {
-  typedef struct _T13_a _T13;
+  typedef struct _T14_a _T14;
 
-  struct _T13_a { Points_Point array[1+1]; };
-  _T13 p;
+  struct _T14_a { Points_Point array[1+1]; };
+  _T14 p;
 
   p1 = coord_scaleCoord (p1, 0.5);
   p2 = coord_scaleCoord (p2, 0.5);
@@ -4366,7 +5576,7 @@ static unsigned int checkPointCollision (double *timeOfPrevCollision, double t, 
       if (trace)
         libc_printf ((char *) "it crosses the region of interest (current best time %g)\\n", 58, (*timeOfPrevCollision));
       (*collisionPoint) = newPositionCoord (c, cvel, caccel, t);
-      if (history_isDuplicate (currentTime, t, id1, id2, (history_whereHit) history_edge, (history_whereHit) history_edge, (*collisionPoint)))
+      if (history_isDuplicateC (currentTime, t, id1, id2, (history_whereHit) history_edge, (history_whereHit) history_edge, (*collisionPoint)))
         {
           if (trace)
             libc_printf ((char *) "but it is a duplicate (best time still %g)\\n", 44, (*timeOfPrevCollision));
@@ -4532,6 +5742,15 @@ static void sortLine (coord_Coord *p1, coord_Coord *p2)
       (*p2) = t;
     }
 }
+
+
+/*
+   findEarlierCircleEdgeCollision - return TRUE if an earlier time, t, is found than tc for when circle
+                                    hits a line.  The circle is defined by a, center, radius and has
+                                    acceleration, accelCircle, and velocity, velCircle.
+                                    The line is between p1 and p2 and has velocity, velLine, and
+                                    acceleration, accelLine.
+*/
 
 static void findEarlierCircleEdgeCollision (double *timeOfCollision, unsigned int cid, unsigned int pid, unsigned int lineP, unsigned int lineC, eventDesc *edesc, coord_Coord center, double radius, coord_Coord velCircle, coord_Coord accelCircle, coord_Coord p1, coord_Coord p2, coord_Coord velLine, coord_Coord accelLine, descP createDesc)
 {
@@ -4770,8 +5989,8 @@ static void findCollisionCirclePolygon (Object cPtr, Object pPtr, eventDesc *ede
 {
   unsigned int i;
 
-  Assert (cPtr->object == circleOb, 4414);
-  Assert (pPtr->object == polygonOb, 4415);
+  Assert (cPtr->object == circleOb, 5312);
+  Assert (pPtr->object == polygonOb, 5313);
   if (isOrbiting (pPtr))
     for (i=1; i<=pPtr->p.nPoints; i++)
       findCollisionCircleLineOrbiting (cPtr, pPtr, i, 0, cPtr->c.pos, cPtr->c.r, edesc, tc, (descP) {(descP_t) makeCirclesPolygonDesc});
@@ -4933,10 +6152,10 @@ static unsigned int findAllTimesOfCollisionRLineRPoint (double a, double b, doub
 
 static void findEarliestCollisionRLineRPoint (Object iPtr, Object jPtr, unsigned int i, unsigned int j, eventDesc *edesc, double *tc, double si, double ui, double ai, double ri, double wi, double oi, double sj, double uj, double aj, double rj, double wj, double oj, coord_Coord p1, coord_Coord p2)
 {
-  typedef struct _T14_a _T14;
+  typedef struct _T15_a _T15;
 
-  struct _T14_a { double array[3+1]; };
-  _T14 t;
+  struct _T15_a { double array[3+1]; };
+  _T15 t;
   unsigned int k;
   unsigned int n;
   double l;
@@ -4995,7 +6214,7 @@ static void findCollisionPolygonPolygon (Object iPtr, Object jPtr, eventDesc *ed
   unsigned int i;
   unsigned int j;
 
-  Assert (iPtr != jPtr, 4729);
+  Assert (iPtr != jPtr, 5627);
   i = 1;
   while (i <= iPtr->p.nPoints)
     {
@@ -5096,15 +6315,15 @@ static void anticipateCollision (double tc, eventDesc edesc)
   switch (edesc->etype)
     {
       case circlesEvent:
-        history_anticipate (currentTime+tc, edesc->cc.cid1, edesc->cc.cid2, edesc->cc.cPoint);
+        history_anticipateC (currentTime+tc, edesc->cc.cid1, edesc->cc.cid2, edesc->cc.cPoint);
         break;
 
       case circlePolygonEvent:
-        history_anticipate (currentTime+tc, edesc->cp.pid, edesc->cp.cid, edesc->cp.cPoint);
+        history_anticipateC (currentTime+tc, edesc->cp.pid, edesc->cp.cid, edesc->cp.cPoint);
         break;
 
       case polygonPolygonEvent:
-        history_anticipate (currentTime+tc, edesc->pp.pid1, edesc->pp.pid2, edesc->pp.cPoint);
+        history_anticipateC (currentTime+tc, edesc->pp.pid1, edesc->pp.pid2, edesc->pp.cPoint);
         break;
 
 
@@ -5123,15 +6342,15 @@ static void collisionOccurred (eventDesc edesc)
   switch (edesc->etype)
     {
       case circlesEvent:
-        history_occurred (currentTime, edesc->cc.cid1, edesc->cc.cid2, edesc->cc.cPoint);
+        history_occurredC (currentTime, edesc->cc.cid1, edesc->cc.cid2, edesc->cc.cPoint);
         break;
 
       case circlePolygonEvent:
-        history_occurred (currentTime, edesc->cp.pid, edesc->cp.cid, edesc->cp.cPoint);
+        history_occurredC (currentTime, edesc->cp.pid, edesc->cp.cid, edesc->cp.cPoint);
         break;
 
       case polygonPolygonEvent:
-        history_occurred (currentTime, edesc->pp.pid1, edesc->pp.pid2, edesc->pp.cPoint);
+        history_occurredC (currentTime, edesc->pp.pid1, edesc->pp.pid2, edesc->pp.cPoint);
         break;
 
 
@@ -5159,11 +6378,11 @@ static void subEvent (eventQueue e)
     }
   if (f != NULL)
     {
-      Assert (f == e, 4892);
+      Assert (f == e, 5790);
       if (before == NULL)
         {
-          Assert (eventQ == f, 4895);
-          Assert (eventQ == e, 4896);
+          Assert (eventQ == f, 5793);
+          Assert (eventQ == e, 5794);
           eventQ = eventQ->next;
           if (eventQ != NULL)
             eventQ->time = eventQ->time+e->time;
@@ -5200,7 +6419,653 @@ static void removeCollisionEvent (void)
 
 
 /*
-   addNextCollisionEvent -
+   removeSpringEvents - removes all spring events.
+*/
+
+static void removeSpringEvents (void)
+{
+  eventQueue e;
+
+  e = eventQ;
+  while (e != NULL)
+    if (e->kind == springKind)
+      {
+        subEvent (e);
+        e = eventQ;
+      }
+    else
+      e = e->next;
+}
+
+
+/*
+   getSpringEndValues - it retrieves the:
+
+                        CofG        :  c
+                        velocity    :  v
+                        acceleration:  a
+
+                        of object, o.
+*/
+
+static void getSpringEndValues (unsigned int o, coord_Coord *c, coord_Coord *v, coord_Coord *a)
+{
+  Object ptr;
+
+  ptr = Indexing_GetIndice (objects, o);
+  (*c) = getCofG (o);
+  (*v) = getVelCoord (ptr);
+  (*a) = getAccelCoord (ptr);
+}
+
+
+/*
+   manualCircleCollision -
+*/
+
+static void manualCircleCollision (double *array, unsigned int _array_high, double a, double b, double c, double d, double e, double f, double g, double h, double k, double l, double m, double n, double o, double p)
+{
+  if (trace)
+    {
+      libc_printf ((char *) "circle 1 pos:  %g, %g\\n", 23, a, g);
+      libc_printf ((char *) "         vel:  %g, %g\\n", 23, c, k);
+      libc_printf ((char *) "         acc:  %g, %g\\n", 23, e, m);
+      libc_printf ((char *) "circle 2 pos:  %g, %g\\n", 23, b, h);
+      libc_printf ((char *) "         vel:  %g, %g\\n", 23, d, l);
+      libc_printf ((char *) "         acc:  %g, %g\\n", 23, f, n);
+      libc_printf ((char *) "  total distance of %g\\n", 24, o+p);
+    }
+  array[4] = (((((sqr (n))-((2.0*m)*n))+(sqr (m)))+(sqr (f)))-((2.0*e)*f))+(sqr (e));
+  array[3] = (((((4.0*l)-(4.0*k))*n)+(((4.0*k)-(4.0*l))*m))+(((4.0*d)-(4.0*c))*f))+(((4.0*c)-(4.0*d))*e);
+  array[2] = (((((((((((4.0*h)-(4.0*g))*n)+(((4.0*g)-(4.0*h))*m))+(4.0*(sqr (l))))-((8.0*k)*l))+(4.0*(sqr (k))))+(((4.0*b)-(4.0*a))*f))+(((4.0*a)-(4.0*b))*e))+(4.0*(sqr (d))))-((8.0*c)*d))+(4.0*(sqr (c)));
+  array[1] = (((((8.0*h)-(8.0*g))*l)+(((8.0*g)-(8.0*h))*k))+(((8.0*b)-(8.0*a))*d))+(((8.0*a)-(8.0*b))*c);
+  array[0] = ((((((4.0*(sqr (h)))-((8.0*g)*h))+(4.0*(sqr (g))))+(4.0*(sqr (b))))-((8.0*a)*b))+(4.0*(sqr (a))))-(sqr (2.0*(p+o)));
+}
+
+
+/*
+   earlierSpringLength - i is a spring.
+                         c1, c2 are the c of g of the objects 1 and 2.
+                         v1, v2 are the velocities of objects 1 and 2.
+                         a1, a2 are the acceleration of objects 1 and 2.
+
+                         Single letter variables are used since wxmaxima
+                         only operates with these.  Thus the output from wxmaxima
+                         can be cut and pasted into the program.
+
+                            a = c1.x
+                            b = c1.y
+                            c = v1.x
+                            d = v1.y
+                            e = a1.x
+                            f = a1.y
+                            g = c2.x
+                            h = c2.y
+                            k = v2.x
+                            l = v2.y
+                            m = a2.x
+                            n = a2.y
+
+                            t                       is the time of this collision (if any)
+                            bestTimeOfCollision     is earlier known collision so far.
+*/
+
+static unsigned int earlierSpringLength (eventDesc edesc, unsigned int id, double *t, double bestTime, coord_Coord c1, coord_Coord v1, coord_Coord a1, coord_Coord c2, coord_Coord v2, coord_Coord a2, double l, history_springPoint sp)
+{
+  typedef struct _T16_a _T16;
+
+  typedef struct _T17_a _T17;
+
+  struct _T16_a { double array[4+1]; };
+  struct _T17_a { double array[3+1]; };
+  _T16 array;
+  _T17 roots;
+  unsigned int n;
+  unsigned int j;
+  double T;
+
+  manualCircleCollision ((double *) &array.array[0], 4, c1.x, c2.x, v1.x, v2.x, a1.x, a2.x, c1.y, c2.y, v1.y, v2.y, a1.y, a2.y, l, 0.0);
+  n = roots_findQuarticRoots (array.array[4], array.array[3], array.array[2], array.array[1], array.array[0], (double *) &roots.array[0], 3);
+  j = 0;
+  while (j < n)
+    {
+      (*t) = roots.array[j];
+      T = ((((array.array[4]*((sqr ((*t)))*(sqr ((*t)))))+(array.array[3]*((sqr ((*t)))*(*t))))+(array.array[2]*(sqr ((*t)))))+(array.array[1]*(*t)))+array.array[0];
+      if (Debugging)
+        {
+          libc_printf ((char *) "%gt^4 + %gt^3 +%gt^2 + %gt + %g = %g    (t=%g)\\n", 48, array.array[4], array.array[3], array.array[2], array.array[1], array.array[0], T, (*t));
+          libc_printf ((char *) "found spring reaches length %g at %g\\n", 38, l, (*t));
+        }
+      Assert ((*t) >= 0.0, 5955);
+      if ((edesc == NULL) || ((*t) < bestTime))
+        if (! (history_isDuplicateS (currentTime, (*t), id, sp)))
+          return TRUE;
+      j += 1;
+    }
+  return FALSE;
+}
+
+
+/*
+   makeSpringDesc - creates and fills in the spring descriptor.
+*/
+
+static eventDesc makeSpringDesc (eventDesc edesc, unsigned int i, history_springPoint stype)
+{
+  if (edesc == NULL)
+    edesc = newDesc ();
+  edesc->etype = springEvent;
+  edesc->sp.id = i;
+  edesc->sp.type = stype;
+  return edesc;
+}
+
+
+/*
+   calcSpringLengthEvents -
+*/
+
+static void calcSpringLengthEvents (unsigned int i)
+{
+  eventDesc edesc;
+  double a;
+  double b;
+  double c;
+  double d;
+  double e;
+  double f;
+  double g;
+  double h;
+  double k;
+  double l;
+  double m;
+  double n;
+  double o;
+  double p;
+  coord_Coord cp;
+  coord_Coord c1;
+  coord_Coord v1;
+  coord_Coord a1;
+  coord_Coord c2;
+  coord_Coord v2;
+  coord_Coord a2;
+  double test;
+  double ts;
+  double t;
+  unsigned int id1;
+  unsigned int id2;
+  Object iptr;
+  Object id1ptr;
+  Object id2ptr;
+
+  Assert (isSpringObject (i), 6005);
+  iptr = Indexing_GetIndice (objects, i);
+  id1 = iptr->s.id1;
+  id2 = iptr->s.id2;
+  ts = -1.0;
+  edesc = NULL;
+  t = -1.0;
+  getSpringEndValues (id1, &c1, &v1, &a1);
+  getSpringEndValues (id2, &c2, &v2, &a2);
+  if (earlierSpringLength (edesc, i, &t, ts, c1, v1, a1, c2, v2, a2, iptr->s.l0, (history_springPoint) history_midPoint))
+    {
+      ts = t;
+      if (trace || TRUE)
+        libc_printf ((char *) "spring %d reaches midpoint in %g seconds\\n", 42, i, t);
+      edesc = makeSpringDesc (edesc, i, (history_springPoint) history_midPoint);
+      addSpringEvent (ts, (eventProc) {(eventProc_t) doSpring}, edesc);
+      anticipateSpring (ts, edesc);
+    }
+  if (iptr->s.hasCallBackLength)
+    {
+      t = -1.0;
+      edesc = NULL;
+      getSpringEndValues (id1, &c1, &v1, &a1);
+      getSpringEndValues (id2, &c2, &v2, &a2);
+      if (earlierSpringLength (edesc, i, &t, ts, c1, v1, a1, c2, v2, a2, iptr->s.cbl, (history_springPoint) history_callPoint))
+        {
+          ts = t;
+          if (trace)
+            libc_printf ((char *) "spring %d reaches the call length in %g seconds\\n", 49, i, t);
+          edesc = makeSpringDesc (edesc, i, (history_springPoint) history_callPoint);
+          addSpringEvent (ts, (eventProc) {(eventProc_t) doSpring}, edesc);
+          anticipateSpring (ts, edesc);
+          if (trace)
+            printQueue ();
+        }
+    }
+}
+
+
+/*
+   manualSpringVelocityZero -
+*/
+
+static void manualSpringVelocityZero (double *array, unsigned int _array_high, double a, double b, double c, double d, double e, double f, double g, double h)
+{
+  array[0] = ((((0.0+0.0)-(sqr (g)))-(sqr (e)))+(sqr (c)))+(sqr (a));
+  array[1] = (((-((2.0*g)*h))-((2.0*e)*f))+((2.0*c)*d))+((2.0*a)*b);
+  array[2] = (((-(sqr (h)))-(sqr (f)))+(sqr (d)))+(sqr (b));
+}
+
+
+/*
+   earlierSpringEnd - records the earliest time in the future when the
+                      relative velocity between the two bodies is zero.
+*/
+
+static void earlierSpringEnd (unsigned int id, coord_Coord v1, coord_Coord a1, coord_Coord v2, coord_Coord a2)
+{
+  typedef struct _T18_a _T18;
+
+  typedef struct _T19_a _T19;
+
+  struct _T18_a { double array[2+1]; };
+  struct _T19_a { double array[1+1]; };
+  eventDesc edesc;
+  double t;
+  _T18 array;
+  _T19 root;
+  unsigned int n;
+  unsigned int i;
+
+  manualSpringVelocityZero ((double *) &array.array[0], 2, v1.x, a1.x, v1.y, a1.y, v2.x, a2.x, v2.y, a2.y);
+  n = roots_findQuadraticRoots (array.array[2], array.array[1], array.array[0], (double *) &root.array[0], 1);
+  i = 0;
+  while (i < n)
+    {
+      t = root.array[i];
+      if (! (history_isDuplicateS (currentTime, t, id, (history_springPoint) history_endPoint)))
+        {
+          edesc = makeSpringDesc ((eventDesc) NULL, id, (history_springPoint) history_endPoint);
+          addSpringEvent (t, (eventProc) {(eventProc_t) doSpring}, edesc);
+          anticipateSpring (t, edesc);
+          if (trace)
+            {
+              libc_printf ((char *) "end point calculated at time %g\\n", 33, t);
+              printQueue ();
+            }
+        }
+      i += 1;
+    }
+}
+
+
+/*
+   calcSpringEndEvents - the spring reaches maximum compression or extension when the
+                         relative velocity between the objects attached to the spring
+                         is zero.
+*/
+
+static void calcSpringEndEvents (unsigned int i)
+{
+  coord_Coord c1;
+  coord_Coord v1;
+  coord_Coord a1;
+  coord_Coord c2;
+  coord_Coord v2;
+  coord_Coord a2;
+  double t;
+  unsigned int id1;
+  unsigned int id2;
+  Object iptr;
+  Object id1ptr;
+  Object id2ptr;
+
+  Assert (isSpringObject (i), 6167);
+  iptr = Indexing_GetIndice (objects, i);
+  id1 = iptr->s.id1;
+  id2 = iptr->s.id2;
+  getSpringEndValues (id1, &c1, &v1, &a1);
+  getSpringEndValues (id2, &c2, &v2, &a2);
+  earlierSpringEnd (i, v1, a1, v2, a2);
+}
+
+
+/*
+   calcSpringEndEventsKE - calcalate the time at which there is no Kinetic energy
+                           in spring, i.  This will be when the spring reaches
+                           its end point.
+*/
+
+static void calcSpringEndEventsKE (double *ts, unsigned int i, eventDesc *edesc)
+{
+  coord_Coord c1;
+  coord_Coord v1;
+  coord_Coord a1;
+  coord_Coord c2;
+  coord_Coord v2;
+  coord_Coord a2;
+  double t;
+  double l1;
+  double d;
+  unsigned int id1;
+  unsigned int id2;
+  Object iptr;
+  Object id1ptr;
+  Object id2ptr;
+
+}
+
+
+/*
+   calcSpringEventTime - calculates the time in the future when spring, i,
+                         reaches its:
+
+                         mid point and minimum or maximum extension.
+                         Both events are stored as they may be independent.
+                         If they are not independent, it wont matter as the
+                         event queue will be recreated.
+*/
+
+static void calcSpringEventTime (unsigned int i)
+{
+  calcSpringLengthEvents (i);
+  if (DebugTrace)
+    printQueue ();
+  calcSpringEndEvents (i);
+  if (DebugTrace)
+    printQueue ();
+}
+
+
+/*
+   addSpringEvent -
+*/
+
+static void addSpringEvent (double t, eventProc dop, eventDesc edesc)
+{
+  eventQueue e;
+
+  if (Debugging)
+    libc_printf ((char *) "spring event will occur in %g simulated seconds\\n", 49, t);
+  Assert (t >= 0.0, 6272);
+  e = newEvent ();
+  e->kind = springKind;
+  e->time = t;
+  e->p = dop;
+  e->ePtr = edesc;
+  e->next = NULL;
+  if (Debugging)
+    {
+      libc_printf ((char *) "spring event about to be added to this queue at %g in the future\\n", 66, t);
+      printQueue ();
+    }
+  addRelative (e);
+  if (Debugging)
+    {
+      libc_printf ((char *) "spring event has been added to this queue at %g in the future\\n", 63, t);
+      printQueue ();
+    }
+}
+
+
+/*
+   reverseSpringAccel -
+*/
+
+static void reverseSpringAccel (Object o)
+{
+  Object id1p;
+  Object id2p;
+
+  Assert (isSpringObject (o->id), 6303);
+  if (! o->deleted && ! o->fixed)
+    {
+      id1p = Indexing_GetIndice (objects, o->s.id1);
+      id2p = Indexing_GetIndice (objects, o->s.id2);
+      if (trace)
+        {
+          libc_printf ((char *) "entered reverse spring acceleration\\n", 37);
+          dumpObject (o);
+          dumpObject (id1p);
+          dumpObject (id2p);
+          libc_printf ((char *) "reversing spring acceleration\\n", 31);
+        }
+      id1p->forceVec = coord_subCoord (id1p->forceVec, o->s.f1);
+      id2p->forceVec = coord_subCoord (id2p->forceVec, o->s.f2);
+      o->s.f1 = coord_negateCoord (o->s.f1);
+      o->s.f2 = coord_negateCoord (o->s.f2);
+      id1p->forceVec = coord_addCoord (id1p->forceVec, o->s.f1);
+      id2p->forceVec = coord_addCoord (id2p->forceVec, o->s.f2);
+      if (trace)
+        {
+          dumpObject (o);
+          dumpObject (id1p);
+          dumpObject (id2p);
+          libc_printf ((char *) "applying new force values\\n", 27);
+        }
+      applyForce ();
+      if (trace)
+        {
+          dumpObject (o);
+          dumpObject (id1p);
+          dumpObject (id2p);
+          libc_printf ((char *) "completed reverse acceleration\\n", 32);
+        }
+    }
+}
+
+
+/*
+   zeroSpringAccel - assign (0.0, 0.0) to the acceration and force vectors.
+*/
+
+static void zeroSpringAccel (Object o)
+{
+  if (((o->object == springOb) && ! o->deleted) && ! o->fixed)
+    {
+      if (trace)
+        libc_printf ((char *) "zero spring acceleration\\n", 26);
+      o->s.a1 = coord_initCoord (0.0, 0.0);
+      o->s.a2 = coord_initCoord (0.0, 0.0);
+      o->s.f1 = coord_initCoord (0.0, 0.0);
+      o->s.f2 = coord_initCoord (0.0, 0.0);
+    }
+}
+
+
+/*
+   doSpringMidPoint - reached the mid point of the spring, reverse the
+                      acceleration of the sprung objects.
+*/
+
+static void doSpringMidPoint (eventQueue e)
+{
+  Object idptr;
+  Object id1ptr;
+  Object id2ptr;
+
+  if (trace)
+    libc_printf ((char *) "doSpringMidPoint called at time %g\\n", 36, currentTime);
+  idptr = Indexing_GetIndice (objects, e->ePtr->sp.id);
+  id1ptr = Indexing_GetIndice (objects, idptr->s.id1);
+  id2ptr = Indexing_GetIndice (objects, idptr->s.id2);
+  if (idptr->s.drawMid)
+    {
+      if (trace)
+        libc_printf ((char *) "about to draw spring mid frame\\n", 32);
+      deviceIf_frameNote ();
+      drawFrame ((eventQueue) NULL);
+      if (trace)
+        libc_printf ((char *) "drawing mid points of the spring\\n", 34);
+      doDrawFrame (id1ptr, 0.0, (deviceIf_Colour) idptr->s.midColour);
+      doDrawFrame (id2ptr, 0.0, (deviceIf_Colour) idptr->s.midColour);
+      deviceIf_flipBuffer ();
+    }
+  if (! FrameSprings)
+    {
+      if (trace)
+        dumpObject (idptr);
+      reverseSpringAccel (idptr);
+      if (trace)
+        {
+          dumpObject (id1ptr);
+          dumpObject (id2ptr);
+        }
+    }
+  if (trace)
+    libc_printf ((char *) "doSpringMidPoint finishing\\n", 28);
+}
+
+
+/*
+   doSpringEndPoint - reached the end point of the spring, we
+                      remove some energy from the sprung objects.
+*/
+
+static void doSpringEndPoint (eventQueue e)
+{
+  Object idptr;
+  Object id1ptr;
+  Object id2ptr;
+
+  idptr = Indexing_GetIndice (objects, e->ePtr->sp.id);
+  id1ptr = Indexing_GetIndice (objects, idptr->s.id1);
+  id2ptr = Indexing_GetIndice (objects, idptr->s.id2);
+  if (idptr->s.drawEnd)
+    {
+      if (trace)
+        libc_printf ((char *) "about to draw spring end frame\\n", 32);
+      deviceIf_frameNote ();
+      drawFrame ((eventQueue) NULL);
+      if (trace)
+        libc_printf ((char *) "drawing end points of the spring\\n", 34);
+      doDrawFrame (id1ptr, 0.0, (deviceIf_Colour) idptr->s.endColour);
+      doDrawFrame (id2ptr, 0.0, (deviceIf_Colour) idptr->s.endColour);
+      deviceIf_flipBuffer ();
+    }
+  if (! FrameSprings)
+    {
+      recalculateForceEnergy ();
+      inElasticSpring (&id1ptr->saccel.x);
+      inElasticSpring (&id1ptr->saccel.y);
+      inElasticSpring (&id2ptr->saccel.x);
+      inElasticSpring (&id2ptr->saccel.y);
+    }
+}
+
+
+/*
+   doSpringCallPoint - reached the user defined call point.
+                       We need to activate the call back.
+*/
+
+static void doSpringCallPoint (eventQueue e)
+{
+  Object o;
+  fcDesc fc;
+
+  Assert (e->ePtr->etype == springEvent, 6507);
+  Assert (e->ePtr->sp.type == history_callPoint, 6508);
+  o = Indexing_GetIndice (objects, e->ePtr->sp.id);
+  Assert (isSpringObject (e->ePtr->sp.id), 6510);
+  o->s.hasCallBackLength = FALSE;
+  twoDsim_createFunctionEvent (0.0, o->s.func, o->id);
+  if (trace)
+    printQueue ();
+}
+
+
+/*
+   doSpring - called whenever a spring event is processed.
+*/
+
+static void doSpring (eventQueue e)
+{
+  if (trace)
+    {
+      libc_printf ((char *) "doSpring called\\n", 17);
+      if (e->ePtr->sp.type == history_midPoint)
+        {}  /* empty.  */
+      if (e->ePtr->sp.type == history_endPoint)
+        {}  /* empty.  */
+    }
+  updatePhysics ((e->ePtr->sp.type == history_endPoint) || FrameSprings);
+  springOccurred (e->ePtr);
+  switch (e->ePtr->sp.type)
+    {
+      case history_midPoint:
+        doSpringMidPoint (e);
+        break;
+
+      case history_endPoint:
+        doSpringEndPoint (e);
+        break;
+
+      case history_callPoint:
+        doSpringCallPoint (e);
+        break;
+
+
+      default:
+        CaseException ("../pge/m2/twoDsim.def", 2, 1);
+    }
+  addNextObjectEvent ();
+}
+
+
+/*
+   springOccurred - stores the spring event in the history list.
+*/
+
+static void springOccurred (eventDesc edesc)
+{
+  switch (edesc->etype)
+    {
+      case springEvent:
+        history_occurredS (currentTime, edesc->sp.id, edesc->sp.type);
+        break;
+
+
+      default:
+        CaseException ("../pge/m2/twoDsim.def", 2, 1);
+    }
+}
+
+
+/*
+   anticipateSpring - stores the collision in the anticipated list.
+*/
+
+static void anticipateSpring (double tc, eventDesc edesc)
+{
+  switch (edesc->etype)
+    {
+      case springEvent:
+        history_anticipateS (currentTime+tc, edesc->sp.id, edesc->sp.type);
+        break;
+
+
+      default:
+        CaseException ("../pge/m2/twoDsim.def", 2, 1);
+    }
+}
+
+
+/*
+   addNextSpringEvent -
+*/
+
+static void addNextSpringEvent (void)
+{
+  unsigned int n;
+  unsigned int i;
+  Object iptr;
+
+  n = Indexing_HighIndice (objects);
+  i = 1;
+  while (i <= n)
+    {
+      if (isSpringObject (i))
+        calcSpringEventTime (i);
+      i += 1;
+    }
+}
+
+
+/*
+   addNextCollisionEvent - recalculate the next collision event time.
 */
 
 static void addNextCollisionEvent (void)
@@ -5216,7 +7081,6 @@ static void addNextCollisionEvent (void)
   Object jptr;
   eventDesc edesc;
 
-  removeCollisionEvent ();
   n = Indexing_HighIndice (objects);
   i = 1;
   edesc = NULL;
@@ -5251,8 +7115,32 @@ static void addNextCollisionEvent (void)
       addCollisionEvent (tc, (eventProc) {(eventProc_t) doCollision}, edesc);
       anticipateCollision (tc, edesc);
     }
-  else
+  else if (trace)
     libc_printf ((char *) "no more collisions found\\n", 26);
+}
+
+
+/*
+   addNextObjectEvent - removes the next spring and collision event and recalculates
+                        the time of both events.
+*/
+
+static void addNextObjectEvent (void)
+{
+  removeCollisionEvent ();
+  removeSpringEvents ();
+  if (trace)
+    {
+      libc_printf ((char *) "no spring or collision events here\\n", 36);
+      printQueue ();
+    }
+  addNextSpringEvent ();
+  addNextCollisionEvent ();
+  if (trace)
+    {
+      libc_printf ((char *) "event queue created and it looks like this\\n", 44);
+      printQueue ();
+    }
 }
 
 
@@ -5281,7 +7169,7 @@ static void resetQueue (void)
   e = eventQ;
   while ((e != NULL) && ((c == NULL) || (f == NULL)))
     {
-      if (e->kind == collisionKind)
+      if ((e->kind == collisionKind) || (e->kind == springKind))
         c = e;
       else if (e->kind == frameKind)
         f = e;
@@ -5290,7 +7178,7 @@ static void resetQueue (void)
   if (f == NULL)
     addEvent ((eventKind) frameKind, (1.0/framesPerSecond)-(currentTime-lastDrawTime), (eventProc) {(eventProc_t) drawFrameEvent});
   if (c == NULL)
-    addNextCollisionEvent ();
+    addNextObjectEvent ();
 }
 
 
@@ -5436,7 +7324,7 @@ static void addEvent (eventKind k, double t, eventProc dop)
 
   if (Debugging)
     libc_printf ((char *) "new event will occur at time %g in the future\\n", 47, t);
-  Assert (t >= 0.0, 5204);
+  Assert (t >= 0.0, 6993);
   e = newEvent ();
   e->kind = k;
   e->time = t;
@@ -5458,7 +7346,7 @@ static void addCollisionEvent (double t, eventProc dop, eventDesc edesc)
 
   if (Debugging)
     libc_printf ((char *) "collision will occur in %g simulated seconds\\n", 46, t);
-  Assert (t >= 0.0, 5230);
+  Assert (t >= 0.0, 7019);
   e = newEvent ();
   e->kind = collisionKind;
   e->time = t;
@@ -5573,7 +7461,7 @@ static void down (void)
       libc_printf ((char *) "entered down\\n", 14);
       printQueue ();
     }
-  updatePhysics ();
+  updatePhysics (TRUE);
   removeCollisionEvent ();
 }
 
@@ -5660,6 +7548,18 @@ static void writePolygonPolygon (ppDesc p)
 static void writeFunction (fcDesc fc)
 {
   NetworkOrder_writeCard (file, fc.id);
+  NetworkOrder_writeCard (file, fc.param);
+}
+
+
+/*
+   writeSpring -
+*/
+
+static void writeSpring (spDesc sp)
+{
+  NetworkOrder_writeCard (file, sp.id);
+  NetworkOrder_writeCard (file, (unsigned int) (sp.type));
 }
 
 
@@ -5693,6 +7593,10 @@ static void writeDesc (eventDesc p)
 
           case functionEvent:
             writeFunction (p->fc);
+            break;
+
+          case springEvent:
+            writeSpring (p->sp);
             break;
 
 
@@ -5792,6 +7696,7 @@ static void Init (void)
   drawPrediction = FALSE;
   fileOpened = FALSE;
   writeTimeDelay = TRUE;
+  haveSpringColour = FALSE;
   haveCollisionColour = FALSE;
 }
 
@@ -5824,13 +7729,13 @@ unsigned int twoDsim_box (double x0, double y0, double i, double j, deviceIf_Col
 
 unsigned int twoDsim_poly3 (double x0, double y0, double x1, double y1, double x2, double y2, deviceIf_Colour colour)
 {
-  typedef struct _T15_a _T15;
+  typedef struct _T20_a _T20;
 
-  struct _T15_a { coord_Coord array[2+1]; };
+  struct _T20_a { coord_Coord array[2+1]; };
   unsigned int id;
   unsigned int i;
   Object optr;
-  _T15 co;
+  _T20 co;
 
   if (Debugging)
     libc_printf ((char *) "begin poly3 (%g, %g, %g, %g, %g, %g)\\n", 38, x0, y0, x1, y1, x2, y2);
@@ -5862,13 +7767,13 @@ unsigned int twoDsim_poly3 (double x0, double y0, double x1, double y1, double x
 
 unsigned int twoDsim_poly4 (double x0, double y0, double x1, double y1, double x2, double y2, double x3, double y3, deviceIf_Colour colour)
 {
-  typedef struct _T16_a _T16;
+  typedef struct _T21_a _T21;
 
-  struct _T16_a { coord_Coord array[3+1]; };
+  struct _T21_a { coord_Coord array[3+1]; };
   unsigned int id;
   unsigned int i;
   Object optr;
-  _T16 co;
+  _T21 co;
 
   id = newObject ((ObjectType) polygonOb);
   optr = Indexing_GetIndice (objects, id);
@@ -5894,13 +7799,13 @@ unsigned int twoDsim_poly4 (double x0, double y0, double x1, double y1, double x
 
 unsigned int twoDsim_poly5 (double x0, double y0, double x1, double y1, double x2, double y2, double x3, double y3, double x4, double y4, deviceIf_Colour colour)
 {
-  typedef struct _T17_a _T17;
+  typedef struct _T22_a _T22;
 
-  struct _T17_a { coord_Coord array[4+1]; };
+  struct _T22_a { coord_Coord array[4+1]; };
   unsigned int id;
   unsigned int i;
   Object optr;
-  _T17 co;
+  _T22 co;
 
   id = newObject ((ObjectType) polygonOb);
   optr = Indexing_GetIndice (objects, id);
@@ -5927,13 +7832,13 @@ unsigned int twoDsim_poly5 (double x0, double y0, double x1, double y1, double x
 
 unsigned int twoDsim_poly6 (double x0, double y0, double x1, double y1, double x2, double y2, double x3, double y3, double x4, double y4, double x5, double y5, deviceIf_Colour colour)
 {
-  typedef struct _T18_a _T18;
+  typedef struct _T23_a _T23;
 
-  struct _T18_a { coord_Coord array[5+1]; };
+  struct _T23_a { coord_Coord array[5+1]; };
   unsigned int id;
   unsigned int i;
   Object optr;
-  _T18 co;
+  _T23 co;
 
   id = newObject ((ObjectType) polygonOb);
   optr = Indexing_GetIndice (objects, id);
@@ -5962,7 +7867,7 @@ double twoDsim_get_xpos (unsigned int id)
   double dt;
   Object optr;
 
-  updatePhysics ();
+  updatePhysics (TRUE);
   optr = Indexing_GetIndice (objects, id);
   checkDeleted (optr);
   switch (optr->object)
@@ -5977,7 +7882,7 @@ double twoDsim_get_xpos (unsigned int id)
 
 
       default:
-        libc_printf ((char *) "get_xpos: only expecting polygon\\n", 34);
+        libc_printf ((char *) "get_xpos: only expecting polygon or circle\\n", 44);
         M2RTS_HALT (0);
         break;
     }
@@ -5993,7 +7898,7 @@ double twoDsim_get_ypos (unsigned int id)
   double dt;
   Object optr;
 
-  updatePhysics ();
+  updatePhysics (TRUE);
   optr = Indexing_GetIndice (objects, id);
   checkDeleted (optr);
   switch (optr->object)
@@ -6008,7 +7913,7 @@ double twoDsim_get_ypos (unsigned int id)
 
 
       default:
-        libc_printf ((char *) "get_ypos: only expecting polygon\\n", 34);
+        libc_printf ((char *) "get_ypos: only expecting polygon or circle\\n", 44);
         M2RTS_HALT (0);
         break;
     }
@@ -6045,7 +7950,7 @@ double twoDsim_get_yvel (unsigned int id)
   if (trace)
     libc_printf ((char *) "get_yvel for object %d\\n", 24, id);
   down ();
-  updatePhysics ();
+  updatePhysics (TRUE);
   optr = Indexing_GetIndice (objects, id);
   checkDeleted (optr);
   checkStationary (optr);
@@ -6062,7 +7967,7 @@ double twoDsim_get_xaccel (unsigned int id)
 {
   Object optr;
 
-  updatePhysics ();
+  updatePhysics (TRUE);
   optr = Indexing_GetIndice (objects, id);
   checkDeleted (optr);
   return optr->ax;
@@ -6077,7 +7982,7 @@ double twoDsim_get_yaccel (unsigned int id)
 {
   Object optr;
 
-  updatePhysics ();
+  updatePhysics (TRUE);
   optr = Indexing_GetIndice (objects, id);
   checkDeleted (optr);
   return optr->ay;
@@ -6093,7 +7998,7 @@ void twoDsim_put_xvel (unsigned int id, double r)
   Object optr;
 
   down ();
-  updatePhysics ();
+  updatePhysics (TRUE);
   optr = Indexing_GetIndice (objects, id);
   checkDeleted (optr);
   optr->vx = r;
@@ -6111,7 +8016,7 @@ void twoDsim_put_yvel (unsigned int id, double r)
   Object optr;
 
   down ();
-  updatePhysics ();
+  updatePhysics (TRUE);
   optr = Indexing_GetIndice (objects, id);
   checkDeleted (optr);
   optr->vy = r;
@@ -6239,6 +8144,87 @@ void twoDsim_set_colour (unsigned int id, deviceIf_Colour colour)
 
 
 /*
+   set_gravity - set the gravity of object, id, to, g.
+                 id must be a box or circle.
+*/
+
+void twoDsim_set_gravity (unsigned int id, double g)
+{
+  Object optr;
+
+  optr = Indexing_GetIndice (objects, id);
+  switch (optr->object)
+    {
+      case polygonOb:
+      case circleOb:
+        optr->gravity = g;
+        break;
+
+
+      default:
+        libc_printf ((char *) "cannot set the gravity of this object\\n", 39);
+        break;
+    }
+}
+
+
+/*
+   get_gravity - return the gravity of object, id.
+                 id must be a box or circle.
+*/
+
+double twoDsim_get_gravity (unsigned int id)
+{
+  Object optr;
+
+  optr = Indexing_GetIndice (objects, id);
+  switch (optr->object)
+    {
+      case polygonOb:
+      case circleOb:
+        return optr->gravity;
+        break;
+
+
+      default:
+        libc_printf ((char *) "cannot get the gravity of this object\\n", 39);
+        break;
+    }
+  ReturnException ("../pge/m2/twoDsim.def", 2, 1);
+}
+
+
+/*
+   get_mass - returns the mass of object, id.
+*/
+
+double twoDsim_get_mass (unsigned int id)
+{
+  Object idp;
+
+  idp = Indexing_GetIndice (objects, id);
+  switch (idp->object)
+    {
+      case circleOb:
+        return idp->c.mass;
+        break;
+
+      case polygonOb:
+        return idp->p.mass;
+        break;
+
+      case springOb:
+        return 0.0;
+        break;
+
+
+      default:
+        CaseException ("../pge/m2/twoDsim.def", 2, 1);
+    }
+}
+
+
+/*
    mass - specify the mass of an object and return the, id.
           Only polygon (and box) and circle objects may have
           a mass.
@@ -6279,6 +8265,134 @@ unsigned int twoDsim_fix (unsigned int id)
   optr = Indexing_GetIndice (objects, id);
   optr->fixed = TRUE;
   return id;
+}
+
+
+/*
+   spring - join object, id1, and, id2, with a string of defined
+            by hooks constant, k, the spring is at rest if it has
+            length, l.  If l < 0 then the game engine considers
+            the spring to naturally be at rest for the distance
+            between id1 and id2.  The parameter, d, is used to
+            calculate the damping force.
+*/
+
+unsigned int twoDsim_spring (unsigned int id1, unsigned int id2, double k, double d, double l)
+{
+  unsigned int id;
+  Object optr;
+  Object id1p;
+  Object id2p;
+
+  libc_printf ((char *) "spring\\n", 8);
+  libc_printf ((char *) "newObject\\n", 11);
+  id = newObject ((ObjectType) springOb);
+  libc_printf ((char *) "getIndice\\n", 11);
+  optr = Indexing_GetIndice (objects, id);
+  if (l < 0.0)
+    {
+      libc_printf ((char *) "l < 0.0 lengthCoord\\n", 21);
+      l = coord_lengthCoord (coord_subCoord (getCofG (id1), getCofG (id2)));
+    }
+  libc_printf ((char *) "assign to optr\\n", 16);
+  optr->s.k = k;
+  optr->s.d = d;
+  optr->s.f1 = coord_initCoord (0.0, 0.0);
+  optr->s.f2 = coord_initCoord (0.0, 0.0);
+  optr->s.a1 = coord_initCoord (0.0, 0.0);
+  optr->s.a2 = coord_initCoord (0.0, 0.0);
+  optr->s.l0 = l;
+  optr->s.l1 = coord_lengthCoord (coord_subCoord (getCofG (id1), getCofG (id2)));
+  optr->s.id1 = id1;
+  optr->s.id2 = id2;
+  optr->s.hasCallBackLength = FALSE;
+  optr->s.draw = FALSE;
+  optr->s.drawEnd = FALSE;
+  optr->s.drawMid = FALSE;
+  anticipateSpring (currentTime, makeSpringDesc ((eventDesc) NULL, id, (history_springPoint) history_endPoint));
+  libc_printf ((char *) "in spring about to recalculate forces\\n", 39);
+  recalculateForceEnergy ();
+  libc_printf ((char *) "return from spring\\n", 20);
+  return id;
+}
+
+
+/*
+   draw_spring - draw spring, id, using colour, c, and a width, w.
+*/
+
+void twoDsim_draw_spring (unsigned int id, unsigned int c, double w)
+{
+  Object o;
+
+  o = Indexing_GetIndice (objects, id);
+  if (isSpringObject (id))
+    {
+      o->s.drawColour = c;
+      o->s.draw = TRUE;
+      o->s.width = w;
+    }
+  else
+    libc_printf ((char *) "only spring objects can be modified by the draw primitive\\n", 59);
+}
+
+
+/*
+   end_spring - draw the spring using colour, c, when it reaches the end.
+*/
+
+void twoDsim_end_spring (unsigned int id, unsigned int c)
+{
+  Object o;
+
+  o = Indexing_GetIndice (objects, id);
+  if (isSpringObject (id))
+    {
+      o->s.drawEnd = TRUE;
+      o->s.endColour = c;
+    }
+  else
+    libc_printf ((char *) "only spring objects can be modified by the end primitive\\n", 58);
+}
+
+
+/*
+   mid_spring - when the string reaches its rest point draw the objects
+                connected.
+*/
+
+void twoDsim_mid_spring (unsigned int id, unsigned int c)
+{
+  Object o;
+
+  o = Indexing_GetIndice (objects, id);
+  if (isSpringObject (id))
+    {
+      o->s.drawMid = TRUE;
+      o->s.midColour = c;
+    }
+  else
+    libc_printf ((char *) "only spring objects can be modified by the mid primitive\\n", 58);
+}
+
+
+/*
+   when_spring - when the spring, id, reaches, length call, func.
+*/
+
+void twoDsim_when_spring (unsigned int id, double length, unsigned int func)
+{
+  Object o;
+
+  o = Indexing_GetIndice (objects, id);
+  if (isSpringObject (id))
+    {
+      o->s.hasCallBackLength = TRUE;
+      o->s.cbl = length;
+      o->s.func = func;
+    }
+  else
+    libc_printf ((char *) "only spring objects can be modified by the when primitive\\n", 59);
 }
 
 
@@ -6415,19 +8529,26 @@ void twoDsim_simulateFor (double t)
   double dt;
 
   s = 0.0;
-  twoDsim_checkObjects ();
-  if (s < t)
+  if (twoDsim_checkObjects ())
     {
-      pumpQueue ();
-      printQueue ();
-      while (s < t)
+      /* avoid dangling else.  */
+      if (s < t)
         {
-          dt = doNextEvent ();
-          s = s+dt;
+          pumpQueue ();
+          if (trace)
+            printQueue ();
+          while (s < t)
+            {
+              dt = doNextEvent ();
+              s = s+dt;
+            }
+          updatePhysics (TRUE);
+          if (trace)
+            printQueue ();
         }
-      updatePhysics ();
-      printQueue ();
     }
+  else
+    libc_printf ((char *) "the game engine cannot be run as you have a moving object without a mass\\n", 74);
 }
 
 
@@ -6574,11 +8695,24 @@ unsigned int twoDsim_isFunction (void)
 
 
 /*
+   isSpring - returns TRUE if the next event is a spring event.
+*/
+
+unsigned int twoDsim_isSpring (void)
+{
+  if (Debugging)
+    libc_printf ((char *) "isFunction before pumpQueue\\n", 29);
+  pumpQueue ();
+  return isEvent ((eventKind) springKind);
+}
+
+
+/*
    createFunctionEvent - creates a function event at time, t,
                          in the future.
 */
 
-void twoDsim_createFunctionEvent (double t, unsigned int id)
+void twoDsim_createFunctionEvent (double t, unsigned int id, unsigned int param)
 {
   eventQueue e;
   eventDesc edesc;
@@ -6589,6 +8723,7 @@ void twoDsim_createFunctionEvent (double t, unsigned int id)
   edesc = newDesc ();
   edesc->etype = functionEvent;
   edesc->fc.id = id;
+  edesc->fc.param = param;
   e = newEvent ();
   e->kind = functionKind;
   e->time = t;
@@ -6724,7 +8859,6 @@ void twoDsim_drawCollisionFrames (unsigned int actual, unsigned int predict)
 void twoDsim_setCollisionColour (deviceIf_Colour c)
 {
   collisionColour = c;
-  haveCollisionColour = TRUE;
 }
 
 
@@ -6741,7 +8875,7 @@ void twoDsim_dumpWorld (void)
   i = 1;
   while (i <= n)
     {
-      DumpObject ((Object) Indexing_GetIndice (objects, i));
+      dumpObject ((Object) Indexing_GetIndice (objects, i));
       i += 1;
     }
 }
@@ -6751,14 +8885,14 @@ void twoDsim_dumpWorld (void)
    checkObjects - perform a check to make sure that all non fixed objects have a mass.
 */
 
-void twoDsim_checkObjects (void)
+unsigned int twoDsim_checkObjects (void)
 {
   unsigned int i;
   unsigned int n;
   Object optr;
-  unsigned int error;
+  unsigned int ok;
 
-  error = FALSE;
+  ok = TRUE;
   n = Indexing_HighIndice (objects);
   i = 1;
   while (i <= n)
@@ -6771,7 +8905,7 @@ void twoDsim_checkObjects (void)
               if (roots_nearZero (optr->p.mass))
                 {
                   libc_printf ((char *) "polygon %d is not fixed and does not have a mass\\n", 50, optr->id);
-                  error = TRUE;
+                  ok = FALSE;
                 }
               break;
 
@@ -6779,7 +8913,7 @@ void twoDsim_checkObjects (void)
               if (roots_nearZero (optr->c.mass))
                 {
                   libc_printf ((char *) "circle %d is not fixed and does not have a mass\\n", 49, optr->id);
-                  error = TRUE;
+                  ok = FALSE;
                 }
               break;
 
@@ -6789,8 +8923,7 @@ void twoDsim_checkObjects (void)
           }
       i += 1;
     }
-  if (error)
-    libc_exit (1);
+  return ok;
 }
 
 void _M2_twoDsim_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])

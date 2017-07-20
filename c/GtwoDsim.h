@@ -153,6 +153,26 @@ EXTERN unsigned int twoDsim_moving_towards (unsigned int id, double x, double y)
 EXTERN void twoDsim_set_colour (unsigned int id, deviceIf_Colour colour);
 
 /*
+   set_gravity - set the gravity of object, id, to, g.
+                 id must be a box or circle.
+*/
+
+EXTERN void twoDsim_set_gravity (unsigned int id, double g);
+
+/*
+   get_gravity - return the gravity of object, id.
+                 id must be a box or circle.
+*/
+
+EXTERN double twoDsim_get_gravity (unsigned int id);
+
+/*
+   get_mass - returns the mass of object, id.
+*/
+
+EXTERN double twoDsim_get_mass (unsigned int id);
+
+/*
    mass - specify the mass of an object and return the, id.
 */
 
@@ -163,6 +183,42 @@ EXTERN unsigned int twoDsim_mass (unsigned int id, double m);
 */
 
 EXTERN unsigned int twoDsim_fix (unsigned int id);
+
+/*
+   spring - join object, id1, and, id2, with a string of defined
+            by hooks constant, k, the spring is at rest if it has
+            length, l.  If l < 0 then the game engine considers
+            the spring to naturally be at rest for the distance
+            between id1 and id2.  The parameter, d, is used to
+            calculate the damping force.
+*/
+
+EXTERN unsigned int twoDsim_spring (unsigned int id1, unsigned int id2, double k, double d, double l);
+
+/*
+   draw_spring - draw spring, id, using colour, c, and a width, w.
+*/
+
+EXTERN void twoDsim_draw_spring (unsigned int id, unsigned int c, double w);
+
+/*
+   end_spring - draw the spring using colour, c, when it reaches the end.
+*/
+
+EXTERN void twoDsim_end_spring (unsigned int id, unsigned int c);
+
+/*
+   mid_spring - when the string reaches its rest point draw the objects
+                connected.
+*/
+
+EXTERN void twoDsim_mid_spring (unsigned int id, unsigned int c);
+
+/*
+   when_spring - when the spring, id, reaches, length call, func.
+*/
+
+EXTERN void twoDsim_when_spring (unsigned int id, double length, unsigned int func);
 
 /*
    circle - adds a circle to the world.  Center
@@ -259,11 +315,18 @@ EXTERN unsigned int twoDsim_isFrame (void);
 EXTERN unsigned int twoDsim_isFunction (void);
 
 /*
-   createFunctionEvent - creates a function event at time, t,
-                         in the future.
+   isSpring - returns TRUE if the next event is a spring event.
 */
 
-EXTERN void twoDsim_createFunctionEvent (double t, unsigned int id);
+EXTERN unsigned int twoDsim_isSpring (void);
+
+/*
+   createFunctionEvent - creates a function event at time, t,
+                         in the future.  The function id is called
+                         with parameter, param.  For example: id (param).
+*/
+
+EXTERN void twoDsim_createFunctionEvent (double t, unsigned int id, unsigned int param);
 
 /*
    rm - delete this object from the simulated world.
@@ -326,11 +389,10 @@ EXTERN void twoDsim_dumpWorld (void);
 
 /*
    checkObjects - perform a check to make sure that all non fixed objects have a mass.
-                  If an object does not have a mass then an error message is written
-                  and the library exits with exit code 1.
+                  TRUE is returned if all moving objects have a mass.
 */
 
-EXTERN void twoDsim_checkObjects (void);
+EXTERN unsigned int twoDsim_checkObjects (void);
 #   ifdef __cplusplus
 }
 #   endif

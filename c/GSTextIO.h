@@ -1,4 +1,4 @@
-/* automatically created by mc from /home/gaius/GM2/graft-5.2.0/gcc-5.2.0/gcc/gm2/gm2-libs-iso/STextIO.def.  */
+/* automatically created by mc from /home/gaius/GM2/graft-5.4.0/gcc-5.4.0/gcc/gm2/gm2-libs-iso/STextIO.def.  */
 
 
 #if !defined (_STextIO_H)

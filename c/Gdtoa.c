@@ -140,7 +140,7 @@ int dtoa_calcdecimal (char *p, int str_size, int ndigits)
     x += strlen(p);
   else {
     int m = strlen(o);
-    memcpy(o, o+1, l-(o-p));
+    memmove(o, o+1, l-(o-p));
     if (m>0)
       o[m-1] = '0';
     x += o-p;

@@ -1083,7 +1083,7 @@ RTExceptions_EHBlock RTExceptions_GetBaseExceptionBlock (void)
     M2RTS_Halt ((char *) "../pge/m2/RTExceptions.mod", 26, 591, (char *) "GetBaseExceptionBlock", 21, (char *) "currentEHB has not been initialized yet", 39);
   else
     return currentEHB;
-  ReturnException ("/home/gaius/GM2/graft-5.2.0/gcc-5.2.0/gcc/gm2/gm2-libs/RTExceptions.def", 2, 1);
+  ReturnException ("/home/gaius/GM2/graft-5.4.0/gcc-5.4.0/gcc/gm2/gm2-libs/RTExceptions.def", 2, 1);
 }
 
 

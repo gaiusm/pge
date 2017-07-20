@@ -16,6 +16,7 @@
 
 #include <stddef.h>
 #   include "GStorage.h"
+#   include "Gmcrts.h"
 #define _history_H
 #define _history_C
 
@@ -27,18 +28,39 @@
 #   define Debugging FALSE
 #   define Purge TRUE
 #   define HalfSecond 0.5
+typedef struct collisionT_r collisionT;
+
+typedef struct springT_r springT;
+
 typedef struct _T1_r _T1;
 
 typedef _T1 *hList;
 
 typedef enum {history_corner, history_edge} history_whereHit;
 
+typedef enum {history_midPoint, history_endPoint, history_callPoint} history_springPoint;
+
+typedef enum {collision, spring} historyType;
+
+struct collisionT_r {
+                      unsigned int id1;
+                      unsigned int id2;
+                      history_whereHit where1;
+                      history_whereHit where2;
+                      coord_Coord cp;
+                    };
+
+struct springT_r {
+                   unsigned int id;
+                   history_springPoint where;
+                 };
+
 struct _T1_r {
-               unsigned int id1;
-               unsigned int id2;
-               history_whereHit where1;
-               history_whereHit where2;
-               coord_Coord cp;
+               historyType type;  /* case tag */
+               union {
+                       collisionT collisionF;
+                       springT springF;
+                     };
                double t;
                hList next;
              };
@@ -49,13 +71,13 @@ static hList pastQ;
 static hList futureQ;
 
 /*
-   isDuplicate - returns TRUE if the collision at, cp,
-                 and, time, has occurred before.
-                 The time (currentTime+relTime) must be the absolute
-                 time of the collision.
+   isDuplicateC - returns TRUE if the collision at, cp,
+                  and, time, has occurred before.
+                  The time (currentTime+relTime) must be the absolute
+                  time of the collision.
 */
 
-unsigned int history_isDuplicate (double currentTime, double relTime, unsigned int id1, unsigned int id2, history_whereHit w1, history_whereHit w2, coord_Coord cp);
+unsigned int history_isDuplicateC (double currentTime, double relTime, unsigned int id1, unsigned int id2, history_whereHit w1, history_whereHit w2, coord_Coord cp);
 
 /*
    forgetFuture - destroy the anticipated future queue.
@@ -64,22 +86,48 @@ unsigned int history_isDuplicate (double currentTime, double relTime, unsigned i
 void history_forgetFuture (void);
 
 /*
-   occurred - mark the collision as having occurred at, currentTime, between, objects
+   occurredC - mark the collision as having occurred at, currentTime, between, objects
               id1 and id2 at position, cp.  This collision is placed onto the past queue.
               If the event described by id1, id2 at, time, is also present
               on the future queue it is removed.
 */
 
-void history_occurred (double currentTime, unsigned int id1, unsigned int id2, coord_Coord cp);
+void history_occurredC (double currentTime, unsigned int id1, unsigned int id2, coord_Coord cp);
 
 /*
-   anticipate - anticipate a collision at time, aTime, in the future at
-                position, cp.
-                A duplicate will ignored.  A non duplicate
-                collision will be placed onto the futureQ.
+   anticipateC - anticipate a collision at time, aTime, in the future at
+                 position, cp.
+                 A duplicate will ignored.  A non duplicate
+                 collision will be placed onto the futureQ.
 */
 
-void history_anticipate (double aTime, unsigned int id1, unsigned int id2, coord_Coord cp);
+void history_anticipateC (double aTime, unsigned int id1, unsigned int id2, coord_Coord cp);
+
+/*
+   isDuplicateS - returns TRUE if the spring event for object, id,
+                  and, time, has occurred before.
+                  The time (currentTime+relTime) must be the absolute
+                  time of the collision.
+*/
+
+unsigned int history_isDuplicateS (double currentTime, double relTime, unsigned int id, history_springPoint where);
+
+/*
+   anticipateS - anticipate a spring event at time, aTime,
+                 in the future with spring, i, at, w.
+                 A duplicate will ignored.  A non duplicate
+                 collision will be placed onto the futureQ.
+*/
+
+void history_anticipateS (double aTime, unsigned int id, history_springPoint w);
+
+/*
+   occurredS - mark the spring event as having occurred at, currentTime, for spring, id.
+               This event is placed onto the past queue.
+               If this event is also present on the future queue it is removed.
+*/
+
+void history_occurredS (double currentTime, unsigned int id, history_springPoint w);
 
 /*
    isPair - are (a, b) the same as (x, y) or
@@ -113,7 +161,28 @@ static hList newHList (void);
 static void disposeHList (hList h);
 
 /*
-   isSame - do, a, and, b, reference the same collision?  Note we do not use the contact
+   assert -
+*/
+
+static void assert (unsigned int b, unsigned int line);
+
+/*
+   isSameS -
+*/
+
+static unsigned int isSameS (hList a, hList b);
+
+/*
+   isSameC -
+*/
+
+static unsigned int isSameC (hList a, hList b);
+
+/*
+   isSame - do, a, and, b, reference the same history object?  We check
+            spring and collision frames.
+
+            Note we do not use the contact
             point of collision as polygon/polygon collisions might hit on the corner or
             edge.  Instead we assume if we know the time, polygon, face this is good enough.
             twoDsim will test for multiple points on a line and we need to identify
@@ -129,10 +198,16 @@ static unsigned int isSame (hList a, hList b);
 static hList disposeAll (hList l);
 
 /*
-   init - fill in the fields of, n, and return n.
+   initS - fill in the fields of, n, and return n.
 */
 
-static hList init (hList n, double time, unsigned int id1, unsigned int id2, history_whereHit w1, history_whereHit w2, coord_Coord cp);
+static hList initS (hList n, double time, unsigned int id, history_springPoint w);
+
+/*
+   initC - fill in the fields of, n, and return n.
+*/
+
+static hList initC (hList n, double time, unsigned int id1, unsigned int id2, history_whereHit w1, history_whereHit w2, coord_Coord cp);
 
 /*
    tooClose - returns TRUE if |a-b| < HalfSecond
@@ -184,7 +259,40 @@ static unsigned int isDuplicatePast (hList n);
 
 static void dumpHlist (hList l)
 {
-  libc_printf ((char *) "time %g id pair (%d, %d)\\n", 26, l->t, l->id1, l->id2);
+  libc_printf ((char *) "time %g ", 8, l->t);
+  switch (l->type)
+    {
+      case collision:
+        libc_printf ((char *) "collision id pair (%d, %d)\\n", 28, l->collisionF.id1, l->collisionF.id2);
+        break;
+
+      case spring:
+        libc_printf ((char *) "spring id (%d) ", 15, l->springF.id);
+        switch (l->springF.where)
+          {
+            case history_midPoint:
+              libc_printf ((char *) "midpoint", 8);
+              break;
+
+            case history_endPoint:
+              libc_printf ((char *) "endpoint", 8);
+              break;
+
+            case history_callPoint:
+              libc_printf ((char *) "callpoint", 9);
+              break;
+
+
+            default:
+              CaseException ("../pge/m2/history.def", 1, 15);
+          }
+        break;
+
+
+      default:
+        CaseException ("../pge/m2/history.def", 1, 15);
+    }
+  libc_printf ((char *) "`n", 2);
 }
 
 
@@ -247,7 +355,49 @@ static void disposeHList (hList h)
 
 
 /*
-   isSame - do, a, and, b, reference the same collision?  Note we do not use the contact
+   assert -
+*/
+
+static void assert (unsigned int b, unsigned int line)
+{
+  if (! b)
+    {
+      libc_printf ((char *) "../pge/m2/history.mod", 21);
+      libc_printf ((char *) ":%d:error assert failed\\n", 25, line);
+      M2RTS_HALT (0);
+    }
+}
+
+
+/*
+   isSameS -
+*/
+
+static unsigned int isSameS (hList a, hList b)
+{
+  assert (a->type == spring, 177);
+  assert (b->type == spring, 178);
+  return (a->springF.id == b->springF.id) && (a->springF.where == b->springF.where);
+}
+
+
+/*
+   isSameC -
+*/
+
+static unsigned int isSameC (hList a, hList b)
+{
+  assert (a->type == collision, 190);
+  assert (b->type == collision, 191);
+  return (((history_isPair (a->collisionF.id1, a->collisionF.id2, b->collisionF.id1, b->collisionF.id2)) && (a->collisionF.where1 == b->collisionF.where1)) && (a->collisionF.where2 == b->collisionF.where2)) && (roots_nearCoord (a->collisionF.cp, b->collisionF.cp));
+}
+
+
+/*
+   isSame - do, a, and, b, reference the same history object?  We check
+            spring and collision frames.
+
+            Note we do not use the contact
             point of collision as polygon/polygon collisions might hit on the corner or
             edge.  Instead we assume if we know the time, polygon, face this is good enough.
             twoDsim will test for multiple points on a line and we need to identify
@@ -256,7 +406,7 @@ static void disposeHList (hList h)
 
 static unsigned int isSame (hList a, hList b)
 {
-  return ((((roots_nearZero (a->t-b->t)) && (history_isPair (a->id1, a->id2, b->id1, b->id2))) && (a->where1 == b->where1)) && (a->where2 == b->where2)) && (roots_nearCoord (a->cp, b->cp));
+  return ((roots_nearZero (a->t-b->t)) && (a->type == b->type)) && (((a->type == collision) && (isSameC (a, b))) || ((a->type == spring) && (isSameS (a, b))));
 }
 
 
@@ -279,16 +429,32 @@ static hList disposeAll (hList l)
 
 
 /*
-   init - fill in the fields of, n, and return n.
+   initS - fill in the fields of, n, and return n.
 */
 
-static hList init (hList n, double time, unsigned int id1, unsigned int id2, history_whereHit w1, history_whereHit w2, coord_Coord cp)
+static hList initS (hList n, double time, unsigned int id, history_springPoint w)
 {
-  n->id1 = id1;
-  n->id2 = id2;
-  n->where1 = w1;
-  n->where2 = w2;
-  n->cp = cp;
+  n->type = spring;
+  n->springF.id = id;
+  n->springF.where = w;
+  n->t = time;
+  n->next = NULL;
+  return n;
+}
+
+
+/*
+   initC - fill in the fields of, n, and return n.
+*/
+
+static hList initC (hList n, double time, unsigned int id1, unsigned int id2, history_whereHit w1, history_whereHit w2, coord_Coord cp)
+{
+  n->type = collision;
+  n->collisionF.id1 = id1;
+  n->collisionF.id2 = id2;
+  n->collisionF.where1 = w1;
+  n->collisionF.where2 = w2;
+  n->collisionF.cp = cp;
   n->t = time;
   n->next = NULL;
   return n;
@@ -528,20 +694,20 @@ static unsigned int isDuplicatePast (hList n)
 
 
 /*
-   isDuplicate - returns TRUE if the collision at, cp,
-                 and, time, has occurred before.
-                 The time (currentTime+relTime) must be the absolute
-                 time of the collision.
+   isDuplicateC - returns TRUE if the collision at, cp,
+                  and, time, has occurred before.
+                  The time (currentTime+relTime) must be the absolute
+                  time of the collision.
 */
 
-unsigned int history_isDuplicate (double currentTime, double relTime, unsigned int id1, unsigned int id2, history_whereHit w1, history_whereHit w2, coord_Coord cp)
+unsigned int history_isDuplicateC (double currentTime, double relTime, unsigned int id1, unsigned int id2, history_whereHit w1, history_whereHit w2, coord_Coord cp)
 {
   hList h;
   hList n;
 
   if (Debugging)
     dumpLists ();
-  n = init (newHList (), currentTime+relTime, id1, id2, w1, w2, cp);
+  n = initC (newHList (), currentTime+relTime, id1, id2, w1, w2, cp);
   if (Debugging)
     {
       libc_printf ((char *) "checking for duplicates of: ", 28);
@@ -578,19 +744,19 @@ void history_forgetFuture (void)
 
 
 /*
-   occurred - mark the collision as having occurred at, currentTime, between, objects
+   occurredC - mark the collision as having occurred at, currentTime, between, objects
               id1 and id2 at position, cp.  This collision is placed onto the past queue.
               If the event described by id1, id2 at, time, is also present
               on the future queue it is removed.
 */
 
-void history_occurred (double currentTime, unsigned int id1, unsigned int id2, coord_Coord cp)
+void history_occurredC (double currentTime, unsigned int id1, unsigned int id2, coord_Coord cp)
 {
   hList n;
 
   if (Debugging)
     dumpLists ();
-  n = init (newHList (), currentTime, id1, id2, (history_whereHit) history_edge, (history_whereHit) history_edge, cp);
+  n = initC (newHList (), currentTime, id1, id2, (history_whereHit) history_edge, (history_whereHit) history_edge, cp);
   if (Debugging)
     {
       libc_printf ((char *) "collision has occurred ", 23);
@@ -610,19 +776,19 @@ void history_occurred (double currentTime, unsigned int id1, unsigned int id2, c
 
 
 /*
-   anticipate - anticipate a collision at time, aTime, in the future at
-                position, cp.
-                A duplicate will ignored.  A non duplicate
-                collision will be placed onto the futureQ.
+   anticipateC - anticipate a collision at time, aTime, in the future at
+                 position, cp.
+                 A duplicate will ignored.  A non duplicate
+                 collision will be placed onto the futureQ.
 */
 
-void history_anticipate (double aTime, unsigned int id1, unsigned int id2, coord_Coord cp)
+void history_anticipateC (double aTime, unsigned int id1, unsigned int id2, coord_Coord cp)
 {
   hList n;
 
   if (Debugging)
     dumpLists ();
-  n = init (newHList (), aTime, id1, id2, (history_whereHit) history_edge, (history_whereHit) history_edge, cp);
+  n = initC (newHList (), aTime, id1, id2, (history_whereHit) history_edge, (history_whereHit) history_edge, cp);
   if (Debugging)
     {
       libc_printf ((char *) "anticipated collision at: ", 26);
@@ -644,6 +810,116 @@ void history_anticipate (double aTime, unsigned int id1, unsigned int id2, coord
           libc_printf ((char *) "anticipated collision, new queues\\n", 35);
           dumpLists ();
         }
+    }
+}
+
+
+/*
+   isDuplicateS - returns TRUE if the spring event for object, id,
+                  and, time, has occurred before.
+                  The time (currentTime+relTime) must be the absolute
+                  time of the collision.
+*/
+
+unsigned int history_isDuplicateS (double currentTime, double relTime, unsigned int id, history_springPoint where)
+{
+  hList h;
+  hList n;
+
+  if (Debugging)
+    dumpLists ();
+  n = initS (newHList (), currentTime+relTime, id, where);
+  if (Debugging)
+    {
+      libc_printf ((char *) "checking for duplicates of: ", 28);
+      dumpHlist (n);
+    }
+  if ((isDuplicateFuture (n)) || (isDuplicatePast (n)))
+    {
+      if (Debugging)
+        {
+          libc_printf ((char *) "duplicate spring event found (ignoring): ", 41);
+          dumpHlist (n);
+        }
+      disposeHList (n);
+      return TRUE;
+    }
+  if (Debugging)
+    {
+      libc_printf ((char *) "unique spring event found: ", 27);
+      dumpHlist (n);
+    }
+  disposeHList (n);
+  return FALSE;
+}
+
+
+/*
+   anticipateS - anticipate a spring event at time, aTime,
+                 in the future with spring, i, at, w.
+                 A duplicate will ignored.  A non duplicate
+                 collision will be placed onto the futureQ.
+*/
+
+void history_anticipateS (double aTime, unsigned int id, history_springPoint w)
+{
+  hList n;
+
+  if (Debugging)
+    dumpLists ();
+  n = initS (newHList (), aTime, id, w);
+  if (Debugging)
+    {
+      libc_printf ((char *) "anticipated spring event at: ", 29);
+      dumpHlist (n);
+      libc_printf ((char *) "anticipated spring event, old queues\\n", 38);
+      dumpLists ();
+    }
+  if ((isDuplicatePast (n)) || (isDuplicateFuture (n)))
+    {
+      if (Debugging)
+        libc_printf ((char *) "anticipated spring event, duplicate, ignoring\\n", 47);
+      disposeHList (n);
+    }
+  else
+    {
+      addToFutureQ (n);
+      if (Debugging)
+        {
+          libc_printf ((char *) "anticipated spring event, new queues\\n", 38);
+          dumpLists ();
+        }
+    }
+}
+
+
+/*
+   occurredS - mark the spring event as having occurred at, currentTime, for spring, id.
+               This event is placed onto the past queue.
+               If this event is also present on the future queue it is removed.
+*/
+
+void history_occurredS (double currentTime, unsigned int id, history_springPoint w)
+{
+  hList n;
+
+  if (Debugging)
+    dumpLists ();
+  n = initS (newHList (), currentTime, id, w);
+  if (Debugging)
+    {
+      libc_printf ((char *) "spring event has occurred ", 26);
+      dumpHlist (n);
+      libc_printf ((char *) "spring event has occurred, old queues\\n", 39);
+      dumpLists ();
+    }
+  updateTime (currentTime);
+  history_forgetFuture ();
+  addToPastQ (n);
+  if (Debugging)
+    {
+      libc_printf ((char *) "spring event has occurred queues altered\\n", 42);
+      dumpLists ();
     }
 }
 

@@ -22,7 +22,7 @@ int libc_write (int fd, void *a, int nbytes)
 
 int libc_close (int fd)
 {
-  close (fd);
+  return close (fd);
 }
 
 int libc_exit (int code)

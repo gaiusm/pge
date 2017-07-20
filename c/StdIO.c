@@ -1,4 +1,4 @@
-/* automatically created by mc from /home/gaius/GM2/graft-5.2.0/gcc-5.2.0/gcc/gm2/gm2-libs/StdIO.mod.  */
+/* automatically created by mc from /home/gaius/GM2/graft-5.4.0/gcc-5.4.0/gcc/gm2/gm2-libs/StdIO.mod.  */
 
 #   if !defined (PROC_D)
 #      define PROC_D
@@ -201,7 +201,7 @@ StdIO_ProcRead StdIO_GetCurrentInput (void)
 void _M2_StdIO_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
   StackWPtr = 0;
-  StackWPtr = 0;
+  StackRPtr = 0;
   StdIO_PushOutput ((StdIO_ProcWrite) {(StdIO_ProcWrite_t) IO_Write});
   StdIO_PushInput ((StdIO_ProcRead) {(StdIO_ProcRead_t) IO_Read});
 }
