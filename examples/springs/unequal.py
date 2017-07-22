@@ -50,7 +50,7 @@ def main ():
     global gb, sides
 
     spring_power = 500.0
-    damping = 20.0
+    damping = 1.0
 
     placeBoarders (0.01, wood_dark)
 
