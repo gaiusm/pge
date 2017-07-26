@@ -1,0 +1,50 @@
+//
+//  find the time when the relative velocities between two sprung objects is zero.
+//
+
+polynomial terms 3
+
+//  Modula-2 declaration for the terms and smallest positive root value.
+
+initialise {
+   (* start of included code *)
+
+}
+
+//  where max2code must place each polynomial term
+
+term 0 {   array[0] := }    //  * t^0
+term 1 {   array[1] := }    //  * t^1
+term 2 {   array[2] := }    //  * t^2
+
+//  how Modula-2 solves the quadratic root.
+
+finalise {
+   (* end of included code *)
+}
+
+
+// and lastly the maxima code
+// using:  v = u + at   for both x, y axis for both objects
+// then we find the time, t, at which
+// (a + bt) ^2 + (c + dt) ^2 = (e + ft) ^2 + (g + ht) ^2
+//
+// object 1
+// ========
+// a   is u in x dir
+// b   is accel in x dir
+// c   is u in y dir
+// d   is accel in y dir
+//
+// object 2
+// ========
+// e   is u in x dir
+// f   is accel in x dir
+// g   is u in y dir
+// h   is accel in y dir
+//
+{
+  (((a + b * t) ^2 + (c + d * t) ^2) - ((e + f * t) ^2 + (g + h * t) ^2));
+   ratsimp(%);
+   collectterms(%,t);   //  put it into polynomial form
+}
