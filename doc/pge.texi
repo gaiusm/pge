@@ -53,6 +53,7 @@ Software Foundation raise funds for GNU development.''
 * Licence:: Licence of GNU PGE.
 * GNU Project:: The GNU Project and GNU/Linux.
 * Module:: Python API for PGE.
+* Libraries::Python API for PGE.
 * Indices:: Content and API indices.
 @end menu
 
@@ -423,11 +424,20 @@ main ()
 
 @c @include gnu.texi
 
-@node Module, Indices, GNU Project, (dir)
+@node Module, Libraries, GNU Project, (dir)
 
 @page
 @section PGE Python API
 @include pge-api.texi
+
+@node Libraries, Indices, Module, (dir)
+@section Libraries
+
+@ifhtml
+@menu
+* Methods::  Methods and classes.
+@end menu
+@end ifhtml
 
 @node Indices, , Module, (dir)
 @section Indices
