@@ -1,8 +1,8 @@
 \input texinfo   @c -*-texinfo-*-
 @c %**start of header
 @setfilename pge.info
-@set version-pge     1.0
-@set version-update  2016-11-07
+@set version-pge     2.0
+@set version-update  2017-11-16
 @settitle GNU PGE @value{version-pge}
 @c %**end of header
 
@@ -361,7 +361,7 @@ def place_boxes ():
         for x in range (9):
             box_of ([((float)(x))/10.0+0.06, (float)(y)/10.0+0.03], 0.08, 0.08, dark_blue)
 
-def timer ():
+def timer (e = None, f = None):
     global seconds_left, previous
     if seconds_left >= 0:
         pge.at_time (1.0, timer)
