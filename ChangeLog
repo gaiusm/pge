@@ -2,6 +2,7 @@
 
 	* COPYING:  (New file).
 	* doc/pge.texi:  fixed timer in breakout example.
+	* m2/Makefile.am:  updated Modula-2 library base location.
 
 2017-07-26      Gaius Mulley <gaius@gnu.org>
 
