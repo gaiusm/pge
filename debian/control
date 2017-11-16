@@ -15,9 +15,9 @@ Build-Depends:
  libtool,
  maxima,
  python-setuptools,
- python-all-dev,
+ python-defaults,
  python,
- python-pygame,
+ python-all-dev,
  swig,
  texinfo
 Standards-Version: 3.9.5

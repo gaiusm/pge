@@ -112,7 +112,7 @@ def place_boxes ():
         for x in range (9):
             box_of ([((float)(x))/10.0+0.06, (float)(y)/10.0+0.03], 0.08, 0.08, dark_blue)
 
-def timer (e = None):
+def timer (e = None, f = None):
     global seconds_left, previous
     if seconds_left >= 0:
         pge.at_time (1.0, timer)
