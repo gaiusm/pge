@@ -104,7 +104,7 @@ def main ():
     pge.register_handler (myquit, [QUIT])
     pge.register_handler (key_pressed, [KEYDOWN])
     pge.display_set_mode ([1000, 1000])
-    # local_fps ()
+    local_fps ()
     pge.run (10.0)
     pge.finish_record ()
 

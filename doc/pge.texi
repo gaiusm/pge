@@ -102,13 +102,13 @@ More details about the implementation of this module can be found in this paper.
 @node Obtaining, Building, About, (dir)
 @chapter Obtaining PGE
 
-Assuming that you are using Debian Jessie you could obtain @file{pge}
+Assuming that you are using Debian Stretch you could obtain @file{pge}
 adding these entries to your @file{/etc/apt/sources.list}.
 
 @example
 
-deb http://floppsie.comp.glam.ac.uk/debian/ jessie main
-deb-src http://floppsie.comp.glam.ac.uk/debian/ jessie main
+deb http://floppsie.comp.glam.ac.uk/debian/ stretch main
+deb-src http://floppsie.comp.glam.ac.uk/debian/ stretch main
 @end example
 
 Now they can be installed by using the following commands:
@@ -281,7 +281,7 @@ slowdown = 6
 The callback functions.
 
 @example
-def finish_game ():
+def finish_game (e = None, f = None):
     sys.exit (0)
 
 
@@ -420,11 +420,30 @@ main ()
 @section GPL-3.0
 @include gpl-3.0.texi
 
-@node GNU Project, Module, Licence, (dir)
+
+@node GNU Project, Using, Licence, (dir)
 
 @c @include gnu.texi
 
-@node Module, Libraries, GNU Project, (dir)
+@node Using, Module, GNU Project, (dir)
+@chapter Using Python and PGE
+
+Once pge has been installed you can import the python module
+@code{pge} and utilise it in your code.  Your code can either
+run interactively with the pygame libraries or it can simulate
+the 2D world and generate a movie of the modelled behaviour.
+
+A good starting point might be to copy and paste the example
+breakout code into a file
+@code{breakout.py} and then from the command line you can type:
+
+@example
+python breakout.py
+@end example
+
+which should run the breakout game interactively using pygame.
+
+@node Module, Libraries, Using, (dir)
 
 @page
 @section PGE Python API

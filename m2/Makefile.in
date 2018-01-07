@@ -332,7 +332,8 @@ GM2_LIB_DIR = /opt/gm2/lib/gcc/x86_64-linux-gnu/$(GM2GCCBASE)
 SRC_PATH_PIM = -I$(srcdir)/pge-m2 -I$(GM2_LIB_DIR)/m2/pim -I$(GM2_LIB_DIR)/m2/iso
 PROFILE = 
 CHECK = -fsoft-check-all
-GM2FLAGS = $(PROFILE) $(CHECK) -g -fm2-g -fiso -fextended-opaque -I$(srcdir)/src-m2 -g
+OPT = -O2
+GM2FLAGS = $(OPT) $(PROFILE) $(CHECK) -g -fm2-g -fiso -fextended-opaque -I$(srcdir)/src-m2 -g
 GM2LIBDIR = /opt/gm2
 EXAMPLES = elc
 @MAINTAINER_TRUE@OBJECTS = $(SOURCES:%.mod=%.o)
@@ -666,7 +667,7 @@ matchsticks2: _pgeif.so
 @MAINTAINER_FALSE@	cp $(top_srcdir)/m/rotating-line.m $@
 
 .mod.lo:
-	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile gm2 -g -fm2-g -fiso -fextended-opaque -I. -I$(srcdir) -c $< -o $@
+	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile gm2 -g -fm2-g -fiso $(OPT) $(CHECK) -fextended-opaque -I. -I$(srcdir) -c $< -o $@
 
 .c.lo:
 	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile gcc -c $(CFLAGS_FOR_TARGET) $(LIBCFLAGS) $(libgm2_la_M2FLAGS) $< -o $@

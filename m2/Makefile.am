@@ -56,8 +56,9 @@ SRC_PATH_PIM=-I$(srcdir)/pge-m2 -I$(GM2_LIB_DIR)/m2/pim -I$(GM2_LIB_DIR)/m2/iso
 
 PROFILE =
 CHECK = -fsoft-check-all
+OPT = -O2
 
-GM2FLAGS = $(PROFILE) $(CHECK) -g -fm2-g -fiso -fextended-opaque -I$(srcdir)/src-m2 -g
+GM2FLAGS = $(OPT) $(PROFILE) $(CHECK) -g -fm2-g -fiso -fextended-opaque -I$(srcdir)/src-m2 -g
 GM2LIBDIR = /opt/gm2
 
 EXAMPLES = elc
@@ -111,7 +112,7 @@ endif
 
 
 .mod.lo:
-	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile gm2 -g -fm2-g -fiso -fextended-opaque -I. -I$(srcdir) -c $< -o $@
+	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile gm2 -g -fm2-g -fiso $(OPT) $(CHECK) -fextended-opaque -I. -I$(srcdir) -c $< -o $@
 
 .c.lo:
 	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile gcc -c $(CFLAGS_FOR_TARGET) $(LIBCFLAGS) $(libgm2_la_M2FLAGS) $< -o $@

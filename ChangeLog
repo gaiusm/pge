@@ -1,3 +1,19 @@
+2018-01-07      Gaius Mulley <gaius@gnu.org>
+
+	* pge.texi:  updated to refer to stretch rather than jessie.
+          Changed example call backs to reflect new api.  Added
+          new section on Using Python and PGE.
+	* examples/matchsticks/matchsticks.py:  Changed example
+          call backs to reflect new api
+	* examples/springs/bridge.py:  Changed example
+          call backs to reflect new api
+	* m2/Makefile.am:  added new flag OPT
+	* m2/Makefile.in:  rebuilt.
+	* www/tools/texi2tr/html/platforms.html:  corrected
+          obtaining.
+	* www/tools/texi2tr/src/navigation.py:  bug fix
+	  to detect unknown root menu nodes.
+
 2017-11-14      Gaius Mulley <gaius@gnu.org>
 
 	* COPYING:  (New file).

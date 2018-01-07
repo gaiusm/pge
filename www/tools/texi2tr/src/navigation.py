@@ -50,8 +50,11 @@ class nodeInfo:
         html.emitMenuTitle()
         html.emitNodeHeading()
         self.emitPrevNext(html)
-        selected = self.selectTab(root, selected)
-        root.emitTab(html, selected)
+        if root is None:
+            print "unknown root in menu, problem in node ", self.name, selected
+        else:
+            selected = self.selectTab(root, selected)
+            root.emitTab(html, selected)
         html.raw('</div>\n')
         return selected
     def requiresNewFile(self):
