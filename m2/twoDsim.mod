@@ -1858,8 +1858,10 @@ PROCEDURE doApplySpringForce (id: CARDINAL; force: Coord) : Coord ;
 VAR
    a: Coord ;
 BEGIN
-   IF NOT isFixed (id)
+   IF isFixed (id)
    THEN
+      RETURN initCoord (0.0, 0.0)
+   ELSE
       IF nearZero (get_mass (id))
       THEN
          printf ("object %d must be given a mass\n", id) ;

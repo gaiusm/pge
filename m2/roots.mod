@@ -556,7 +556,7 @@ BEGIN
       IF a[i] < 0.0
       THEN
          j := 0 ;
-         WHILE i+j < n DO
+         WHILE i+j < HIGH (a) DO
             a[i+j] := a[i+j+1] ;
 	    INC (j)
          END ;
