@@ -40,7 +40,7 @@ def myquit (e):
     print "goodbye"
     sys.exit (0)
 
-def finish_game (i = None):
+def finish_game (event, param):
     sys.exit (0)
 
 def placeBoarders (thickness, color):
@@ -155,7 +155,7 @@ def placeSilos ():
     pge.text (0.65, 0.05, "+15", blue, 50, 1)
     pge.text (0.90, 0.05, "-20", red, 50, 1)
 
-def timer ():
+def timer (a = None, b = None):
     global seconds_left, previous
     if seconds_left >= 0:
         pge.at_time (1.0, timer)

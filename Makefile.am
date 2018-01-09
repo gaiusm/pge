@@ -143,10 +143,10 @@ clear: force
 force:
 
 if MAINTAINER
-MC=$(HOME)/GM2/graft-5.4.0/build-5.4.0/gcc/gm2/boot-bin/mc --h-file-prefix=G
-PIMLIBS=$(HOME)/GM2/graft-5.4.0/gcc-5.4.0/gcc/gm2/gm2-libs
-ISOLIBS=$(HOME)/GM2/graft-5.4.0/gcc-5.4.0/gcc/gm2/gm2-libs-iso
-MCLIBS=$(HOME)/GM2/graft-5.4.0/gcc-5.4.0/gcc/gm2/mc-boot-ch
+MC=$(HOME)/GM2/graft-6.4.0/build-6.4.0/gcc/gm2/boot-bin/mc --h-file-prefix=G
+PIMLIBS=$(HOME)/GM2/graft-6.4.0/gcc-6.4.0/gcc/gm2/gm2-libs
+ISOLIBS=$(HOME)/GM2/graft-6.4.0/gcc-6.4.0/gcc/gm2/gm2-libs-iso
+MCLIBS=$(HOME)/GM2/graft-6.4.0/gcc-6.4.0/gcc/gm2/mc-boot-ch
 
 M2DEFS = coord.def delay.def deviceGroff.def \
          deviceIf.def devicePy.def Fractions.def GC.def \

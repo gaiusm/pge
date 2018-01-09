@@ -6065,7 +6065,7 @@ BEGIN
       AssertRFail (test, t) ;
       *)
       ts := t ;
-      IF trace OR TRUE
+      IF trace
       THEN
          printf ("spring %d reaches midpoint in %g seconds\n", i, t)
       END ;
@@ -6090,7 +6090,7 @@ BEGIN
          edesc := makeSpringDesc (edesc, i, callPoint) ;
          addSpringEvent (ts, doSpring, edesc) ;
          anticipateSpring (ts, edesc) ;
-         IF trace OR TRUE
+         IF trace
          THEN
             printQueue
          END
@@ -6746,7 +6746,7 @@ PROCEDURE addNextObjectEvent ;
 BEGIN
    removeCollisionEvent ;
    removeSpringEvents ;
-   IF trace OR TRUE
+   IF trace
    THEN
       printf ("no spring or collision events here\n") ;
       printQueue

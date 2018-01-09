@@ -18,7 +18,7 @@ DEB_UPSTREAM_VERSION=$(shell dpkg-parsechangelog | \
 PYVERS=$(shell pyversions -r debian/control)
 
 override_dh_auto_configure:
-	dh_auto_configure -- --enable-langc
+	dh_auto_configure -- --enable-langm2
 
 %:
 	dh $@

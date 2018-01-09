@@ -1,3 +1,14 @@
+2018-01-09      Gaius Mulley <gaius@gnu.org>
+
+	* Makefile.am:  update to use gm2 based on gcc-6.4.0.
+	* c/Makefile.am:  update to use gm2 based on gcc-6.4.0.
+	* debian/rules:  build package with gm2.
+	* examples/bagatelle/bagatelle.py:  changed call backs
+          to use two parameters.
+	* examples/springs/bridge.py:  disable fps.
+	* examples/springs/treble.py:  disable collision frames.
+	* m2/twoDsim.mod:  use trace boolean to switch trace output on/off.
+
 2018-01-07      Gaius Mulley <gaius@gnu.org>
 
 	* pge.texi:  updated to refer to stretch rather than jessie.

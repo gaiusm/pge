@@ -77,7 +77,7 @@ def main ():
     s = pge.spring (third, fourth, 100.0, 2.0, 0.08).draw (yellow, 0.002)
     print "before run"
     pge.record ()
-    pge.draw_collision (True, False)
+    pge.draw_collision (False, False)
     pge.collision_colour (red)
     pge.gravity ()
     pge.dump_world ()

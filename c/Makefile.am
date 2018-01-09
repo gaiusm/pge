@@ -21,7 +21,7 @@ TARGET_SUBDIR=/opt/gm2/lib64
 
 ACLOCAL_AMFLAGS=-I m4
 
-GM2GCCBASE=5.2.0
+GM2GCCBASE=6.4.0
 
 help:  force
 	@echo "knows about:  all, build, clean"
@@ -67,8 +67,8 @@ BUILT_SOURCES = springs.m circles.m rotating-line.m rotating-circles.m
 # PYTHON_VERSION=$(shell python --version 2>&1 | cut -f2 -d' ')
 # PYTHON_VERSION=2.7
 
-# GM2_LIB_DIR=/opt/gm2/lib/gcc/x86_64-unknown-linux-gnu/$(GM2GCCBASE)/m2
-GM2_LIB_DIR=/home/gaius/opt/lib/gcc/x86_64-unknown-linux-gnu/$(GM2GCCBASE)/m2
+# GM2_LIB_DIR=/home/gaius/opt/lib/gcc/x86_64-unknown-linux-gnu/$(GM2GCCBASE)/m2
+GM2_LIB_DIR=/opt/gm2/lib/gcc/x86_64-linux-gnu/$(GM2GCCBASE)/m2
 
 SRC_PATH_PIM=-I$(srcdir)/pge-m2 -I$(GM2_LIB_DIR)/libgm2/pim -I$(GM2_LIB_DIR)/iso
 
