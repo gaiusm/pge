@@ -1,4 +1,4 @@
-/* automatically created by mc from ../pge/m2/roots.mod.  */
+/* automatically created by mc from ../git-pge/m2/roots.mod.  */
 
 #   if !defined (PROC_D)
 #      define PROC_D
@@ -532,7 +532,7 @@ static unsigned int removeSort (double *a, unsigned int _a_high, unsigned int n)
     if (a[i] < 0.0)
       {
         j = 0;
-        while ((i+j) < n)
+        while ((i+j) < (_a_high))
           {
             a[i+j] = a[(i+j)+1];
             j += 1;

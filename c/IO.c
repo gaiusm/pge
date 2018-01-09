@@ -1,4 +1,4 @@
-/* automatically created by mc from /home/gaius/GM2/graft-5.4.0/gcc-5.4.0/gcc/gm2/gm2-libs/IO.mod.  */
+/* automatically created by mc from /home/gaius/GM2/graft-6.4.0/gcc-6.4.0/gcc/gm2/gm2-libs/IO.mod.  */
 
 #   if !defined (PROC_D)
 #      define PROC_D
@@ -14,6 +14,7 @@
 #      define FALSE (1==0)
 #   endif
 
+#include <stdlib.h>
 #define _IO_H
 #define _IO_C
 
@@ -143,7 +144,7 @@ static void doWrite (int fd, FIO_File f, char ch)
       if (! fdState.array[fd].IsEof)
         for (;;)
         {
-          r = libc_write (FIO_GetUnixFileDescriptor (f), &ch, 1);
+          r = libc_write (FIO_GetUnixFileDescriptor (f), &ch, (size_t) 1);
           if (r == 1)
             return;
           else if (r == -1)
@@ -254,7 +255,7 @@ void IO_Read (char *ch)
     else
       for (;;)
       {
-        r = libc_read (FIO_GetUnixFileDescriptor (FIO_StdIn), ch, 1);
+        r = libc_read (FIO_GetUnixFileDescriptor (FIO_StdIn), ch, (size_t) 1);
         if (r == 1)
           return;
         else if (r == -1)

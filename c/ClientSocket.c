@@ -1,4 +1,4 @@
-/* automatically created by mc from /home/gaius/GM2/graft-5.4.0/gcc-5.4.0/gcc/gm2/gm2-libs-iso/ClientSocket.mod.  */
+/* automatically created by mc from /home/gaius/GM2/graft-6.4.0/gcc-6.4.0/gcc/gm2/gm2-libs-iso/ClientSocket.mod.  */
 
 #   if !defined (PROC_D)
 #      define PROC_D
@@ -17,6 +17,7 @@
 #include <stddef.h>
 #include <string.h>
 #include <limits.h>
+#include <stdlib.h>
 #   include "GM2RTS.h"
 #define _ClientSocket_H
 #define _ClientSocket_C
@@ -216,7 +217,7 @@ static char doreadchar (RTgenif_GenDevIF g, IOLink_DeviceTablePtr d)
   if (! (wrapsock_getPushBackChar ((wrapsock_clientInfo) c, &ch)))
     {
       do {
-        i = libc_read (fd, &ch, (int) sizeof (ch));
+        i = libc_read (fd, &ch, (size_t) sizeof (ch));
       } while (! (i != 0));
       if (i < 0)
         d->errNum = errno_geterrno ();
@@ -275,7 +276,7 @@ static unsigned int dorbytes (RTgenif_GenDevIF g, IOLink_DeviceTablePtr d, void 
           return TRUE;
         }
       fd = wrapsock_getClientSocketFd ((wrapsock_clientInfo) c);
-      i = libc_read (fd, (void *) p, (int) max);
+      i = libc_read (fd, (void *) p, (size_t) max);
       if (i >= 0)
         {
           (*actual) = i;
@@ -303,7 +304,7 @@ static unsigned int dowbytes (RTgenif_GenDevIF g, IOLink_DeviceTablePtr d, void 
 
   c = RTdata_GetData (d, mid);
   fd = wrapsock_getClientSocketFd ((wrapsock_clientInfo) c);
-  i = libc_write (fd, from, (int) nBytes);
+  i = libc_write (fd, from, (size_t) nBytes);
   if (i >= 0)
     {
       (*actual) = i;

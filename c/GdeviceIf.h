@@ -1,4 +1,4 @@
-/* automatically created by mc from ../pge/m2/deviceIf.def.  */
+/* automatically created by mc from ../git-pge/m2/deviceIf.def.  */
 
 
 #if !defined (_deviceIf_H)

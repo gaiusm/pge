@@ -1,4 +1,4 @@
-/* automatically created by mc from ../pge/m2/deviceIf.mod.  */
+/* automatically created by mc from ../git-pge/m2/deviceIf.mod.  */
 
 #   if !defined (PROC_D)
 #      define PROC_D
@@ -364,7 +364,7 @@ static void markConfig (GC_entity e)
       Points_markPoint (config->outMax);
     }
   else
-    M2RTS_HALT (0);
+    M2RTS_HALT (-1);
 }
 
 
@@ -713,7 +713,7 @@ void deviceIf_finish (void)
 
 
       default:
-        CaseException ("../pge/m2/deviceIf.def", 2, 1);
+        CaseException ("../git-pge/m2/deviceIf.def", 2, 1);
     }
 }
 

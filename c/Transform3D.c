@@ -1,4 +1,4 @@
-/* automatically created by mc from ../pge/m2/Transform3D.mod.  */
+/* automatically created by mc from ../git-pge/m2/Transform3D.mod.  */
 
 #   if !defined (PROC_D)
 #      define PROC_D
@@ -58,7 +58,7 @@ PolyMatrix3D_Matrix Transform3D_translate (Points_Point p);
 
 PolyMatrix3D_Matrix Transform3D_reflect (Fractions_Fract m, Fractions_Fract x, Fractions_Fract c)
 {
-  M2RTS_HALT (0);
+  M2RTS_HALT (-1);
   return NULL;
 }
 

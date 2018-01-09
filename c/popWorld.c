@@ -1,4 +1,4 @@
-/* automatically created by mc from ../pge/m2/popWorld.mod.  */
+/* automatically created by mc from ../git-pge/m2/popWorld.mod.  */
 
 #   if !defined (PROC_D)
 #      define PROC_D
@@ -102,7 +102,7 @@ static void ppolygon (unsigned int n, Points_Point *p_, unsigned int _p_high, un
 
       default:
         libc_printf ((char *) "too many sides to the polygon, max 6 allowed\\n", 46);
-        M2RTS_HALT (0);
+        M2RTS_HALT (-1);
         break;
     }
   if (pFixed)

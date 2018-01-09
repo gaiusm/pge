@@ -1,4 +1,4 @@
-/* automatically created by mc from ../pge/m2/Fractions.mod.  */
+/* automatically created by mc from ../git-pge/m2/Fractions.mod.  */
 
 #   if !defined (PROC_D)
 #      define PROC_D
@@ -17,6 +17,7 @@
 #include <stddef.h>
 #include <string.h>
 #include <limits.h>
+#include <stdlib.h>
 #define _Fractions_H
 #define _Fractions_C
 
@@ -819,7 +820,7 @@ static void writeCard (unsigned int c)
   else
     {
       ch = (char) (((unsigned int) ('0'))+c);
-      i = libc_write (1, &ch, 1);
+      i = libc_write (1, &ch, (size_t) 1);
     }
 }
 
@@ -911,7 +912,7 @@ static void writeString (char *a_, unsigned int _a_high)
   /* make a local copy of each unbounded array.  */
   memcpy (a, a_, _a_high+1);
 
-  i = libc_write (1, &a, (int) StrLib_StrLen ((char *) a, _a_high));
+  i = libc_write (1, &a, (size_t) StrLib_StrLen ((char *) a, _a_high));
 }
 
 
@@ -947,7 +948,7 @@ static void writeLongcard (long unsigned int c)
   else
     {
       ch = (char) (((unsigned int) ('0'))+((unsigned int ) (c)));
-      i = libc_write (1, &ch, 1);
+      i = libc_write (1, &ch, (size_t) 1);
     }
 }
 
@@ -974,7 +975,7 @@ static void writeLongint (long int i)
   else if (i < 10)
     {
       ch = (char) (((unsigned int) ('0'))+((unsigned int ) (i)));
-      j = libc_write (1, &ch, 1);
+      j = libc_write (1, &ch, (size_t) 1);
     }
 }
 
@@ -989,7 +990,7 @@ static void writeLn (void)
   int i;
 
   ch = ASCII_lf;
-  i = libc_write (1, &ch, 1);
+  i = libc_write (1, &ch, (size_t) 1);
 }
 
 
@@ -1273,7 +1274,7 @@ static Fractions_Fract divc (Fractions_Fract l, Fractions_Fract r)
   l = Fractions_simplify (l);
   r = Fractions_simplify (r);
   if (Fractions_isZero (r))
-    M2RTS_HALT (0);
+    M2RTS_HALT (-1);
   if (Fractions_isEqual (l, r))
     return Fractions_one ();
   else
@@ -1455,14 +1456,14 @@ static void walkFract (Fractions_Fract f)
 
 
             default:
-              M2RTS_HALT (0);
+              M2RTS_HALT (-1);
               break;
           }
         break;
 
 
       default:
-        M2RTS_HALT (0);
+        M2RTS_HALT (-1);
         break;
     }
 }
@@ -1513,14 +1514,14 @@ static unsigned int walkExpr (Fractions_Fract f, doProcedure p)
 
 
             default:
-              M2RTS_HALT (0);
+              M2RTS_HALT (-1);
               break;
           }
         break;
 
 
       default:
-        M2RTS_HALT (0);
+        M2RTS_HALT (-1);
         break;
     }
   return changed;
@@ -1618,14 +1619,14 @@ static unsigned int doRules (Fractions_Fract f)
 
 
             default:
-              M2RTS_HALT (0);
+              M2RTS_HALT (-1);
               break;
           }
         break;
 
 
       default:
-        M2RTS_HALT (0);
+        M2RTS_HALT (-1);
         break;
     }
   return FALSE;
@@ -2117,7 +2118,7 @@ static void writeOp (Fractions_Fract f)
 
 
       default:
-        M2RTS_HALT (0);
+        M2RTS_HALT (-1);
         break;
     }
 }
@@ -2161,7 +2162,7 @@ static void writeFracts (Fractions_Fract f)
 
 
       default:
-        M2RTS_HALT (0);
+        M2RTS_HALT (-1);
         break;
     }
 }
@@ -2262,7 +2263,7 @@ static Fractions_Fract flush (Fractions_Fract f)
       if (isConst (f))
         return f;
       else
-        M2RTS_HALT (0);
+        M2RTS_HALT (-1);
     }
 }
 
@@ -2308,7 +2309,7 @@ static Fractions_Fract dups (Fractions_Fract f)
 
 
       default:
-        M2RTS_HALT (0);
+        M2RTS_HALT (-1);
         break;
     }
 }
@@ -2350,7 +2351,7 @@ static Fractions_Fract dupExpr (Fractions_Fract f)
 
 
       default:
-        M2RTS_HALT (0);
+        M2RTS_HALT (-1);
         break;
     }
   return g;
@@ -2363,7 +2364,7 @@ static Fractions_Fract dupExpr (Fractions_Fract f)
 
 static Fractions_Fract sinc (Fractions_Fract x)
 {
-  M2RTS_HALT (0);
+  M2RTS_HALT (-1);
   return x;
 }
 
@@ -2374,7 +2375,7 @@ static Fractions_Fract sinc (Fractions_Fract x)
 
 static Fractions_Fract tanc (Fractions_Fract f)
 {
-  M2RTS_HALT (0);
+  M2RTS_HALT (-1);
   return f;
 }
 
@@ -2385,7 +2386,7 @@ static Fractions_Fract tanc (Fractions_Fract f)
 
 static Fractions_Fract cosc (Fractions_Fract f)
 {
-  M2RTS_HALT (0);
+  M2RTS_HALT (-1);
   return f;
 }
 
@@ -2402,7 +2403,7 @@ static Fractions_Fract toConst (Fractions_Fract f)
   if (isConst (f))
     return f;
   else
-    M2RTS_HALT (0);
+    M2RTS_HALT (-1);
 }
 
 
@@ -2877,7 +2878,7 @@ Fractions_Fract Fractions_inc (Fractions_Fract l, Fractions_Fract r)
   else if (! l->positive && r->positive)
     l = Fractions_negate (Fractions_dec (Fractions_negate (l), r));
   else
-    M2RTS_HALT (0);
+    M2RTS_HALT (-1);
   return l;
 }
 
@@ -2949,7 +2950,7 @@ Fractions_Fract Fractions_dec (Fractions_Fract l, Fractions_Fract r)
   else if (! l->positive && r->positive)
     return Fractions_negate (Fractions_inc (Fractions_negate (l), r));
   else
-    M2RTS_HALT (0);
+    M2RTS_HALT (-1);
   return Fractions_simplify (l);
 }
 
@@ -3071,7 +3072,7 @@ unsigned int Fractions_areEqual (Fractions_Fract l, Fractions_Fract r)
 
 
           default:
-            M2RTS_HALT (0);
+            M2RTS_HALT (-1);
             break;
         }
   return FALSE;

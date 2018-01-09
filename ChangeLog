@@ -12,6 +12,8 @@
 	* m2/twoDsim.mod:  fixed bug in (doApplySpringForce) to
           ensure that a fixed object returns no extra force.
 	* m2/roots.mod:  check against exceeding the array size.
+	* Makefile.am:  use mc from build-svn-trunc.
+	* examples/springs/bridge.py:  reenable fps.
 
 2018-01-07      Gaius Mulley <gaius@gnu.org>
 

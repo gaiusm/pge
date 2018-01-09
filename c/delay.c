@@ -1,4 +1,4 @@
-/* automatically created by mc from ../pge/m2/delay.mod.  */
+/* automatically created by mc from ../git-pge/m2/delay.mod.  */
 
 #   if !defined (PROC_D)
 #      define PROC_D
@@ -133,7 +133,7 @@ void delay_wait (void)
               if (sec > 0)
                 sec -= 1;
               else
-                M2RTS_HALT (0);
+                M2RTS_HALT (-1);
             }
           else
             usec -= u;

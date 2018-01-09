@@ -1,4 +1,4 @@
-/* automatically created by mc from ../pge/m2/deviceGroff.mod.  */
+/* automatically created by mc from ../git-pge/m2/deviceGroff.mod.  */
 
 #   if !defined (PROC_D)
 #      define PROC_D
@@ -606,7 +606,7 @@ static void killGlyph (glyphDesc *g)
 
 
       default:
-        CaseException ("../pge/m2/deviceGroff.def", 1, 15);
+        CaseException ("../git-pge/m2/deviceGroff.def", 1, 15);
     }
   disposeGlyph (g);
 }
@@ -626,7 +626,7 @@ static void killCircle (glyphDesc g)
       g->gCircle.radius = Fractions_unroot (g->gCircle.radius);
     }
   else
-    M2RTS_HALT (0);
+    M2RTS_HALT (-1);
 }
 
 
@@ -646,7 +646,7 @@ static void killPolygon (glyphDesc g)
         g->gPolygon.pArray.array[i] = Points_unRootPoint ((Points_Point) g->gPolygon.pArray.array[i]);
     }
   else
-    M2RTS_HALT (0);
+    M2RTS_HALT (-1);
 }
 
 
@@ -799,7 +799,7 @@ static void setColourUsed (glyphDesc g)
 
 
       default:
-        CaseException ("../pge/m2/deviceGroff.def", 1, 15);
+        CaseException ("../git-pge/m2/deviceGroff.def", 1, 15);
     }
 }
 
@@ -889,7 +889,7 @@ static void drawGlyph (glyphDesc g)
 
 
       default:
-        CaseException ("../pge/m2/deviceGroff.def", 1, 15);
+        CaseException ("../git-pge/m2/deviceGroff.def", 1, 15);
     }
 }
 
@@ -1182,7 +1182,7 @@ static void dumpg (glyphDesc g)
 
 
       default:
-        CaseException ("../pge/m2/deviceGroff.def", 1, 15);
+        CaseException ("../git-pge/m2/deviceGroff.def", 1, 15);
     }
 }
 
@@ -1342,7 +1342,7 @@ static unsigned int clipLine (Points_Point p1, Points_Point p2, Points_Point *o1
         c2 = clipped (Points_initPoint (x, y));
       }
   }
-  ReturnException ("../pge/m2/deviceGroff.def", 1, 15);
+  ReturnException ("../git-pge/m2/deviceGroff.def", 1, 15);
 }
 
 static void stop (void)
@@ -1448,7 +1448,7 @@ static void markConfig (GC_entity e)
       Points_markPoint (config->outMax);
     }
   else
-    M2RTS_HALT (0);
+    M2RTS_HALT (-1);
 }
 
 
@@ -1583,7 +1583,7 @@ void deviceGroff_glyphPolygon (unsigned int n, Points_Point *p_, unsigned int _p
   g->gPolygon.thickness = Fractions_dup (thick);
   g->gPolygon.noPoints = n;
   if (n > maxPoints)
-    M2RTS_HALT (0);
+    M2RTS_HALT (-1);
   for (i=0; i<=n-1; i++)
     g->gPolygon.pArray.array[i] = Points_dupPoint ((Points_Point) p[i]);
   addToEnd (g);

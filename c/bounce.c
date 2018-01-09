@@ -1,4 +1,4 @@
-/* automatically created by mc from ../pge/m2/bounce.mod.  */
+/* automatically created by mc from ../git-pge/m2/bounce.mod.  */
 
 #   if !defined (PROC_D)
 #      define PROC_D

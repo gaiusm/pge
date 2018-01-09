@@ -143,7 +143,7 @@ clear: force
 force:
 
 if MAINTAINER
-MC=$(HOME)/GM2/graft-6.4.0/build-6.4.0/gcc/gm2/boot-bin/mc --h-file-prefix=G
+MC=$(HOME)/GM2/graft-svn-trunc/build-svn-trunc/gcc/gm2/boot-bin/mc --h-file-prefix=G
 PIMLIBS=$(HOME)/GM2/graft-6.4.0/gcc-6.4.0/gcc/gm2/gm2-libs
 ISOLIBS=$(HOME)/GM2/graft-6.4.0/gcc-6.4.0/gcc/gm2/gm2-libs-iso
 MCLIBS=$(HOME)/GM2/graft-6.4.0/gcc-6.4.0/gcc/gm2/mc-boot-ch

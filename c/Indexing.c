@@ -1,4 +1,4 @@
-/* automatically created by mc from ../pge/m2/Indexing.mod.  */
+/* automatically created by mc from ../git-pge/m2/Indexing.mod.  */
 
 #   if !defined (PROC_D)
 #      define PROC_D
@@ -15,6 +15,7 @@
 #   endif
 
 #include <stddef.h>
+#include <stdlib.h>
 #   include "GStorage.h"
 #define _Indexing_H
 #define _Indexing_C
@@ -143,7 +144,7 @@ Indexing_Index Indexing_InitIndex (unsigned int low)
   i->High = 0;
   i->ArraySize = MinSize;
   Storage_ALLOCATE (&i->ArrayStart, MinSize);
-  i->ArrayStart = libc_memset (i->ArrayStart, 0, i->ArraySize);
+  i->ArrayStart = libc_memset (i->ArrayStart, 0, (size_t) i->ArraySize);
   i->Debug = FALSE;
   i->Used = 0;
   i->Map = (unsigned int) 0;
@@ -182,7 +183,7 @@ Indexing_Index Indexing_DebugIndex (Indexing_Index i)
 unsigned int Indexing_InBounds (Indexing_Index i, unsigned int n)
 {
   if (i == NULL)
-    M2RTS_HALT (0);
+    M2RTS_HALT (-1);
   else
     return (n >= i->Low) && (n <= i->High);
 }
@@ -195,7 +196,7 @@ unsigned int Indexing_InBounds (Indexing_Index i, unsigned int n)
 unsigned int Indexing_HighIndice (Indexing_Index i)
 {
   if (i == NULL)
-    M2RTS_HALT (0);
+    M2RTS_HALT (-1);
   else
     return i->High;
 }
@@ -208,7 +209,7 @@ unsigned int Indexing_HighIndice (Indexing_Index i)
 unsigned int Indexing_LowIndice (Indexing_Index i)
 {
   if (i == NULL)
-    M2RTS_HALT (0);
+    M2RTS_HALT (-1);
   else
     return i->Low;
 }
@@ -228,7 +229,7 @@ void Indexing_PutIndice (Indexing_Index i, unsigned int n, void * a)
     {
       /* avoid gcc warning by using compound statement even if not strictly necessary.  */
       if (n < i->Low)
-        M2RTS_HALT (0);
+        M2RTS_HALT (-1);
       else
         {
           oldSize = i->ArraySize;
@@ -239,7 +240,7 @@ void Indexing_PutIndice (Indexing_Index i, unsigned int n, void * a)
               Storage_REALLOCATE (&i->ArrayStart, i->ArraySize);
               b = i->ArrayStart;
               b += oldSize;
-              b = libc_memset (b, 0, i->ArraySize-oldSize);
+              b = libc_memset (b, 0, (size_t) i->ArraySize-oldSize);
             }
           i->High = n;
         }
@@ -265,13 +266,13 @@ void * Indexing_GetIndice (Indexing_Index i, unsigned int n)
   PtrToAddress p;
 
   if (! (Indexing_InBounds (i, n)))
-    M2RTS_HALT (0);
+    M2RTS_HALT (-1);
   b = i->ArrayStart;
   b += (n-i->Low)*(sizeof (void *));
   p = (PtrToAddress) (b);
   if (i->Debug)
     if (((n < 32) && (! ((((1 << (n)) & (i->Map)) != 0)))) && ((*p) != NULL))
-      M2RTS_HALT (0);
+      M2RTS_HALT (-1);
   return (*p);
 }
 
@@ -339,12 +340,12 @@ void Indexing_DeleteIndice (Indexing_Index i, unsigned int j)
       b += (sizeof (void *))*(j-i->Low);
       p = (PtrToAddress) (b);
       b += sizeof (void *);
-      p = libc_memmove ((void *) p, (void *) b, (i->High-j)*(sizeof (void *)));
+      p = libc_memmove ((void *) p, (void *) b, (size_t) (i->High-j)*(sizeof (void *)));
       i->High -= 1;
       i->Used -= 1;
     }
   else
-    M2RTS_HALT (0);
+    M2RTS_HALT (-1);
 }
 
 

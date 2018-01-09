@@ -1,4 +1,4 @@
-/* automatically created by mc from ../pge/m2/history.mod.  */
+/* automatically created by mc from ../git-pge/m2/history.mod.  */
 
 #   if !defined (PROC_D)
 #      define PROC_D
@@ -66,7 +66,7 @@ struct _T1_r {
              };
 
 static double currentTime;
-static hList free;
+static hList free_;
 static hList pastQ;
 static hList futureQ;
 
@@ -284,13 +284,13 @@ static void dumpHlist (hList l)
 
 
             default:
-              CaseException ("../pge/m2/history.def", 1, 15);
+              CaseException ("../git-pge/m2/history.def", 1, 15);
           }
         break;
 
 
       default:
-        CaseException ("../pge/m2/history.def", 1, 15);
+        CaseException ("../git-pge/m2/history.def", 1, 15);
     }
   libc_printf ((char *) "`n", 2);
 }
@@ -332,12 +332,12 @@ static hList newHList (void)
 {
   hList h;
 
-  if (free == NULL)
+  if (free_ == NULL)
     Storage_ALLOCATE ((void **) &h, sizeof (_T1));
   else
     {
-      h = free;
-      free = free->next;
+      h = free_;
+      free_ = free_->next;
     }
   return h;
 }
@@ -349,8 +349,8 @@ static hList newHList (void)
 
 static void disposeHList (hList h)
 {
-  h->next = free;
-  free = h;
+  h->next = free_;
+  free_ = h;
 }
 
 
@@ -362,9 +362,9 @@ static void assert (unsigned int b, unsigned int line)
 {
   if (! b)
     {
-      libc_printf ((char *) "../pge/m2/history.mod", 21);
+      libc_printf ((char *) "../git-pge/m2/history.mod", 25);
       libc_printf ((char *) ":%d:error assert failed\\n", 25, line);
-      M2RTS_HALT (0);
+      M2RTS_HALT (-1);
     }
 }
 
@@ -587,7 +587,7 @@ static void addToPastQ (hList n)
       p = pastQ;
       q = p->next;
       if (q == NULL)
-        M2RTS_HALT (0);
+        M2RTS_HALT (-1);
       while ((q != NULL) && (n->t <= q->t))
         {
           p = q;
@@ -939,7 +939,7 @@ void _M2_history_init (__attribute__((unused)) int argc, __attribute__((unused))
   currentTime = 0.0;
   pastQ = NULL;
   futureQ = NULL;
-  free = NULL;
+  free_ = NULL;
 }
 
 void _M2_history_finish (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])

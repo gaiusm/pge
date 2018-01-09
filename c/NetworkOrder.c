@@ -1,4 +1,4 @@
-/* automatically created by mc from ../pge/m2/NetworkOrder.mod.  */
+/* automatically created by mc from ../git-pge/m2/NetworkOrder.mod.  */
 
 #   if !defined (PROC_D)
 #      define PROC_D
@@ -118,7 +118,7 @@ static void get2x32 (unsigned char *l_, unsigned int _l_high, unsigned char *lo,
         }
     }
   else
-    M2RTS_HALT (0);
+    M2RTS_HALT (-1);
 }
 
 
@@ -153,7 +153,7 @@ static void set2x32 (unsigned char *l_, unsigned int _l_high, unsigned char *lo_
         }
     }
   else
-    M2RTS_HALT (0);
+    M2RTS_HALT (-1);
 }
 
 

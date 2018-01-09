@@ -1,4 +1,4 @@
-/* automatically created by mc from /home/gaius/GM2/graft-5.4.0/gcc-5.4.0/gcc/gm2/gm2-libs/FIO.mod.  */
+/* automatically created by mc from /home/gaius/GM2/graft-6.4.0/gcc-6.4.0/gcc/gm2/gm2-libs/FIO.mod.  */
 
 #   if !defined (PROC_D)
 #      define PROC_D
@@ -17,6 +17,7 @@
 #include <stddef.h>
 #include <string.h>
 #include <limits.h>
+#include <stdlib.h>
 #   include "GStorage.h"
 #   include "Gmcrts.h"
 #define _FIO_H
@@ -511,7 +512,7 @@ static FIO_File GetNextFreeDescriptor (void)
         return f;
       }
   }
-  ReturnException ("/home/gaius/GM2/graft-5.4.0/gcc-5.4.0/gcc/gm2/gm2-libs/FIO.def", 3, 1);
+  ReturnException ("/home/gaius/GM2/graft-6.4.0/gcc-6.4.0/gcc/gm2/gm2-libs/FIO.def", 3, 1);
 }
 
 
@@ -664,7 +665,7 @@ static int ReadFromBuffer (FIO_File f, void * a, unsigned int nBytes)
                 n = Min (fd->buffer->left, nBytes);
                 t = fd->buffer->address;
                 t += fd->buffer->position;
-                p = libc_memcpy (a, t, n);
+                p = libc_memcpy (a, t, (size_t) n);
                 fd->buffer->left -= n;
                 fd->buffer->position += n;
                 a += n;
@@ -675,7 +676,7 @@ static int ReadFromBuffer (FIO_File f, void * a, unsigned int nBytes)
           }
       if (nBytes > 0)
         {
-          result = libc_read (fd->unixfd, a, (int ) (nBytes));
+          result = libc_read (fd->unixfd, a, (size_t) (int ) (nBytes));
           if (result > 0)
             {
               total += result;
@@ -747,7 +748,7 @@ static int BufferedRead (FIO_File f, unsigned int nBytes, void * a)
                     n = Min (fd->buffer->left, nBytes);
                     t = fd->buffer->address;
                     t += fd->buffer->position;
-                    p = libc_memcpy (a, t, (unsigned int) n);
+                    p = libc_memcpy (a, t, (size_t) n);
                     fd->buffer->left -= n;
                     fd->buffer->position += n;
                     a += n;
@@ -756,7 +757,7 @@ static int BufferedRead (FIO_File f, unsigned int nBytes, void * a)
                   }
               else
                 {
-                  n = libc_read (fd->unixfd, fd->buffer->address, (int) fd->buffer->size);
+                  n = libc_read (fd->unixfd, fd->buffer->address, (size_t) fd->buffer->size);
                   if (n >= 0)
                     {
                       fd->buffer->valid = TRUE;
@@ -1010,40 +1011,40 @@ static void CheckAccess (FIO_File f, FileUsage use, unsigned int towrite)
         {
           if (f != FIO_StdErr)
             FormatError ((char *) "this file has probably been closed and not reopened successfully or alternatively never opened\\n", 96);
-          M2RTS_HALT (0);
+          M2RTS_HALT (-1);
         }
       else
         if ((use == openedforwrite) && (fd->usage == openedforread))
           {
             FormatError1 ((char *) "this file (%s) has been opened for reading but is now being written\\n", 69, (unsigned char *) &fd->name.address, (sizeof (fd->name.address)-1));
-            M2RTS_HALT (0);
+            M2RTS_HALT (-1);
           }
         else if ((use == openedforread) && (fd->usage == openedforwrite))
           {
             FormatError1 ((char *) "this file (%s) has been opened for writing but is now being read\\n", 66, (unsigned char *) &fd->name.address, (sizeof (fd->name.address)-1));
-            M2RTS_HALT (0);
+            M2RTS_HALT (-1);
           }
         else if (fd->state == connectionfailure)
           {
             FormatError1 ((char *) "this file (%s) was not successfully opened\\n", 44, (unsigned char *) &fd->name.address, (sizeof (fd->name.address)-1));
-            M2RTS_HALT (0);
+            M2RTS_HALT (-1);
           }
         else if (towrite != fd->output)
           if (fd->output)
             {
               FormatError1 ((char *) "this file (%s) was opened for writing but is now being read\\n", 61, (unsigned char *) &fd->name.address, (sizeof (fd->name.address)-1));
-              M2RTS_HALT (0);
+              M2RTS_HALT (-1);
             }
           else
             {
               FormatError1 ((char *) "this file (%s) was opened for reading but is now being written\\n", 64, (unsigned char *) &fd->name.address, (sizeof (fd->name.address)-1));
-              M2RTS_HALT (0);
+              M2RTS_HALT (-1);
             }
     }
   else
     {
       FormatError ((char *) "this file has not been opened successfully\\n", 44);
-      M2RTS_HALT (0);
+      M2RTS_HALT (-1);
     }
 }
 
@@ -1109,7 +1110,7 @@ static int BufferedWrite (FIO_File f, unsigned int nBytes, void * a)
                       n = Min (fd->buffer->left, nBytes);
                       t = fd->buffer->address;
                       t += fd->buffer->position;
-                      p = libc_memcpy (a, t, (unsigned int ) (n));
+                      p = libc_memcpy (a, t, (size_t) (unsigned int ) (n));
                       fd->buffer->left -= n;
                       fd->buffer->position += n;
                       a += n;
@@ -1150,7 +1151,7 @@ static void PreInitialize (FIO_File f, char *fname_, unsigned int _fname_high, F
         {
           fe = Indexing_GetIndice (FileInfo, (unsigned int) FIO_StdErr);
           if (fe == NULL)
-            M2RTS_HALT (0);
+            M2RTS_HALT (-1);
           else
             fd->unixfd = fe->unixfd;
         }
@@ -1158,7 +1159,7 @@ static void PreInitialize (FIO_File f, char *fname_, unsigned int _fname_high, F
         fd->unixfd = osfd;
     }
   else
-    M2RTS_HALT (0);
+    M2RTS_HALT (-1);
 }
 
 
@@ -1178,7 +1179,7 @@ static void Init (void)
   FIO_StdErr = 3;
   PreInitialize (FIO_StdErr, (char *) "<stderr>", 8, (FileStatus) successful, (FileUsage) openedforwrite, TRUE, 2, MaxBufferLength);
   if (! (M2RTS_InstallTerminationProcedure ((PROC ) {(PROC_t) FIO_FlushOutErr})))
-    M2RTS_HALT (0);
+    M2RTS_HALT (-1);
 }
 
 
@@ -1397,7 +1398,7 @@ void FIO_FlushBuffer (FIO_File f)
       fd = Indexing_GetIndice (FileInfo, (unsigned int) f);
       if (fd != NULL)
         if (fd->output && (fd->buffer != NULL))
-          if ((fd->buffer->position == 0) || ((libc_write (fd->unixfd, fd->buffer->address, (int) fd->buffer->position)) == ((int ) (fd->buffer->position))))
+          if ((fd->buffer->position == 0) || ((libc_write (fd->unixfd, fd->buffer->address, (size_t) fd->buffer->position)) == ((int ) (fd->buffer->position))))
             {
               fd->abspos += fd->buffer->position;
               fd->buffer->bufstart = fd->abspos;
@@ -1476,7 +1477,7 @@ unsigned int FIO_WriteNBytes (FIO_File f, unsigned int nBytes, void * a)
       fd = Indexing_GetIndice (FileInfo, (unsigned int) f);
       if (fd != NULL)
         {
-          total = libc_write (fd->unixfd, a, (int ) (nBytes));
+          total = libc_write (fd->unixfd, a, (size_t) (int ) (nBytes));
           if (total < 0)
             {
               fd->state = failed;
@@ -1655,7 +1656,7 @@ void FIO_UnReadChar (FIO_File f, char ch)
                     n = fd->buffer->filled-fd->buffer->position;
                     b = &(*fd->buffer->contents).array[fd->buffer->position];
                     a = &(*fd->buffer->contents).array[fd->buffer->position+1];
-                    a = libc_memcpy (a, b, n);
+                    a = libc_memcpy (a, b, (size_t) n);
                     fd->buffer->filled += 1;
                     (*fd->buffer->contents).array[fd->buffer->position] = ch;
                   }
@@ -1899,7 +1900,7 @@ void FIO_GetFileName (FIO_File f, char *a, unsigned int _a_high)
       if (fd == NULL)
         {
           FormatError ((char *) "this file has probably been closed and not reopened successfully or alternatively never opened\\n", 96);
-          M2RTS_HALT (0);
+          M2RTS_HALT (-1);
         }
       else
         if (fd->name.address == NULL)
@@ -1933,7 +1934,7 @@ void * FIO_getFileName (FIO_File f)
       if (fd == NULL)
         {
           FormatError ((char *) "this file has probably been closed and not reopened successfully or alternatively never opened\\n", 96);
-          M2RTS_HALT (0);
+          M2RTS_HALT (-1);
         }
       else
         return fd->name.address;
@@ -1955,7 +1956,7 @@ unsigned int FIO_getFileNameLength (FIO_File f)
       if (fd == NULL)
         {
           FormatError ((char *) "this file has probably been closed and not reopened successfully or alternatively never opened\\n", 96);
-          M2RTS_HALT (0);
+          M2RTS_HALT (-1);
         }
       else
         return fd->name.size;

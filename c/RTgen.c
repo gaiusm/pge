@@ -1,4 +1,4 @@
-/* automatically created by mc from ../pge/m2/RTgen.mod.  */
+/* automatically created by mc from ../git-pge/m2/RTgen.mod.  */
 
 #   if !defined (PROC_D)
 #      define PROC_D
@@ -15,6 +15,7 @@
 #   endif
 
 #include <stddef.h>
+#include <stdlib.h>
 #   include "GStorage.h"
 typedef struct RTgenif_readchar_p RTgenif_readchar;
 
@@ -696,13 +697,13 @@ StdChans_ChanId StdChans_ErrChan (void);
 void StdChans_SetInChan (StdChans_ChanId cid);
 void StdChans_SetOutChan (StdChans_ChanId cid);
 void StdChans_SetErrChan (StdChans_ChanId cid);
-int libc_write (int d, void * buf, int nbytes);
-int libc_read (int d, void * buf, int nbytes);
+ssize_t libc_write (int d, void * buf, size_t nbytes);
+ssize_t libc_read (int d, void * buf, size_t nbytes);
 int libc_system (void * a);
 void libc_abort (void);
-void * libc_malloc (unsigned int size);
+void * libc_malloc (size_t size);
 void libc_free (void * ptr);
-void * libc_realloc (void * ptr, unsigned int size);
+void * libc_realloc (void * ptr, size_t size);
 int libc_isatty (int fd);
 void libc_exit (int r);
 void * libc_getenv (void * s);
@@ -715,15 +716,15 @@ long int libc_lseek (int fd, long int offset, int whence);
 void libc_perror (char *string_, unsigned int _string_high);
 int libc_readv (int fd, void * v, int n);
 int libc_writev (int fd, void * v, int n);
-void * libc_getcwd (void * buf, int size);
+void * libc_getcwd (void * buf, size_t size);
 int libc_chown (void * filename, int uid, int gid);
-int libc_strlen (void * a);
+size_t libc_strlen (void * a);
 void * libc_strcpy (void * dest, void * src);
 void * libc_strncpy (void * dest, void * src, unsigned int n);
 int libc_unlink (void * file);
-void * libc_memcpy (void * dest, void * src, unsigned int size);
-void * libc_memset (void * s, int c, unsigned int size);
-void * libc_memmove (void * dest, void * src, unsigned int size);
+void * libc_memcpy (void * dest, void * src, size_t size);
+void * libc_memset (void * s, int c, size_t size);
+void * libc_memmove (void * dest, void * src, size_t size);
 int libc_printf (char *format_, unsigned int _format_high, ...);
 int libc_setenv (void * name, void * value, int overwrite);
 void libc_srand (int seed);

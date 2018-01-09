@@ -337,7 +337,7 @@ DISTFILES = Makefile.in configure.ac configure \
 
 @LANGC_TRUE@SUBDIRS = c
 @LANGM2_TRUE@SUBDIRS = m2
-@MAINTAINER_TRUE@MC = $(HOME)/GM2/graft-6.4.0/build-6.4.0/gcc/gm2/boot-bin/mc --h-file-prefix=G
+@MAINTAINER_TRUE@MC = $(HOME)/GM2/graft-svn-trunc/build-svn-trunc/gcc/gm2/boot-bin/mc --h-file-prefix=G
 @MAINTAINER_TRUE@PIMLIBS = $(HOME)/GM2/graft-6.4.0/gcc-6.4.0/gcc/gm2/gm2-libs
 @MAINTAINER_TRUE@ISOLIBS = $(HOME)/GM2/graft-6.4.0/gcc-6.4.0/gcc/gm2/gm2-libs-iso
 @MAINTAINER_TRUE@MCLIBS = $(HOME)/GM2/graft-6.4.0/gcc-6.4.0/gcc/gm2/mc-boot-ch

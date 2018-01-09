@@ -1,4 +1,4 @@
-/* automatically created by mc from /home/gaius/GM2/graft-5.4.0/gcc-5.4.0/gcc/gm2/gm2-libs/M2RTS.mod.  */
+/* automatically created by mc from /home/gaius/GM2/graft-6.4.0/gcc-6.4.0/gcc/gm2/gm2-libs/M2RTS.mod.  */
 
 #   if !defined (PROC_D)
 #      define PROC_D
@@ -16,6 +16,7 @@
 
 #include <string.h>
 #include <limits.h>
+#include <stdlib.h>
 #define _M2RTS_H
 #define _M2RTS_C
 
@@ -158,7 +159,7 @@ static void ErrorString (char *a_, unsigned int _a_high)
   /* make a local copy of each unbounded array.  */
   memcpy (a, a_, _a_high+1);
 
-  n = libc_write (2, &a, (int) StrLib_StrLen ((char *) a, _a_high));
+  n = libc_write (2, &a, (size_t) StrLib_StrLen ((char *) a, _a_high));
 }
 
 
@@ -299,7 +300,7 @@ void M2RTS_Halt (char *file_, unsigned int _file_high, unsigned int line, char *
   memcpy (description, description_, _description_high+1);
 
   M2RTS_ErrorMessage ((char *) description, _description_high, (char *) file, _file_high, line, (char *) function, _function_high);
-  M2RTS_HALT (0);
+  M2RTS_HALT (-1);
 }
 
 

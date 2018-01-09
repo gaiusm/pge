@@ -1,4 +1,4 @@
-/* automatically created by mc from /home/gaius/GM2/graft-5.4.0/gcc-5.4.0/gcc/gm2/gm2-libs/StdIO.mod.  */
+/* automatically created by mc from /home/gaius/GM2/graft-6.4.0/gcc-6.4.0/gcc/gm2/gm2-libs/StdIO.mod.  */
 
 #   if !defined (PROC_D)
 #      define PROC_D
@@ -120,7 +120,7 @@ void StdIO_Write (char ch)
 void StdIO_PushOutput (StdIO_ProcWrite p)
 {
   if (StackWPtr == MaxStack)
-    M2RTS_HALT (0);
+    M2RTS_HALT (-1);
   else
     {
       StackWPtr += 1;
@@ -136,7 +136,7 @@ void StdIO_PushOutput (StdIO_ProcWrite p)
 void StdIO_PopOutput (void)
 {
   if (StackWPtr == 1)
-    M2RTS_HALT (0);
+    M2RTS_HALT (-1);
   else
     StackWPtr -= 1;
 }
@@ -151,7 +151,7 @@ StdIO_ProcWrite StdIO_GetCurrentOutput (void)
   if (StackWPtr > 0)
     return StackW.array[StackWPtr];
   else
-    M2RTS_HALT (0);
+    M2RTS_HALT (-1);
 }
 
 
@@ -164,7 +164,7 @@ StdIO_ProcWrite StdIO_GetCurrentOutput (void)
 void StdIO_PushInput (StdIO_ProcRead p)
 {
   if (StackRPtr == MaxStack)
-    M2RTS_HALT (0);
+    M2RTS_HALT (-1);
   else
     {
       StackRPtr += 1;
@@ -180,7 +180,7 @@ void StdIO_PushInput (StdIO_ProcRead p)
 void StdIO_PopInput (void)
 {
   if (StackRPtr == 1)
-    M2RTS_HALT (0);
+    M2RTS_HALT (-1);
   else
     StackRPtr -= 1;
 }
@@ -195,7 +195,7 @@ StdIO_ProcRead StdIO_GetCurrentInput (void)
   if (StackRPtr > 0)
     return StackR.array[StackRPtr];
   else
-    M2RTS_HALT (0);
+    M2RTS_HALT (-1);
 }
 
 void _M2_StdIO_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])

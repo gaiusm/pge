@@ -1,4 +1,4 @@
-/* automatically created by mc from ../pge/m2/pgeif.mod.  */
+/* automatically created by mc from ../git-pge/m2/pgeif.mod.  */
 
 #   if !defined (PROC_D)
 #      define PROC_D
@@ -605,7 +605,7 @@ static unsigned int lookupDef (TypeOfDef t, unsigned int d)
         libc_printf ((char *) "throwing an exception in lookupDef (2)\\n", 40);
       throw ((unsigned int) (IdOutOfBounds));
     }
-  ReturnException ("../pge/m2/pgeif.def", 1, 15);
+  ReturnException ("../git-pge/m2/pgeif.def", 1, 15);
 }
 
 

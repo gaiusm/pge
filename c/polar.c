@@ -1,4 +1,4 @@
-/* automatically created by mc from ../pge/m2/polar.mod.  */
+/* automatically created by mc from ../git-pge/m2/polar.mod.  */
 
 #   if !defined (PROC_D)
 #      define PROC_D
@@ -77,7 +77,7 @@ static void Assert (unsigned int b)
   if (! b)
     {
       libc_printf ((char *) "error assert failed\\n", 21);
-      M2RTS_HALT (0);
+      M2RTS_HALT (-1);
     }
 }
 

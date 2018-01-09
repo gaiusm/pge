@@ -1,4 +1,4 @@
-/* automatically created by mc from /home/gaius/GM2/graft-5.4.0/gcc-5.4.0/gcc/gm2/gm2-libs-iso/RTentity.mod.  */
+/* automatically created by mc from /home/gaius/GM2/graft-6.4.0/gcc-6.4.0/gcc/gm2/gm2-libs-iso/RTentity.mod.  */
 
 #   if !defined (PROC_D)
 #      define PROC_D
@@ -7,6 +7,7 @@
 #   endif
 
 #include <stddef.h>
+#include <stdlib.h>
 #define _RTentity_H
 #define _RTentity_C
 
@@ -59,7 +60,7 @@ static void findChildAndParent (RTentity_Group t, void * a, RTentity_Group *chil
 {
   (*parent) = t;
   if (t == NULL)
-    M2RTS_Halt ((char *) "/home/gaius/GM2/graft-5.4.0/gcc-5.4.0/gcc/gm2/gm2-libs-iso/RTentity.mod", 71, 207, (char *) "findChildAndParent", 18, (char *) "internal runtime error, RTentity is either corrupt or the module storage has not been initialized yet", 101);
+    M2RTS_Halt ((char *) "/home/gaius/GM2/graft-6.4.0/gcc-6.4.0/gcc/gm2/gm2-libs-iso/RTentity.mod", 71, 207, (char *) "findChildAndParent", 18, (char *) "internal runtime error, RTentity is either corrupt or the module storage has not been initialized yet", 101);
   (*child) = t->left;
   if ((*child) != NULL)
     do {
@@ -80,7 +81,7 @@ RTentity_Group RTentity_InitGroup (void)
 {
   RTentity_Group g;
 
-  g = libc_malloc ((unsigned int) sizeof ((*g)));
+  g = libc_malloc ((size_t) sizeof ((*g)));
   g->left = NULL;
   g->right = NULL;
   g->entity = NULL;
@@ -121,18 +122,18 @@ void RTentity_PutKey (RTentity_Group g, void * a, unsigned int key)
     {
       if (parent == g)
         {
-          child = libc_malloc ((unsigned int) sizeof ((*child)));
+          child = libc_malloc ((size_t) sizeof ((*child)));
           parent->left = child;
         }
       else
         if (a < parent->entity)
           {
-            child = libc_malloc ((unsigned int) sizeof ((*child)));
+            child = libc_malloc ((size_t) sizeof ((*child)));
             parent->left = child;
           }
         else if (a > parent->entity)
           {
-            child = libc_malloc ((unsigned int) sizeof ((*child)));
+            child = libc_malloc ((size_t) sizeof ((*child)));
             parent->right = child;
           }
       child->right = NULL;
@@ -141,7 +142,7 @@ void RTentity_PutKey (RTentity_Group g, void * a, unsigned int key)
       child->entityKey = key;
     }
   else
-    M2RTS_Halt ((char *) "/home/gaius/GM2/graft-5.4.0/gcc-5.4.0/gcc/gm2/gm2-libs-iso/RTentity.mod", 71, 110, (char *) "PutKey", 6, (char *) "internal runtime error, entity already stored", 45);
+    M2RTS_Halt ((char *) "/home/gaius/GM2/graft-6.4.0/gcc-6.4.0/gcc/gm2/gm2-libs-iso/RTentity.mod", 71, 110, (char *) "PutKey", 6, (char *) "internal runtime error, entity already stored", 45);
 }
 
 
@@ -190,7 +191,7 @@ void RTentity_DelKey (RTentity_Group g, void * a)
         libc_free ((void *) child);
       }
   else
-    M2RTS_Halt ((char *) "/home/gaius/GM2/graft-5.4.0/gcc-5.4.0/gcc/gm2/gm2-libs-iso/RTentity.mod", 71, 188, (char *) "DelKey", 6, (char *) "internal runtime error, trying to delete an entity which is not in the tree", 75);
+    M2RTS_Halt ((char *) "/home/gaius/GM2/graft-6.4.0/gcc-6.4.0/gcc/gm2/gm2-libs-iso/RTentity.mod", 71, 188, (char *) "DelKey", 6, (char *) "internal runtime error, trying to delete an entity which is not in the tree", 75);
 }
 
 unsigned int RTentity_IsIn (RTentity_Group g, void * a)

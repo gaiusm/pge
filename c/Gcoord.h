@@ -1,4 +1,4 @@
-/* automatically created by mc from ../pge/m2/coord.def.  */
+/* automatically created by mc from ../git-pge/m2/coord.def.  */
 
 
 #if !defined (_coord_H)

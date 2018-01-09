@@ -1,4 +1,4 @@
-/* automatically created by mc from ../pge/m2/twoDsim.mod.  */
+/* automatically created by mc from ../git-pge/m2/twoDsim.mod.  */
 
 #   if !defined (PROC_D)
 #      define PROC_D
@@ -2230,7 +2230,7 @@ static void Assert (unsigned int b, unsigned int line)
     {
       libc_printf ((char *) "twoDsim.mod:%d:error assert failed\\n", 36, line);
       gdbif_sleepSpin ();
-      M2RTS_HALT (0);
+      M2RTS_HALT (-1);
     }
 }
 
@@ -2909,7 +2909,7 @@ static coord_Coord getCofG (unsigned int id)
 
 
       default:
-        CaseException ("../pge/m2/twoDsim.def", 2, 1);
+        CaseException ("../git-pge/m2/twoDsim.def", 2, 1);
     }
 }
 
@@ -3189,23 +3189,22 @@ static coord_Coord doApplySpringForce (unsigned int id, coord_Coord force)
 {
   coord_Coord a;
 
-  if (! (isFixed (id)))
-    {
-      /* avoid gcc warning by using compound statement even if not strictly necessary.  */
-      if (roots_nearZero (twoDsim_get_mass (id)))
-        {
-          libc_printf ((char *) "object %d must be given a mass\\n", 32, id);
-          libc_exit (1);
-        }
-      else
-        {
-          a = coord_scaleCoord (force, 1.0/(twoDsim_get_mass (id)));
-          a = coord_scaleCoord (a, ElasticitySpring);
-          applyDrag (id);
-          return a;
-        }
-    }
-  ReturnException ("../pge/m2/twoDsim.def", 2, 1);
+  if (isFixed (id))
+    return coord_initCoord (0.0, 0.0);
+  else
+    if (roots_nearZero (twoDsim_get_mass (id)))
+      {
+        libc_printf ((char *) "object %d must be given a mass\\n", 32, id);
+        libc_exit (1);
+      }
+    else
+      {
+        a = coord_scaleCoord (force, 1.0/(twoDsim_get_mass (id)));
+        a = coord_scaleCoord (a, ElasticitySpring);
+        applyDrag (id);
+        return a;
+      }
+  ReturnException ("../git-pge/m2/twoDsim.def", 2, 1);
 }
 
 
@@ -3276,7 +3275,7 @@ static void calcSpringEnergy (unsigned int i)
   Object id2ptr;
   Object iptr;
 
-  Assert (isSpringObject (i), 1950);
+  Assert (isSpringObject (i), 1952);
   iptr = Indexing_GetIndice (objects, i);
   iptr->ke = 0.0;
   iptr->pe = (iptr->s.k*(sqr (iptr->s.l0-iptr->s.l1)))/2.0;
@@ -3667,7 +3666,7 @@ static void doSpringFrame (Object optr, double dt, unsigned int col)
   coord_Coord ac;
   double w2;
 
-  Assert (optr->object == springOb, 2547);
+  Assert (optr->object == springOb, 2549);
   if (optr->s.draw)
     {
       w2 = optr->s.width/2.0;
@@ -3713,7 +3712,7 @@ static void doDrawFrame (Object optr, double dt, deviceIf_Colour col)
 
 
       default:
-        CaseException ("../pge/m2/twoDsim.def", 2, 1);
+        CaseException ("../git-pge/m2/twoDsim.def", 2, 1);
     }
 }
 
@@ -3754,7 +3753,7 @@ static void getEventObjects (Object *id1, Object *id2, eventQueue e)
 
 
         default:
-          CaseException ("../pge/m2/twoDsim.def", 2, 1);
+          CaseException ("../git-pge/m2/twoDsim.def", 2, 1);
       }
 }
 
@@ -3781,7 +3780,7 @@ static deviceIf_Colour getColour (Object optr)
 
 
       default:
-        CaseException ("../pge/m2/twoDsim.def", 2, 1);
+        CaseException ("../git-pge/m2/twoDsim.def", 2, 1);
     }
 }
 
@@ -3837,7 +3836,7 @@ static deviceIf_Colour getEventObjectColour (eventQueue e, Object optr)
 
 
         default:
-          CaseException ("../pge/m2/twoDsim.def", 2, 1);
+          CaseException ("../git-pge/m2/twoDsim.def", 2, 1);
       }
 }
 
@@ -3859,7 +3858,7 @@ static void drawFrame (eventQueue e)
 
   if (FrameSprings)
     updatePhysics (TRUE);
-  Assert (((e == NULL) || (e->kind == collisionKind)) || (e->kind == springKind), 2717);
+  Assert (((e == NULL) || (e->kind == collisionKind)) || (e->kind == springKind), 2719);
   if (DebugTrace)
     libc_printf ((char *) "start drawFrame\\n", 17);
   if (writeTimeDelay)
@@ -4006,7 +4005,7 @@ static void updateOb (Object optr, double dt)
 
 
         default:
-          CaseException ("../pge/m2/twoDsim.def", 2, 1);
+          CaseException ("../git-pge/m2/twoDsim.def", 2, 1);
       }
 }
 
@@ -4128,14 +4127,14 @@ static void displayEvent (eventQueue e)
 
 
               default:
-                CaseException ("../pge/m2/twoDsim.def", 2, 1);
+                CaseException ("../git-pge/m2/twoDsim.def", 2, 1);
             }
           libc_printf ((char *) "\\n", 2);
           break;
 
 
         default:
-          CaseException ("../pge/m2/twoDsim.def", 2, 1);
+          CaseException ("../git-pge/m2/twoDsim.def", 2, 1);
       }
 }
 
@@ -4229,7 +4228,7 @@ static double doNextEvent (void)
       dt = e->time;
       p = e->p;
       currentTime = currentTime+dt;
-      Assert (((((p.proc == drawFrameEvent) || (p.proc == doCollision)) || (p.proc == debugFrame)) || (p.proc == doFunctionEvent)) || (p.proc == doSpring), 3114);
+      Assert (((((p.proc == drawFrameEvent) || (p.proc == doCollision)) || (p.proc == debugFrame)) || (p.proc == doFunctionEvent)) || (p.proc == doSpring), 3116);
       (*p.proc) (e);
       disposeDesc (&e->ePtr);
       disposeEvent (e);
@@ -4508,16 +4507,16 @@ static void circlePolygonCollision (eventQueue e, Object cPtr, Object pPtr)
       {
         case history_corner:
           if (cPtr->fixed)
-            M2RTS_HALT (0);
+            M2RTS_HALT (-1);
           else if (pPtr->fixed)
             collideAgainstFixedCircle (cPtr, e->ePtr->cp.cPoint);
           else
-            M2RTS_HALT (0);
+            M2RTS_HALT (-1);
           break;
 
         case history_edge:
           if (cPtr->fixed)
-            M2RTS_HALT (0);
+            M2RTS_HALT (-1);
           else if (pPtr->fixed)
             {
               ln = e->ePtr->cp.lineNo;
@@ -4525,15 +4524,15 @@ static void circlePolygonCollision (eventQueue e, Object cPtr, Object pPtr)
               collideCircleAgainstFixedEdge (cPtr, p1, p2);
             }
           else
-            M2RTS_HALT (0);
+            M2RTS_HALT (-1);
           break;
 
 
         default:
-          CaseException ("../pge/m2/twoDsim.def", 2, 1);
+          CaseException ("../git-pge/m2/twoDsim.def", 2, 1);
       }
   else
-    M2RTS_HALT (0);
+    M2RTS_HALT (-1);
 }
 
 
@@ -4683,9 +4682,9 @@ static void collidePolygonAgainstFixedPolygon (eventQueue e, Object id1, Object 
   coord_Coord p;
   coord_Coord v;
 
-  Assert (! id1->fixed, 3687);
-  Assert (id2->fixed, 3688);
-  Assert (e->ePtr->etype == polygonPolygonEvent, 3689);
+  Assert (! id1->fixed, 3689);
+  Assert (id2->fixed, 3690);
+  Assert (e->ePtr->etype == polygonPolygonEvent, 3691);
   if (Debugging)
     libc_printf ((char *) "collidePolygonAgainstFixedPolygon\\n", 35);
   drawFrame (e);
@@ -4748,7 +4747,7 @@ static void collidePolygonAgainstMovingPolygon (eventQueue e, Object id1, Object
       dumpObject (id1);
       dumpObject (id2);
     }
-  Assert (e->ePtr->etype == polygonPolygonEvent, 3753);
+  Assert (e->ePtr->etype == polygonPolygonEvent, 3755);
   p = e->ePtr->pp.cPoint;
   deviceIf_frameNote ();
   drawFrame (e);
@@ -4766,7 +4765,7 @@ static void collidePolygonAgainstMovingPolygon (eventQueue e, Object id1, Object
     {
       if (Debugging)
         libc_printf ((char *) "the edge of polygon collides with corner of polygon\\n", 53);
-      Assert (e->ePtr->pp.wpid2 == history_corner, 3778);
+      Assert (e->ePtr->pp.wpid2 == history_corner, 3780);
       getPolygonLine (e->ePtr->pp.lineCorner2, (Object) Indexing_GetIndice (objects, e->ePtr->pp.pid2), &p1, &p2);
       v1 = coord_subCoord (p2, p1);
       coord_perpendiculars (v1, &n, &n2);
@@ -4776,7 +4775,7 @@ static void collidePolygonAgainstMovingPolygon (eventQueue e, Object id1, Object
     {
       if (Debugging)
         libc_printf ((char *) "the edge of polygon collides with corner of polygon\\n", 53);
-      Assert (e->ePtr->pp.wpid1 == history_corner, 3791);
+      Assert (e->ePtr->pp.wpid1 == history_corner, 3793);
       getPolygonLine (e->ePtr->pp.lineCorner1, (Object) Indexing_GetIndice (objects, e->ePtr->pp.pid1), &p1, &p2);
       v1 = coord_subCoord (p2, p1);
       coord_perpendiculars (v1, &n, &n2);
@@ -4877,7 +4876,7 @@ static void physicsCollision (eventQueue e)
 
 
       default:
-        CaseException ("../pge/m2/twoDsim.def", 2, 1);
+        CaseException ("../git-pge/m2/twoDsim.def", 2, 1);
     }
 }
 
@@ -5036,7 +5035,7 @@ static void getObjectOrbitingValues (Object o, double *r, double *w, coord_Coord
 
 
       default:
-        M2RTS_HALT (0);
+        M2RTS_HALT (-1);
         break;
     }
 }
@@ -5202,19 +5201,19 @@ static unsigned int earlierCircleCollision (eventDesc edesc, unsigned int id1, u
           libc_printf ((char *) "%gt^4 + %gt^3 +%gt^2 + %gt + %g = %g    (t=%g)\\n", 48, A, B, C, D, E, T, (*t));
           libc_printf ((char *) "found collision at %g\\n", 23, (*t));
         }
-      Assert ((*t) >= 0.0, 4288);
+      Assert ((*t) >= 0.0, 4290);
       if ((edesc == NULL) || ((*t) < bestTimeOfCollision))
         {
           c1 = newPositionCoord (coord_initCoord (a, g), coord_initCoord (c, k), coord_initCoord (e, m), (*t));
           c2 = newPositionCoord (coord_initCoord (b, h), coord_initCoord (d, l), coord_initCoord (f, n), (*t));
           v12 = coord_subCoord (c1, c2);
-          Assert (roots_nearCoord (c1, coord_addCoord (c2, v12)), 4299);
+          Assert (roots_nearCoord (c1, coord_addCoord (c2, v12)), 4301);
           cp2 = coord_addCoord (c2, coord_scaleCoord (v12, o/(o+p)));
           cp1 = coord_subCoord (c1, coord_scaleCoord (v12, p/(o+p)));
           (*cp) = cp2;
           if (roots_nearSame (coord_lengthCoord (v12), o+p))
             {
-              Assert (roots_nearCoord (cp1, cp2), 4316);
+              Assert (roots_nearCoord (cp1, cp2), 4318);
               if (! (history_isDuplicateC (currentTime, (*t), id1, id2, (history_whereHit) history_edge, (history_whereHit) history_edge, (*cp))))
                 return TRUE;
             }
@@ -5358,7 +5357,7 @@ static void stop (void)
 
 static eventDesc makeCirclesPolygonDesc (eventDesc edesc, unsigned int cid, unsigned int pid, unsigned int lineNo, unsigned int pointNo, history_whereHit wpid1, history_whereHit wpid2, coord_Coord collisionPoint)
 {
-  Assert (wpid1 == history_corner, 4491);
+  Assert (wpid1 == history_corner, 4493);
   if (edesc == NULL)
     edesc = newDesc ();
   edesc->etype = circlePolygonEvent;
@@ -5989,8 +5988,8 @@ static void findCollisionCirclePolygon (Object cPtr, Object pPtr, eventDesc *ede
 {
   unsigned int i;
 
-  Assert (cPtr->object == circleOb, 5312);
-  Assert (pPtr->object == polygonOb, 5313);
+  Assert (cPtr->object == circleOb, 5314);
+  Assert (pPtr->object == polygonOb, 5315);
   if (isOrbiting (pPtr))
     for (i=1; i<=pPtr->p.nPoints; i++)
       findCollisionCircleLineOrbiting (cPtr, pPtr, i, 0, cPtr->c.pos, cPtr->c.r, edesc, tc, (descP) {(descP_t) makeCirclesPolygonDesc});
@@ -6214,7 +6213,7 @@ static void findCollisionPolygonPolygon (Object iPtr, Object jPtr, eventDesc *ed
   unsigned int i;
   unsigned int j;
 
-  Assert (iPtr != jPtr, 5627);
+  Assert (iPtr != jPtr, 5629);
   i = 1;
   while (i <= iPtr->p.nPoints)
     {
@@ -6328,7 +6327,7 @@ static void anticipateCollision (double tc, eventDesc edesc)
 
 
       default:
-        CaseException ("../pge/m2/twoDsim.def", 2, 1);
+        CaseException ("../git-pge/m2/twoDsim.def", 2, 1);
     }
 }
 
@@ -6355,7 +6354,7 @@ static void collisionOccurred (eventDesc edesc)
 
 
       default:
-        CaseException ("../pge/m2/twoDsim.def", 2, 1);
+        CaseException ("../git-pge/m2/twoDsim.def", 2, 1);
     }
 }
 
@@ -6378,11 +6377,11 @@ static void subEvent (eventQueue e)
     }
   if (f != NULL)
     {
-      Assert (f == e, 5790);
+      Assert (f == e, 5792);
       if (before == NULL)
         {
-          Assert (eventQ == f, 5793);
-          Assert (eventQ == e, 5794);
+          Assert (eventQ == f, 5795);
+          Assert (eventQ == e, 5796);
           eventQ = eventQ->next;
           if (eventQ != NULL)
             eventQ->time = eventQ->time+e->time;
@@ -6536,7 +6535,7 @@ static unsigned int earlierSpringLength (eventDesc edesc, unsigned int id, doubl
           libc_printf ((char *) "%gt^4 + %gt^3 +%gt^2 + %gt + %g = %g    (t=%g)\\n", 48, array.array[4], array.array[3], array.array[2], array.array[1], array.array[0], T, (*t));
           libc_printf ((char *) "found spring reaches length %g at %g\\n", 38, l, (*t));
         }
-      Assert ((*t) >= 0.0, 5955);
+      Assert ((*t) >= 0.0, 5957);
       if ((edesc == NULL) || ((*t) < bestTime))
         if (! (history_isDuplicateS (currentTime, (*t), id, sp)))
           return TRUE;
@@ -6598,7 +6597,7 @@ static void calcSpringLengthEvents (unsigned int i)
   Object id1ptr;
   Object id2ptr;
 
-  Assert (isSpringObject (i), 6005);
+  Assert (isSpringObject (i), 6007);
   iptr = Indexing_GetIndice (objects, i);
   id1 = iptr->s.id1;
   id2 = iptr->s.id2;
@@ -6610,7 +6609,7 @@ static void calcSpringLengthEvents (unsigned int i)
   if (earlierSpringLength (edesc, i, &t, ts, c1, v1, a1, c2, v2, a2, iptr->s.l0, (history_springPoint) history_midPoint))
     {
       ts = t;
-      if (trace || TRUE)
+      if (trace)
         libc_printf ((char *) "spring %d reaches midpoint in %g seconds\\n", 42, i, t);
       edesc = makeSpringDesc (edesc, i, (history_springPoint) history_midPoint);
       addSpringEvent (ts, (eventProc) {(eventProc_t) doSpring}, edesc);
@@ -6712,7 +6711,7 @@ static void calcSpringEndEvents (unsigned int i)
   Object id1ptr;
   Object id2ptr;
 
-  Assert (isSpringObject (i), 6167);
+  Assert (isSpringObject (i), 6169);
   iptr = Indexing_GetIndice (objects, i);
   id1 = iptr->s.id1;
   id2 = iptr->s.id2;
@@ -6779,7 +6778,7 @@ static void addSpringEvent (double t, eventProc dop, eventDesc edesc)
 
   if (Debugging)
     libc_printf ((char *) "spring event will occur in %g simulated seconds\\n", 49, t);
-  Assert (t >= 0.0, 6272);
+  Assert (t >= 0.0, 6274);
   e = newEvent ();
   e->kind = springKind;
   e->time = t;
@@ -6809,7 +6808,7 @@ static void reverseSpringAccel (Object o)
   Object id1p;
   Object id2p;
 
-  Assert (isSpringObject (o->id), 6303);
+  Assert (isSpringObject (o->id), 6305);
   if (! o->deleted && ! o->fixed)
     {
       id1p = Indexing_GetIndice (objects, o->s.id1);
@@ -6956,10 +6955,10 @@ static void doSpringCallPoint (eventQueue e)
   Object o;
   fcDesc fc;
 
-  Assert (e->ePtr->etype == springEvent, 6507);
-  Assert (e->ePtr->sp.type == history_callPoint, 6508);
+  Assert (e->ePtr->etype == springEvent, 6509);
+  Assert (e->ePtr->sp.type == history_callPoint, 6510);
   o = Indexing_GetIndice (objects, e->ePtr->sp.id);
-  Assert (isSpringObject (e->ePtr->sp.id), 6510);
+  Assert (isSpringObject (e->ePtr->sp.id), 6512);
   o->s.hasCallBackLength = FALSE;
   twoDsim_createFunctionEvent (0.0, o->s.func, o->id);
   if (trace)
@@ -6999,7 +6998,7 @@ static void doSpring (eventQueue e)
 
 
       default:
-        CaseException ("../pge/m2/twoDsim.def", 2, 1);
+        CaseException ("../git-pge/m2/twoDsim.def", 2, 1);
     }
   addNextObjectEvent ();
 }
@@ -7019,7 +7018,7 @@ static void springOccurred (eventDesc edesc)
 
 
       default:
-        CaseException ("../pge/m2/twoDsim.def", 2, 1);
+        CaseException ("../git-pge/m2/twoDsim.def", 2, 1);
     }
 }
 
@@ -7038,7 +7037,7 @@ static void anticipateSpring (double tc, eventDesc edesc)
 
 
       default:
-        CaseException ("../pge/m2/twoDsim.def", 2, 1);
+        CaseException ("../git-pge/m2/twoDsim.def", 2, 1);
     }
 }
 
@@ -7324,7 +7323,7 @@ static void addEvent (eventKind k, double t, eventProc dop)
 
   if (Debugging)
     libc_printf ((char *) "new event will occur at time %g in the future\\n", 47, t);
-  Assert (t >= 0.0, 6993);
+  Assert (t >= 0.0, 6995);
   e = newEvent ();
   e->kind = k;
   e->time = t;
@@ -7346,7 +7345,7 @@ static void addCollisionEvent (double t, eventProc dop, eventDesc edesc)
 
   if (Debugging)
     libc_printf ((char *) "collision will occur in %g simulated seconds\\n", 46, t);
-  Assert (t >= 0.0, 7019);
+  Assert (t >= 0.0, 7021);
   e = newEvent ();
   e->kind = collisionKind;
   e->time = t;
@@ -7601,7 +7600,7 @@ static void writeDesc (eventDesc p)
 
 
           default:
-            CaseException ("../pge/m2/twoDsim.def", 2, 1);
+            CaseException ("../git-pge/m2/twoDsim.def", 2, 1);
         }
     }
 }
@@ -7883,7 +7882,7 @@ double twoDsim_get_xpos (unsigned int id)
 
       default:
         libc_printf ((char *) "get_xpos: only expecting polygon or circle\\n", 44);
-        M2RTS_HALT (0);
+        M2RTS_HALT (-1);
         break;
     }
 }
@@ -7914,7 +7913,7 @@ double twoDsim_get_ypos (unsigned int id)
 
       default:
         libc_printf ((char *) "get_ypos: only expecting polygon or circle\\n", 44);
-        M2RTS_HALT (0);
+        M2RTS_HALT (-1);
         break;
     }
 }
@@ -8190,7 +8189,7 @@ double twoDsim_get_gravity (unsigned int id)
         libc_printf ((char *) "cannot get the gravity of this object\\n", 39);
         break;
     }
-  ReturnException ("../pge/m2/twoDsim.def", 2, 1);
+  ReturnException ("../git-pge/m2/twoDsim.def", 2, 1);
 }
 
 
@@ -8219,7 +8218,7 @@ double twoDsim_get_mass (unsigned int id)
 
 
       default:
-        CaseException ("../pge/m2/twoDsim.def", 2, 1);
+        CaseException ("../git-pge/m2/twoDsim.def", 2, 1);
     }
 }
 

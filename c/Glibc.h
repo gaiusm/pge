@@ -1,4 +1,4 @@
-/* automatically created by mc from /home/gaius/GM2/graft-5.4.0/gcc-5.4.0/gcc/gm2/gm2-libs/libc.def.  */
+/* automatically created by mc from /home/gaius/GM2/graft-6.4.0/gcc-6.4.0/gcc/gm2/gm2-libs/libc.def.  */
 
 
 #if !defined (_libc_H)
@@ -13,6 +13,7 @@ extern "C" {
        typedef struct { PROC_t proc; } PROC;
 #   endif
 
+#include <stdlib.h>
 #   include "GSYSTEM.h"
 
 #   if defined (_libc_C)
@@ -50,8 +51,8 @@ struct libc_timeb_r {
                       short unsigned int dstflag;
                     };
 
-EXTERN int libc_write (int d, void * buf, int nbytes);
-EXTERN int libc_read (int d, void * buf, int nbytes);
+EXTERN ssize_t libc_write (int d, void * buf, size_t nbytes);
+EXTERN ssize_t libc_read (int d, void * buf, size_t nbytes);
 EXTERN int libc_system (void * a);
 
 /*
@@ -72,8 +73,7 @@ EXTERN void libc_abort (void);
 /*
      malloc - memory allocator.
 
-     char *malloc(size)
-     unsigned size;
+     void *malloc(size_t size);
 
      malloc() returns a pointer to a block of at least size
      bytes, which is appropriately aligned.  If size is zero,
@@ -81,13 +81,12 @@ EXTERN void libc_abort (void);
      not be dereferenced.
 */
 
-EXTERN void * libc_malloc (unsigned int size);
+EXTERN void * libc_malloc (size_t size);
 
 /*
      free - memory deallocator.
 
-     free(ptr)
-     char *ptr;
+     free (void *ptr);
 
      free() releases a previously allocated block.  Its argument
      is a pointer to a block previously allocated by malloc,
@@ -95,7 +94,7 @@ EXTERN void * libc_malloc (unsigned int size);
 */
 
 EXTERN void libc_free (void * ptr);
-EXTERN void * libc_realloc (void * ptr, unsigned int size);
+EXTERN void * libc_realloc (void * ptr, size_t size);
 
 /*
    isatty - does this descriptor refer to a terminal.
@@ -184,7 +183,7 @@ EXTERN int libc_writev (int fd, void * v, int n);
             and allocate a larger buffer if necessary.
 */
 
-EXTERN void * libc_getcwd (void * buf, int size);
+EXTERN void * libc_getcwd (void * buf, size_t size);
 
 /*
    chown - The  owner  of  the  file  specified  by  path or by fd is
@@ -206,7 +205,7 @@ EXTERN int libc_chown (void * filename, int uid, int gid);
    strlen - returns the length of string, a.
 */
 
-EXTERN int libc_strlen (void * a);
+EXTERN size_t libc_strlen (void * a);
 
 /*
    strcpy - copies string, src, into, dest.
@@ -239,7 +238,7 @@ EXTERN int libc_unlink (void * file);
    It returns dest.
 */
 
-EXTERN void * libc_memcpy (void * dest, void * src, unsigned int size);
+EXTERN void * libc_memcpy (void * dest, void * src, size_t size);
 
 /*
    memset - fill memory with a constant byte
@@ -251,7 +250,7 @@ EXTERN void * libc_memcpy (void * dest, void * src, unsigned int size);
    void *memset(void *s, int c, size_t n);
 */
 
-EXTERN void * libc_memset (void * s, int c, unsigned int size);
+EXTERN void * libc_memset (void * s, int c, size_t size);
 
 /*
    memmove - copy memory areas which may overlap
@@ -264,7 +263,7 @@ EXTERN void * libc_memset (void * s, int c, unsigned int size);
    It returns dest.
 */
 
-EXTERN void * libc_memmove (void * dest, void * src, unsigned int size);
+EXTERN void * libc_memmove (void * dest, void * src, size_t size);
 EXTERN int libc_printf (char *format_, unsigned int _format_high, ...);
 
 /*

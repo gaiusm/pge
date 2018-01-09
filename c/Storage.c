@@ -1,4 +1,4 @@
-/* automatically created by mc from ../pge/m2/Storage.mod.  */
+/* automatically created by mc from ../git-pge/m2/Storage.mod.  */
 
 #   if !defined (PROC_D)
 #      define PROC_D

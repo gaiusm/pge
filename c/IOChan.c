@@ -1,4 +1,4 @@
-/* automatically created by mc from /home/gaius/GM2/graft-5.4.0/gcc-5.4.0/gcc/gm2/gm2-libs-iso/IOChan.mod.  */
+/* automatically created by mc from /home/gaius/GM2/graft-6.4.0/gcc-6.4.0/gcc/gm2/gm2-libs-iso/IOChan.mod.  */
 
 #   if !defined (PROC_D)
 #      define PROC_D
@@ -298,7 +298,7 @@ IOConsts_ReadResults IOChan_ReadResult (IOChan_ChanId cid)
     EXCEPTIONS_RAISE (iochan, (EXCEPTIONS_ExceptionNumber) (unsigned int) (IOChan_hardDeviceError), (char *) "IOChan.SetReadResult: device table ptr is NIL", 45);
   else
     return dtp->result;
-  ReturnException ("/home/gaius/GM2/graft-5.4.0/gcc-5.4.0/gcc/gm2/gm2-libs-iso/IOChan.def", 8, 1);
+  ReturnException ("/home/gaius/GM2/graft-6.4.0/gcc-6.4.0/gcc/gm2/gm2-libs-iso/IOChan.def", 8, 1);
 }
 
 ChanConsts_FlagSet IOChan_CurrentFlags (IOChan_ChanId cid)
@@ -313,7 +313,7 @@ ChanConsts_FlagSet IOChan_CurrentFlags (IOChan_ChanId cid)
     EXCEPTIONS_RAISE (iochan, (EXCEPTIONS_ExceptionNumber) (unsigned int) (IOChan_hardDeviceError), (char *) "IOChan.SetReadResult: device table ptr is NIL", 45);
   else
     return dtp->flags;
-  ReturnException ("/home/gaius/GM2/graft-5.4.0/gcc-5.4.0/gcc/gm2/gm2-libs-iso/IOChan.def", 8, 1);
+  ReturnException ("/home/gaius/GM2/graft-6.4.0/gcc-6.4.0/gcc/gm2/gm2-libs-iso/IOChan.def", 8, 1);
 }
 
 unsigned int IOChan_IsChanException (void)
@@ -326,8 +326,8 @@ IOChan_ChanExceptions IOChan_ChanException (void)
   if (IOChan_IsChanException ())
     return (IOChan_ChanExceptions) (EXCEPTIONS_CurrentNumber (iochan));
   else
-    M2RTS_NoException ("/home/gaius/GM2/graft-5.4.0/gcc-5.4.0/gcc/gm2/gm2-libs-iso/IOChan.mod", 505, 24, "ChanException");
-  ReturnException ("/home/gaius/GM2/graft-5.4.0/gcc-5.4.0/gcc/gm2/gm2-libs-iso/IOChan.def", 8, 1);
+    M2RTS_NoException ("/home/gaius/GM2/graft-6.4.0/gcc-6.4.0/gcc/gm2/gm2-libs-iso/IOChan.mod", 505, 24, "ChanException");
+  ReturnException ("/home/gaius/GM2/graft-6.4.0/gcc-6.4.0/gcc/gm2/gm2-libs-iso/IOChan.def", 8, 1);
 }
 
 IOChan_DeviceErrNum IOChan_DeviceError (IOChan_ChanId cid)
@@ -342,7 +342,7 @@ IOChan_DeviceErrNum IOChan_DeviceError (IOChan_ChanId cid)
     EXCEPTIONS_RAISE (iochan, (EXCEPTIONS_ExceptionNumber) (unsigned int) (IOChan_hardDeviceError), (char *) "IOChan.DeviceError: device table ptr is NIL", 43);
   else
     return dtp->errNum;
-  ReturnException ("/home/gaius/GM2/graft-5.4.0/gcc-5.4.0/gcc/gm2/gm2-libs-iso/IOChan.def", 8, 1);
+  ReturnException ("/home/gaius/GM2/graft-6.4.0/gcc-6.4.0/gcc/gm2/gm2-libs-iso/IOChan.def", 8, 1);
 }
 
 void _M2_IOChan_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])

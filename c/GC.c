@@ -1,4 +1,4 @@
-/* automatically created by mc from ../pge/m2/GC.mod.  */
+/* automatically created by mc from ../git-pge/m2/GC.mod.  */
 
 #   if !defined (PROC_D)
 #      define PROC_D
@@ -15,6 +15,7 @@
 #   endif
 
 #include <stddef.h>
+#include <stdlib.h>
 #   include "GStorage.h"
 #define _GC_H
 #define _GC_C
@@ -45,7 +46,7 @@ typedef _T2 *callBack;
 
 typedef struct _T3_r _T3;
 
-typedef enum {free, marked, used} stateValues;
+typedef enum {free_, marked, used} stateValues;
 
 typedef unsigned int state;
 
@@ -330,19 +331,19 @@ static void tidyUpEntities (GC_garbage g)
   while (i <= (Indexing_HighIndice (g->allocated)))
     {
       e = Indexing_GetIndice (g->allocated, i);
-      if ((((1 << (marked-free)) & (e->status)) != 0))
+      if ((((1 << (marked-free_)) & (e->status)) != 0))
         {
           u += 1;
-          e->status = (state) ((1 << (used-free)));
+          e->status = (state) ((1 << (used-free_)));
         }
       else
         {
           f += 1;
           e->next = g->freeList;
           g->freeList = e;
-          e->status = (state) ((1 << (free-free)));
+          e->status = (state) ((1 << (free_-free_)));
           if (PoisonOn)
-            if ((libc_memset (e->data, GGCPOISON, g->bytes)) == NULL)
+            if ((libc_memset (e->data, GGCPOISON, (size_t) g->bytes)) == NULL)
               {}  /* empty.  */
         }
       i += 1;
@@ -365,7 +366,7 @@ static void unMarkEntity (GC_entity e)
       a = e->data;
       libc_printf ((char *) "unmarking address 0x%x using entity (0x%x)\\n", 44, a, e);
     }
-  e->status &= (~(1 << (marked-free )));
+  e->status &= (~(1 << (marked-free_ )));
 }
 
 
@@ -388,7 +389,7 @@ static void initEntity (GC_garbage g, void * a, GC_entity e)
       if (en->data == a)
         {
           if (en != e)
-            M2RTS_HALT (0);
+            M2RTS_HALT (-1);
           return;
         }
       else
@@ -406,7 +407,7 @@ static void newEntity (GC_entity e, void * a)
 {
   e->data = a;
   e->rIndex = 0;
-  e->status = (state) ((1 << (used-free)));
+  e->status = (state) ((1 << (used-free_)));
   e->next = NULL;
 }
 
@@ -506,8 +507,8 @@ void GC_markEntity (GC_entity e)
       a = e->data;
       libc_printf ((char *) "marking address 0x%x using entity (0x%x)\\n", 42, a, e);
     }
-  Assertion_Assert (! ((((1 << (free-free)) & (e->status)) != 0)));
-  e->status |= (1 << (marked-free ));
+  Assertion_Assert (! ((((1 << (free_-free_)) & (e->status)) != 0)));
+  e->status |= (1 << (marked-free_ ));
 }
 
 
@@ -593,7 +594,7 @@ void GC_rootEntity (GC_garbage g, GC_entity e, void * a)
       if (en->data == a)
         {
           if (en != e)
-            M2RTS_HALT (0);
+            M2RTS_HALT (-1);
           return;
         }
       else

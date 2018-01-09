@@ -1,4 +1,4 @@
-/* automatically created by mc from /home/gaius/GM2/graft-5.4.0/gcc-5.4.0/gcc/gm2/gm2-libs/FormatStrings.mod.  */
+/* automatically created by mc from /home/gaius/GM2/graft-6.4.0/gcc-6.4.0/gcc/gm2/gm2-libs/FormatStrings.mod.  */
 
 #   if !defined (PROC_D)
 #      define PROC_D
@@ -174,7 +174,7 @@ static void Cast (unsigned char *a, unsigned int _a_high, unsigned char *b_, uns
     for (i=0; i<=_a_high; i++)
       a[i] = b[i];
   else
-    M2RTS_HALT (0);
+    M2RTS_HALT (-1);
 }
 
 
