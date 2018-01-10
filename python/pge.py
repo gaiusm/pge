@@ -1314,8 +1314,11 @@ def _finish_event ():
 #            time, t, in the future.  It returns a integer reference for the
 #            timed function.
 #            Pre-condition:  t is a time seconds (float) in the future.
-#                            p, is a function which takes a single parameter
-#                            the event.
+#                            p, is a function which takes two parameters
+#                            the first parameter is the event and the
+#                            second is an unused parameter.
+#                            The second parameter is only there to allow
+#                            coexistance with other call back functions.
 #            Post-condition:  function p is placed into the timer list
 #                             and a timer id (integer) is returned.
 #
