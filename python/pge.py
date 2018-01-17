@@ -837,8 +837,9 @@ def _sub (ob, level):
 #           The objects, ob1, and, ob2, must be either
 #           a circle or a polygon.  A spring only exists at
 #           level 0 (in the physics engine).
-#           If, l, is omitted then it is assummed that the
+#           If, l, is omitted then it is assumed that the
 #           spring starts at rest between, ob1, and, ob2.
+#           Parameter d is the damping force.
 #
 
 def spring (ob1, ob2, k, d, l = None):

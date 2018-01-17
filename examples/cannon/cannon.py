@@ -36,7 +36,7 @@ def myquit (e):
     print "goodbye"
     sys.exit (0)
 
-def finish_game ():
+def finish_game (e = None, o = None):
     sys.exit (0)
 
 def key_pressed (e):
@@ -127,7 +127,7 @@ def place_matchboxes ():
         for x in range (y+2):
             box_of (boarder, [((float)(x*2))/10.0+0.1, y*0.1+0.08], 0.15, wood_light)
 
-def timer ():
+def timer (e = None, o = None):
     global seconds_left, previous
     if seconds_left >= 0:
         pge.at_time (1.0, timer)

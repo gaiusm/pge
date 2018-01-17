@@ -35,7 +35,7 @@ previous = None
 slowdown = 6
 
 
-def finish_game (i = None):
+def finish_game (event = None, unused = None):
     sys.exit (0)
 
 

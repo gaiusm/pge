@@ -1,3 +1,10 @@
+2018-01-17      Gaius Mulley <gaius@gnu.org>
+
+	* examples/cannon/cannon.py:  corrected finish
+          and timer callback functions to contain parameters.
+	* python/pge.py:  improved comments for the
+	  spring function.
+
 2018-01-10      Gaius Mulley <gaius@gnu.org>
 
 	* python/pge.py:  corrected comment (at_time).
