@@ -1,3 +1,7 @@
+2018-01-25      Gaius Mulley <gaius@gnu.org>
+
+	* examples/springs/catapult.py:  new example.
+
 2018-01-17      Gaius Mulley <gaius@gnu.org>
 
 	* examples/cannon/cannon.py:  corrected finish

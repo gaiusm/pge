@@ -245,7 +245,7 @@ class object:
             sys.exit (1)
 
     #
-    #  velocity - Pre-condition:  an circle or polygon object
+    #  velocity - Pre-condition:  a circle or polygon object
     #             which is not fixed and exists at level 0.
     #             Post-condition:  assign the velocity (vx, vy)
     #             to this object.
@@ -259,7 +259,7 @@ class object:
         return self
 
     #
-    #  accel - Pre-condition:  an circle or polygon object
+    #  accel - Pre-condition:  a circle or polygon object
     #          which is not fixed and exists at level 0.
     #          Post-condition:  assign the accel (vx, vy)
     #          to this object.
