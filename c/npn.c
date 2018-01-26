@@ -155,10 +155,10 @@ static void board (void)
 
   m = macroObjects_initMacro ();
   g = macroObjects_initMacro ();
-  g = macroObjects_rectangle (g, TRUE, Fractions_zero (), (deviceIf_Colour) deviceGroff_green (), unitf (1, 0, 0), unitf (1, 0, 0));
-  r = macroObjects_initMacro ();
-  r = macroObjects_rectangle (r, TRUE, Fractions_zero (), (deviceIf_Colour) deviceGroff_red (), unitf (1, 0, 0), unitf (1, 0, 0));
-  light = TRUE;
+  g = macroObjects_rectangle (g, TRUE, Fractions_zero (), (deviceIf_Colour) deviceGroff_green (), unitf (1, 0, 0), unitf (1, 0, 0));  /* 1x1 box  */
+  r = macroObjects_initMacro ();  /* 1x1 box  */
+  r = macroObjects_rectangle (r, TRUE, Fractions_zero (), (deviceIf_Colour) deviceGroff_red (), unitf (1, 0, 0), unitf (1, 0, 0));  /* 1x1 box  */
+  light = TRUE;  /* 1x1 box  */
   for (j=1; j<=8; j++)
     {
       for (i=1; i<=8; i++)
@@ -287,20 +287,28 @@ static macroObjects_Macro transistorNPN (void)
   m = macroObjects_initMacro ();
   width = unitf (0, 1, 4);
   height = unitf (1, 0, 0);
+  /* base  */
   m = macroObjects_right (m, unitf (1, 1, 4));
   m = macroObjects_rectangle (m, TRUE, Fractions_zero (), (deviceIf_Colour) deviceGroff_red (), width, height);
+  /* collector foot  */
   m = macroObjects_left (m, Fractions_mult (Fractions_initFract (0, 3, 4), width));
   m = macroObjects_right (m, unitf (1, 0, 0));
   m = macroObjects_up (m, unitf (0, 1, 2));
   m = macroObjects_rectangle (m, TRUE, Fractions_zero (), (deviceIf_Colour) deviceGroff_green (), transistorEdge, Fractions_mult (width, Fractions_two ()));
+  /* emitter foot  */
   m = macroObjects_down (m, unitf (2, 0, 0));
   m = macroObjects_up (m, Fractions_sub (unitf (1, 0, 0), Fractions_mult (width, Fractions_two ())));
   m = macroObjects_rectangle (m, TRUE, Fractions_zero (), (deviceIf_Colour) deviceGroff_blue (), transistorEdge, Fractions_mult (width, Fractions_two ()));
+  /* m := macroObjects.left(m, unitf(1, 0, 0)) ;  */
   m = macroObjects_left (m, Fractions_mult (width, Fractions_initFract (0, 4, 3)));
   m = macroObjects_up (m, unitf (0, 2, 2));
   m = macroObjects_circle (m, FALSE, transistorCircle, (deviceIf_Colour) deviceGroff_red (), unitf (1, 2, 3));
   m = macroObjects_moveTo (m, Points_initPoint (unitf (1, 2, 4), unitf (0, 0, 0)));
   m = macroObjects_angledRect (m, TRUE, Fractions_zero (), (deviceIf_Colour) deviceGroff_black (), Points_initPoint (Fractions_mult (width, Fractions_two ()), unitf (0, 1, 2)), Points_initPoint (Fractions_zero (), unitf (0, 1, 2)));
+  /* 
+   width := unroot(width) ;
+   height := unroot(height) ;
+  */
   return m;
 }
 
@@ -345,14 +353,14 @@ static Fractions_Fract unitf (long unsigned int w, long unsigned int n, long uns
 
 static void init (void)
 {
-  unit = Fractions_root (Fractions_initFract (0, 25, 100));
-  transistorBase = Fractions_root (unitf (0, 4*4, 100));
-  transistorEdge = Fractions_root (unitf (0, 3*4, 100));
-  transistorCircle = Fractions_root (unitf (0, 2*4, 100));
-  componentOutline = Fractions_root (unitf (0, 17*4, 100));
-  componentWire = Fractions_root (unitf (0, 15*4, 100));
-  thickness = Fractions_root (unitf (0, 1*4, 100));
-  deviceGroff_configDevice (Points_initPoint (Fractions_cardinal (5), Fractions_cardinal (5)), Points_initPoint (Fractions_cardinal (5), Fractions_cardinal (5)), 1, FALSE, FALSE, TRUE, TRUE);
+  unit = Fractions_root (Fractions_initFract (0, 25, 100));  /* .25i  */
+  transistorBase = Fractions_root (unitf (0, 4*4, 100));  /* .04i  */
+  transistorEdge = Fractions_root (unitf (0, 3*4, 100));  /* 3/100  .03i  */
+  transistorCircle = Fractions_root (unitf (0, 2*4, 100));  /* 2/100  .02i  */
+  componentOutline = Fractions_root (unitf (0, 17*4, 100));  /* 17/100  */
+  componentWire = Fractions_root (unitf (0, 15*4, 100));  /* 15/100  */
+  thickness = Fractions_root (unitf (0, 1*4, 100));  /* 1/100i  */
+  deviceGroff_configDevice (Points_initPoint (Fractions_cardinal (5), Fractions_cardinal (5)), Points_initPoint (Fractions_cardinal (5), Fractions_cardinal (5)), 1, FALSE, FALSE, TRUE, TRUE);  /* 1/100i  */
   frame = macroObjects_initMacro ();
   frame = macroObjects_rectangle (frame, FALSE, thickness, (deviceIf_Colour) deviceGroff_black (), unitf (20, 0, 0), unitf (20, 0, 0));
   frame = macroObjects_rootMacro (frame);

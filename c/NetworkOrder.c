@@ -169,6 +169,7 @@ static long unsigned int htonl64 (long unsigned int l)
 
   s = 1;
   if (s == (network_htons (s)))
+    /* no change necessary, therefore write out in byte order.  */
     return l;
   get2x32 ((unsigned char *) &l, (sizeof (l)-1), (unsigned char *) &lo, (sizeof (lo)-1), (unsigned char *) &hi, (sizeof (hi)-1));
   lo = network_htonl (lo);
@@ -274,9 +275,16 @@ void NetworkOrder_writeLongCard (IOChan_ChanId file, long unsigned int l)
   unsigned int hi;
   _T1 * p;
 
+  /* 
+PROCEDURE writeLongCard (file: ChanId; l: LONGCARD) ;
+BEGIN
+   l := htonl64 (l) ;
+   RawIO.Write (file, l)
+END writeLongCard ;
+  */
   p = &l;
-  lo = (*p).array[0];
-  hi = (*p).array[1];
+  lo = (*p).array[0];  /* --fixme-- unsafe as it only works on little endian microprocessors  */
+  hi = (*p).array[1];  /* --fixme-- unsafe as it only works on little endian microprocessors  */
   NetworkOrder_writeCard (file, hi);
   NetworkOrder_writeCard (file, lo);
 }

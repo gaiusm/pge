@@ -270,6 +270,7 @@ void M2RTS_HALT (int exitcode)
       ExitValue = exitcode;
     }
   if (isHalting)
+    /* double HALT found  */
     libc_exit (-1);
   else
     {
@@ -377,6 +378,9 @@ unsigned int M2RTS_Length (char *a_, unsigned int _a_high)
 
 void M2RTS_AssignmentException (void * filename, unsigned int line, unsigned int column, void * scope)
 {
+  /* 
+   The following are the runtime exception handler routines.
+  */
   RTExceptions_Raise ((unsigned int) (M2EXCEPTION_rangeException), filename, line, column, scope, "variable exceeds range during assignment");
 }
 
@@ -481,7 +485,7 @@ void _M2_M2RTS_init (__attribute__((unused)) int argc, __attribute__((unused)) c
   tPtr = 0;
   ExitValue = 0;
   isHalting = FALSE;
-  CallExit = FALSE;
+  CallExit = FALSE;  /* default by calling abort  */
 }
 
 void _M2_M2RTS_finish (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])

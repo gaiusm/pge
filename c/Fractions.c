@@ -1059,6 +1059,7 @@ static void equalDemon (Fractions_Fract l, Fractions_Fract r)
     r->demon = l->demon;
   else
     {
+      /* need to convert them  */
       g = gcd (l->demon, r->demon);
       lg = r->demon / g;
       rg = l->demon / g;
@@ -1091,12 +1092,13 @@ static void addND (Fractions_Fract l, Fractions_Fract r)
     {}  /* empty.  */
   else
     {
+      /* nothing to do  */
       g = gcd (l->demon, r->demon);
       lg = r->demon / g;
       rg = l->demon / g;
       l->num = (l->num*lg)+(r->num*rg);
       l->demon = l->demon*lg;
-      l = Fractions_simplify (l);
+      l = Fractions_simplify (l);  /* handles carry  */
     }
 }
 
@@ -1121,6 +1123,7 @@ static unsigned int subND (Fractions_Fract l, Fractions_Fract r)
       return r->num != 0;
     }
   else if (r->num == 0)
+    /* nothing to do  */
     return FALSE;
   else
     {
@@ -1130,12 +1133,14 @@ static unsigned int subND (Fractions_Fract l, Fractions_Fract r)
       rg = l->demon / g;
       if ((l->num*lg) >= (r->num*rg))
         {
+          /* no need to borrow  */
           l->num = (l->num*lg)-(r->num*rg);
           l->demon = l->demon*lg;
           return FALSE;
         }
       else
         {
+          /* need to borrow  */
           l->demon = l->demon*lg;
           l->num = (r->num*rg)-(l->num*lg);
           return TRUE;
@@ -1212,7 +1217,7 @@ static Fractions_Fract powers (Fractions_Fract l, Fractions_Fract r)
 
 static Fractions_Fract powerc (Fractions_Fract l, Fractions_Fract r)
 {
-  return powers (l, r);
+  return powers (l, r);  /* --fixme-- improve this, maybe  */
 }
 
 
@@ -1313,6 +1318,7 @@ static Fractions_Fract reciprocalc (Fractions_Fract f)
   if ((f->num == 0) && (f->whole == 0))
     r = Fractions_initFract (0, 0, 0);
   else if (f->num == 0)
+    /* only a whole number  */
     r = Fractions_initFract (0, 1, f->whole);
   else
     r = Fractions_initFract (0, f->demon, (f->whole*f->demon)+f->num);
@@ -1536,6 +1542,7 @@ static Fractions_Fract simplifys (Fractions_Fract f)
 {
   while (doRules (f))
     {}  /* empty.  */
+  /* pf(f)  */
   return f;
 }
 
@@ -1641,8 +1648,8 @@ static void assignValue (Fractions_Fract des, Fractions_Fract expr)
 {
   des->positive = expr->positive;
   des->whole = expr->whole;
-  des->num = expr->num;
-  des->demon = expr->demon;
+  des->num = expr->num;  /* was whole  */
+  des->demon = expr->demon;  /* was whole  */
   des->op = expr->op;
   des->dirty = expr->dirty;
   des->special = expr->special;
@@ -1807,6 +1814,7 @@ static unsigned int doPower (Fractions_Fract f, Fractions_Fract l, Fractions_Fra
     }
   else if (((Fractions_isEqual (r, Fractions_two ())) && (isExpr (l))) && (l->op == oDiv))
     {
+      /* fractions multiplied  */
       assignValue (f, Fractions_div (Fractions_mult (l->left, l->left), Fractions_mult (l->right, l->right)));
       return TRUE;
     }
@@ -2364,8 +2372,8 @@ static Fractions_Fract dupExpr (Fractions_Fract f)
 
 static Fractions_Fract sinc (Fractions_Fract x)
 {
-  M2RTS_HALT (-1);
-  return x;
+  M2RTS_HALT (-1);  /* this needs a lookup table --fixme--  */
+  return x;  /* this needs a lookup table --fixme--  */
 }
 
 
@@ -2375,8 +2383,8 @@ static Fractions_Fract sinc (Fractions_Fract x)
 
 static Fractions_Fract tanc (Fractions_Fract f)
 {
-  M2RTS_HALT (-1);
-  return f;
+  M2RTS_HALT (-1);  /* this needs a lookup table --fixme--  */
+  return f;  /* this needs a lookup table --fixme--  */
 }
 
 
@@ -2386,8 +2394,8 @@ static Fractions_Fract tanc (Fractions_Fract f)
 
 static Fractions_Fract cosc (Fractions_Fract f)
 {
-  M2RTS_HALT (-1);
-  return f;
+  M2RTS_HALT (-1);  /* this needs a lookup table --fixme--  */
+  return f;  /* this needs a lookup table --fixme--  */
 }
 
 
@@ -2403,7 +2411,7 @@ static Fractions_Fract toConst (Fractions_Fract f)
   if (isConst (f))
     return f;
   else
-    M2RTS_HALT (-1);
+    M2RTS_HALT (-1);  /* something went wrong - the expression should be resolved  */
 }
 
 
@@ -2522,6 +2530,9 @@ Fractions_Fract Fractions_unroot (Fractions_Fract f)
 
 Fractions_Fract Fractions_pi (void)
 {
+  /* 
+   RETURN initFract(3, 1, 7)
+  */
   return makeSpecial (Fractions_initFract (3, 1, 7), (Special) PI);
 }
 
@@ -2682,8 +2693,10 @@ unsigned int Fractions_isLess (Fractions_Fract l, Fractions_Fract r)
   Fractions_Fract tl;
   Fractions_Fract tr;
 
+  /* handle different signs first  */
   if (l->positive != r->positive)
     return r->positive;
+  /* now check whole numbers  */
   if (l->positive)
     {
       if (l->whole < r->whole)
@@ -2722,8 +2735,10 @@ unsigned int Fractions_isGreater (Fractions_Fract l, Fractions_Fract r)
   Fractions_Fract tl;
   Fractions_Fract tr;
 
+  /* handle different signs first  */
   if (l->positive != r->positive)
     return l->positive;
+  /* now check whole numbers  */
   if (l->positive)
     {
       if (l->whole > r->whole)
@@ -2915,6 +2930,7 @@ Fractions_Fract Fractions_dec (Fractions_Fract l, Fractions_Fract r)
       l = dirty (l);
       if (r->whole <= l->whole)
         {
+          /* positive whole result  */
           l->whole = l->whole-r->whole;
           if (Fractions_isZero (l))
             {
@@ -2933,6 +2949,7 @@ Fractions_Fract Fractions_dec (Fractions_Fract l, Fractions_Fract r)
         }
       else
         {
+          /* negative whole result, therefore flip the operands and subtract  */
           l->whole = r->whole-l->whole;
           l->positive = FALSE;
           s = Fractions_initFract (0, l->num, l->demon);

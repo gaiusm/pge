@@ -82,12 +82,16 @@ static void placeBoundary (void)
   macroObjects_Macro m;
 
   m = macroObjects_initMacro ();
+  /* left edge  */
   m = macroObjects_moveTo (m, Points_initPoint (Fractions_zero (), Fractions_zero ()));
   m = macroObjects_rectangle (m, TRUE, Fractions_zero (), dark, Fractions_initFract (0, 1, 100), Fractions_one ());
+  /* right edge  */
   m = macroObjects_moveTo (m, Points_initPoint (Fractions_initFract (0, 99, 100), Fractions_zero ()));
   m = macroObjects_rectangle (m, TRUE, Fractions_zero (), dark, Fractions_initFract (0, 1, 100), Fractions_one ());
+  /* bot edge  */
   m = macroObjects_moveTo (m, Points_initPoint (Fractions_zero (), Fractions_zero ()));
   m = macroObjects_rectangle (m, TRUE, Fractions_zero (), dark, Fractions_one (), Fractions_initFract (0, 1, 100));
+  /* top edge  */
   m = macroObjects_moveTo (m, Points_initPoint (Fractions_zero (), Fractions_initFract (0, 99, 100)));
   m = macroObjects_rectangle (m, TRUE, Fractions_zero (), dark, Fractions_one (), Fractions_initFract (0, 1, 100));
   m = macroObjects_rootMacro (m);
@@ -141,6 +145,7 @@ static void dropBall (deviceIf_Colour c)
   Fractions_Fract size;
 
   m = macroObjects_initMacro ();
+  /* drop the ball at the top of stairs with a leftwards velocity  */
   m = macroObjects_moveTo (m, Points_initPoint (Fractions_initFract (0, 17, 20), Fractions_initFract (0, 37, 40)));
   size = Fractions_initFract (0, 1, 21);
   m = macroObjects_circle (m, TRUE, Fractions_zero (), c, size);
@@ -158,7 +163,7 @@ void _M2_bounce4_init (__attribute__((unused)) int argc, __attribute__((unused))
   placeBoundary ();
   fireBall ((deviceIf_Colour) deviceIf_green ());
   twoDsim_gravity (-9.81);
-  twoDsim_simulateFor (30.0);
+  twoDsim_simulateFor (30.0);  /* 15.0 ok  */
 }
 
 void _M2_bounce4_finish (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])

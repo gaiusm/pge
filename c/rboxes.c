@@ -53,6 +53,9 @@ static void placeBoarders (double thickness, unsigned int color)
 {
   unsigned int b;
 
+  /* 
+   nearZeroCoord - returns TRUE if, a, is very close to (0, 0)
+  */
   b = twoDsim_box (0.0, 0.0, 1.0, thickness, (deviceIf_Colour) color);
   b = twoDsim_fix (b);
   b = twoDsim_box (0.0, 0.0, thickness, 1.0, (deviceIf_Colour) color);

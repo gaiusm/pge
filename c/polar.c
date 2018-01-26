@@ -140,12 +140,16 @@ polar_Polar polar_coordToPolar (coord_Coord c)
   if (roots_nearZero (r))
     p = polar_initPolar (0.0, 0.0);
   else if ((c.x >= 0.0) && (c.y >= 0.0))
+    /* quadrant 1  */
     p = polar_initPolar (r, libm_asin (c.y/r));
   else if ((c.x < 0.0) && (c.y >= 0.0))
+    /* quadrant 2  */
     p = polar_initPolar (r, MathLib0_pi-(libm_asin (c.y/r)));
   else if ((c.x < 0.0) && (c.y < 0.0))
+    /* quadrant 3  */
     p = polar_initPolar (r, MathLib0_pi+(libm_asin (-(c.y/r))));
   else if ((c.x >= 0.0) && (c.y < 0.0))
+    /* quadrant 4  */
     p = polar_initPolar (r, (2.0*MathLib0_pi)-(libm_asin (-(c.y/r))));
   assertEqual (polar_polarToCoord (p), c);
   return p;

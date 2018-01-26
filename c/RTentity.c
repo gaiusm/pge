@@ -58,6 +58,7 @@ static void findChildAndParent (RTentity_Group t, void * a, RTentity_Group *chil
 
 static void findChildAndParent (RTentity_Group t, void * a, RTentity_Group *child, RTentity_Group *parent)
 {
+  /* remember to skip the sentinal value and assign parent and child  */
   (*parent) = t;
   if (t == NULL)
     M2RTS_Halt ((char *) "/home/gaius/GM2/graft-6.4.0/gcc-6.4.0/gcc/gm2/gm2-libs-iso/RTentity.mod", 71, 207, (char *) "findChildAndParent", 18, (char *) "internal runtime error, RTentity is either corrupt or the module storage has not been initialized yet", 101);
@@ -81,6 +82,21 @@ RTentity_Group RTentity_InitGroup (void)
 {
   RTentity_Group g;
 
+  /* This file is part of GNU Modula-2.
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA  */
   g = libc_malloc ((size_t) sizeof ((*g)));
   g->left = NULL;
   g->right = NULL;
@@ -120,12 +136,15 @@ void RTentity_PutKey (RTentity_Group g, void * a, unsigned int key)
   findChildAndParent (g, a, &child, &parent);
   if (child == NULL)
     {
+      /* no child found, now is, a, less than parent or greater?  */
       if (parent == g)
         {
+          /* empty tree, add it to the left branch of t  */
           child = libc_malloc ((size_t) sizeof ((*child)));
           parent->left = child;
         }
       else
+        /* parent is a leaf node  */
         if (a < parent->entity)
           {
             child = libc_malloc ((size_t) sizeof ((*child)));
@@ -160,12 +179,16 @@ void RTentity_DelKey (RTentity_Group g, void * a)
   RTentity_Group child;
   RTentity_Group parent;
 
+  /* find parent and child of the node  */
   findChildAndParent (g, a, &child, &parent);
   if ((child != NULL) && (child->entity == a))
+    /* Have found the node to be deleted  */
     if (parent->right == child)
       {
+        /* most branch of child^.left.  */
         if (child->left != NULL)
           {
+            /* Scan for right most node of child^.left  */
             i = child->left;
             while (i->right != NULL)
               i = i->right;
@@ -173,13 +196,16 @@ void RTentity_DelKey (RTentity_Group g, void * a)
             parent->right = child->left;
           }
         else
+          /* (as in a single linked list) to child^.right  */
           parent->right = child->right;
         libc_free ((void *) child);
       }
     else
       {
+        /* branch of child^.right  */
         if (child->right != NULL)
           {
+            /* Scan for left most node of child^.right  */
             i = child->right;
             while (i->left != NULL)
               i = i->left;
@@ -187,6 +213,7 @@ void RTentity_DelKey (RTentity_Group g, void * a)
             parent->left = child->right;
           }
         else
+          /* (as in a single linked list) to child^.left.  */
           parent->left = child->left;
         libc_free ((void *) child);
       }

@@ -70,12 +70,16 @@ static void placeBoundary (void)
   macroObjects_Macro m;
 
   m = macroObjects_initMacro ();
+  /* left edge  */
   m = macroObjects_moveTo (m, Points_initPoint (Fractions_zero (), Fractions_zero ()));
   m = macroObjects_rectangle (m, TRUE, Fractions_zero (), dark, Fractions_initFract (0, 1, 100), Fractions_one ());
+  /* right edge  */
   m = macroObjects_moveTo (m, Points_initPoint (Fractions_initFract (0, 99, 100), Fractions_zero ()));
   m = macroObjects_rectangle (m, TRUE, Fractions_zero (), dark, Fractions_initFract (0, 1, 100), Fractions_one ());
+  /* bot edge  */
   m = macroObjects_moveTo (m, Points_initPoint (Fractions_zero (), Fractions_zero ()));
   m = macroObjects_rectangle (m, TRUE, Fractions_zero (), dark, Fractions_one (), Fractions_initFract (0, 1, 100));
+  /* top edge  */
   m = macroObjects_moveTo (m, Points_initPoint (Fractions_zero (), Fractions_initFract (0, 99, 100)));
   m = macroObjects_rectangle (m, TRUE, Fractions_zero (), dark, Fractions_one (), Fractions_initFract (0, 1, 100));
   m = macroObjects_rootMacro (m);
@@ -111,6 +115,7 @@ static void dropBall (deviceIf_Colour c)
   Fractions_Fract size;
 
   m = macroObjects_initMacro ();
+  /* drop the ball at the top of stairs with a leftwards velocity  */
   m = macroObjects_moveTo (m, Points_initPoint (Fractions_initFract (0, 17, 20), Fractions_initFract (0, 37, 40)));
   size = Fractions_initFract (0, 1, 21);
   m = macroObjects_circle (m, TRUE, Fractions_zero (), c, size);
@@ -126,9 +131,21 @@ void _M2_bounce_init (__attribute__((unused)) int argc, __attribute__((unused)) 
   light = deviceIf_defineColour (Fractions_initFract (0, 166, 256), Fractions_initFract (0, 124, 256), Fractions_initFract (0, 54, 256));
   dark = deviceIf_defineColour (Fractions_initFract (0, 76, 256), Fractions_initFract (0, 47, 256), Fractions_zero ());
   placeBoundary ();
+  /* 
+   fireBox(green()) ;
+  */
   twoDsim_gravity (-9.81);
   dropBall ((deviceIf_Colour) deviceIf_yellow ());
   twoDsim_dumpWorld ();
+  /* 
+   twoDsim.simulateFor(1.0) ;
+
+   twoDsim.simulateFor(1.0) ;
+   dropBall(red()) ;
+
+   twoDsim.simulateFor(5.0) ;
+   dropBall(purple()) ;
+  */
   twoDsim_simulateFor (1.0);
   twoDsim_simulateFor (1.0);
   twoDsim_simulateFor (1.0);
@@ -139,7 +156,7 @@ void _M2_bounce_init (__attribute__((unused)) int argc, __attribute__((unused)) 
   twoDsim_simulateFor (1.0);
   twoDsim_simulateFor (1.0);
   twoDsim_simulateFor (1.0);
-  twoDsim_simulateFor (10.0);
+  twoDsim_simulateFor (10.0);  /* 15.0 ok  */
 }
 
 void _M2_bounce_finish (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])

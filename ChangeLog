@@ -1,3 +1,68 @@
+2018-01-26      Gaius Mulley <gaius@gnu.org>
+
+	* c/COROUTINES.c:  regenerated with extra comments.
+	* c/CharClass.c:  regenerated with extra comments.
+	* c/ClientSocket.c:  regenerated with extra comments.
+	* c/DynamicStrings.c:  regenerated with extra comments.
+	* c/EXCEPTIONS.c:  regenerated with extra comments.
+	* c/FIO.c:  regenerated with extra comments.
+	* c/FormatStrings.c:  regenerated with extra comments.
+	* c/Fractions.c:  regenerated with extra comments.
+	* c/GC.c:  regenerated with extra comments.
+	* c/IO.c:  regenerated with extra comments.
+	* c/IOChan.c:  regenerated with extra comments.
+	* c/Indexing.c:  regenerated with extra comments.
+	* c/M2EXCEPTION.c:  regenerated with extra comments.
+	* c/M2RTS.c:  regenerated with extra comments.
+	* c/MathLib0.c:  regenerated with extra comments.
+	* c/MemStream.c:  regenerated with extra comments.
+	* c/NetworkOrder.c:  regenerated with extra comments.
+	* c/NumberIO.c:  regenerated with extra comments.
+	* c/PolyMatrix3D.c:  regenerated with extra comments.
+	* c/RTExceptions.c:  regenerated with extra comments.
+	* c/RTentity.c:  regenerated with extra comments.
+	* c/RTgen.c:  regenerated with extra comments.
+	* c/RTgenif.c:  regenerated with extra comments.
+	* c/RTint.c:  regenerated with extra comments.
+	* c/RawIO.c:  regenerated with extra comments.
+	* c/STextIO.c:  regenerated with extra comments.
+	* c/SWholeIO.c:  regenerated with extra comments.
+	* c/SeqFile.c:  regenerated with extra comments.
+	* c/Storage.c:  regenerated with extra comments.
+	* c/StrIO.c:  regenerated with extra comments.
+	* c/StrLib.c:  regenerated with extra comments.
+	* c/StringConvert.c:  regenerated with extra comments.
+	* c/Strings.c:  regenerated with extra comments.
+	* c/bagatelle.c:  regenerated with extra comments.
+	* c/bounce.c:  regenerated with extra comments.
+	* c/bounce2.c:  regenerated with extra comments.
+	* c/bounce3.c:  regenerated with extra comments.
+	* c/bounce4.c:  regenerated with extra comments.
+	* c/bounce5.c:  regenerated with extra comments.
+	* c/boxes.c:  regenerated with extra comments.
+	* c/circle.c:  regenerated with extra comments.
+	* c/delay.c:  regenerated with extra comments.
+	* c/deviceGroff.c:  regenerated with extra comments.
+	* c/history.c:  regenerated with extra comments.
+	* c/line.c:  regenerated with extra comments.
+	* c/macroObjects.c:  regenerated with extra comments.
+	* c/npn.c:  regenerated with extra comments.
+	* c/pgeif.c:  regenerated with extra comments.
+	* c/polar.c:  regenerated with extra comments.
+	* c/ramps.c:  regenerated with extra comments.
+	* c/ramps2.c:  regenerated with extra comments.
+	* c/rboxes.c:  regenerated with extra comments.
+	* c/roots.c:  regenerated with extra comments.
+	* c/rpc.c:  regenerated with extra comments.
+	* c/slope.c:  regenerated with extra comments.
+	* c/snooker.c:  regenerated with extra comments.
+	* c/stairs.c:  regenerated with extra comments.
+	* c/testpy.c:  regenerated with extra comments.
+	* c/twoDsim.c:  regenerated with extra comments.
+	* c/wall.c:  regenerated with extra comments.
+	* c/wallh.c:  regenerated with extra comments.
+	* c/wallv.c:  regenerated with extra comments.
+
 2018-01-25      Gaius Mulley <gaius@gnu.org>
 
 	* examples/springs/catapult.py:  new example.

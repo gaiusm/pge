@@ -389,6 +389,7 @@ static unsigned int isSameC (hList a, hList b)
 {
   assert (a->type == collision, 190);
   assert (b->type == collision, 191);
+  /* where1 and where2 are not used yet.  */
   return (((history_isPair (a->collisionF.id1, a->collisionF.id2, b->collisionF.id1, b->collisionF.id2)) && (a->collisionF.where1 == b->collisionF.where1)) && (a->collisionF.where2 == b->collisionF.where2)) && (roots_nearCoord (a->collisionF.cp, b->collisionF.cp));
 }
 
@@ -487,9 +488,11 @@ static void updateTime (double time)
 
   if (! (roots_nearSame (time, currentTime)))
     {
+      /* time has advanced, see if we can purge the pastQ.  */
       currentTime = time;
       if (Purge)
         {
+          /* in the pastQ time is decreasing.  */
           h = pastQ;
           p = NULL;
           while (h != NULL)
@@ -648,6 +651,7 @@ static unsigned int isDuplicateFuture (hList n)
   h = futureQ;
   while (h != NULL)
     {
+      /* in the futureQ time is increasing.  */
       if (isSame (n, h))
         {
           if (Debugging)
@@ -658,6 +662,7 @@ static unsigned int isDuplicateFuture (hList n)
           return TRUE;
         }
       else if ((h->t > n->t) && (! (roots_nearSame (h->t, n->t))))
+        /* h is now too far in the future to ever be considered the same.  */
         return FALSE;
       h = h->next;
     }
@@ -676,6 +681,7 @@ static unsigned int isDuplicatePast (hList n)
   h = pastQ;
   while (h != NULL)
     {
+      /* in the pastQ time is decreasing.  */
       if (isSame (n, h))
         {
           if (Debugging)
@@ -686,6 +692,7 @@ static unsigned int isDuplicatePast (hList n)
           return TRUE;
         }
       else if ((h->t < n->t) && (! (roots_nearSame (h->t, n->t))))
+        /* h is now too far in the past to ever be considered the same.  */
         return FALSE;
       h = h->next;
     }
@@ -723,6 +730,7 @@ unsigned int history_isDuplicateC (double currentTime, double relTime, unsigned 
       disposeHList (n);
       return TRUE;
     }
+  /* updateTime (currentTime) ;  */
   if (Debugging)
     {
       libc_printf ((char *) "unique collision found: ", 24);
@@ -766,6 +774,7 @@ void history_occurredC (double currentTime, unsigned int id1, unsigned int id2, 
     }
   updateTime (currentTime);
   history_forgetFuture ();
+  /* removeFromFutureQ (n) ;  */
   addToPastQ (n);
   if (Debugging)
     {
@@ -915,6 +924,7 @@ void history_occurredS (double currentTime, unsigned int id, history_springPoint
     }
   updateTime (currentTime);
   history_forgetFuture ();
+  /* removeFromFutureQ (n) ;  */
   addToPastQ (n);
   if (Debugging)
     {

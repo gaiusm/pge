@@ -237,7 +237,16 @@ void Indexing_PutIndice (Indexing_Index i, unsigned int n, void * a)
             i->ArraySize = i->ArraySize*2;
           if (oldSize != i->ArraySize)
             {
+              /* 
+               IF Debug
+               THEN
+                  printf2('increasing memory hunk from %d to %d
+              ',
+                          oldSize, ArraySize)
+               END ;
+  */
               Storage_REALLOCATE (&i->ArrayStart, i->ArraySize);
+              /* and initialize the remainder of the array to NIL  */
               b = i->ArrayStart;
               b += oldSize;
               b = libc_memset (b, 0, (size_t) i->ArraySize-oldSize);
@@ -294,6 +303,7 @@ unsigned int Indexing_IsIndiceInIndex (Indexing_Index i, void * a)
       p = (PtrToAddress) (b);
       if ((*p) == a)
         return TRUE;
+      /* we must not INC(p, ..) as p2c gets confused  */
       b += sizeof (void *);
       j += 1;
     }

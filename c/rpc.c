@@ -194,6 +194,8 @@ rpc_rpcStatus rpc_colour (SeqFile_ChanId file, unsigned int r, unsigned int g, u
   writeByte (file, g, &res);
   writeByte (file, b, &res);
   (*cid) = readCardinal (file, &res);
+  /* printf("colour id returned, %d
+  ", cid) ;  */
   return res;
 }
 
@@ -238,11 +240,15 @@ rpc_rpcStatus rpc_circle (SeqFile_ChanId file, unsigned int cid, rpc_cc center, 
   rpc_rpcStatus res;
 
   res = rpc_ready;
+  /* printf("circle
+  ") ;  */
   writeString (file, (char *) "C", 1, &res);
   writeCardinal (file, cid, &res);
   writeCardinal (file, center.x, &res);
   writeCardinal (file, center.y, &res);
   writeCardinal (file, radius, &res);
+  /* printf("done
+  ") ;  */
   return res;
 }
 
@@ -276,6 +282,8 @@ rpc_rpcStatus rpc_resolution (SeqFile_ChanId file, rpc_cc res)
 
   ret = rpc_ready;
   writeString (file, (char *) "r", 1, &ret);
+  /* printf("x, y = %d, %d
+  ", res.x, res.y) ;  */
   writeCardinal (file, res.x, &ret);
   writeCardinal (file, res.y, &ret);
   return ret;

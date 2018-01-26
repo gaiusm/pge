@@ -216,6 +216,9 @@ static int Max (int i, int j)
 
 static int Min (int i, int j)
 {
+  /* 
+   Max - returns the minimum: i or j.
+  */
   if (i < j)
     return i;
   else
@@ -291,6 +294,7 @@ static void AddFd (Selective_SetOfFd *s, int *max, int fd)
       (*s) = Selective_InitSet ();
       Selective_FdZero ((*s));
     }
+  /* printf('%d, ', fd)  */
   Selective_FdSet (fd, (*s));
 }
 
@@ -605,6 +609,8 @@ void RTint_IncludeVector (unsigned int vec)
         M2RTS_Halt ((char *) "/home/gaius/GM2/graft-6.4.0/gcc-6.4.0/gcc/gm2/gm2-libs/RTint.mod", 64, 331, (char *) "IncludeVector", 13, (char *) "cannot find vector supplied", 27);
       else
         {
+          /* printf('including vector %d  (fd = %d)
+          ', vec, v^.File) ;  */
           v->pending = Pending.array[v->priority-(COROUTINES_UnassignedPriority)];
           Pending.array[v->priority-(COROUTINES_UnassignedPriority)] = v;
           if ((v->type == time) && ! v->queued)
@@ -644,6 +650,8 @@ void RTint_ExcludeVector (unsigned int vec)
     M2RTS_Halt ((char *) "/home/gaius/GM2/graft-6.4.0/gcc-6.4.0/gcc/gm2/gm2-libs/RTint.mod", 64, 372, (char *) "ExcludeVector", 13, (char *) "cannot find pending vector supplied", 35);
   else
     {
+      /* printf('excluding vector %d
+      ', vec) ;  */
       if (Pending.array[v->priority-(COROUTINES_UnassignedPriority)] == v)
         Pending.array[v->priority-(COROUTINES_UnassignedPriority)] = Pending.array[v->priority-(COROUTINES_UnassignedPriority)]->pending;
       else
@@ -737,6 +745,8 @@ void RTint_Listen (unsigned int untilInterrupt, RTint_DespatchVector call, unsig
         Selective_SetTime (t, 0, 0);
       if (((untilInterrupt && (i == NULL)) && (o == NULL)) && ! found)
         M2RTS_Halt ((char *) "/home/gaius/GM2/graft-6.4.0/gcc-6.4.0/gcc/gm2/gm2-libs/RTint.mod", 64, 592, (char *) "Listen", 6, (char *) "deadlock found, no more processes to run and no interrupts active", 65);
+      /* printf('}
+      ') ;  */
       if (((! found && (maxFd == -1)) && (i == NULL)) && (o == NULL))
         {
           t = Selective_KillTime (t);

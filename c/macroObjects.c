@@ -818,6 +818,10 @@ static Object objectPolygonMatrix (Object o, PolyMatrix3D_Matrix a)
   Object p;
   unsigned int i;
 
+  /* 
+   objectPolgonMatrix - return a new polygon object after multiplying
+                        all points in, o, by, a.
+  */
   p = initObject ();
   p->type = tpolygon;
   p->oPolygon.colour = o->oPolygon.colour;

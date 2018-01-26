@@ -54,12 +54,14 @@ static void CheckValid (IOChan_ChanId cid);
 
 static void CheckValid (IOChan_ChanId cid)
 {
+  /* internal routine to check whether we have a valid channel  */
   if (cid == (IOChan_InvalidChan ()))
     EXCEPTIONS_RAISE (iochan, (EXCEPTIONS_ExceptionNumber) (unsigned int) (IOChan_notAChannel), (char *) "IOChan: ChanId specified is invalid", 35);
 }
 
 IOChan_ChanId IOChan_InvalidChan (void)
 {
+  /* Returns the value identifying the invalid channel.  */
   return invalid;
 }
 
@@ -68,6 +70,12 @@ void IOChan_Look (IOChan_ChanId cid, char *ch, IOConsts_ReadResults *res)
   IOLink_DeviceId did;
   IOLink_DeviceTablePtr dtp;
 
+  /* If there is a character as the next item in the input stream cid,
+     assigns its value to ch without removing it from the stream;
+     otherwise the value of ch is not defined.
+     res (and the stored read result) are set to the value
+     allRight, endOfLine, or endOfInput.
+  */
   CheckValid (cid);
   did = RTio_GetDeviceId ((RTio_ChanId) cid);
   dtp = IOLink_DeviceTablePtrValue (cid, did);
@@ -90,6 +98,10 @@ void IOChan_Skip (IOChan_ChanId cid)
   IOLink_DeviceId did;
   IOLink_DeviceTablePtr dtp;
 
+  /* If the input stream cid has ended, the exception skipAtEnd is raised;
+     otherwise the next character or line mark in cid is removed,
+     and the stored read result is set to the value allRight.
+  */
   CheckValid (cid);
   did = RTio_GetDeviceId ((RTio_ChanId) cid);
   dtp = IOLink_DeviceTablePtrValue (cid, did);
@@ -112,6 +124,14 @@ void IOChan_SkipLook (IOChan_ChanId cid, char *ch, IOConsts_ReadResults *res)
   IOLink_DeviceId did;
   IOLink_DeviceTablePtr dtp;
 
+  /* If the input stream cid has ended, the exception skipAtEnd is raised;
+     otherwise the next character or line mark in cid is removed.
+     If there is a character as the next item in cid stream,
+     assigns its value to ch without removing it from the stream.
+     Otherwise, the value of ch is not defined.
+     res (and the stored read result) are set to the value allRight,
+     endOfLine, or endOfInput.
+  */
   CheckValid (cid);
   did = RTio_GetDeviceId ((RTio_ChanId) cid);
   dtp = IOLink_DeviceTablePtrValue (cid, did);
@@ -134,6 +154,7 @@ void IOChan_WriteLn (IOChan_ChanId cid)
   IOLink_DeviceId did;
   IOLink_DeviceTablePtr dtp;
 
+  /* Writes a line mark over the channel cid.  */
   CheckValid (cid);
   did = RTio_GetDeviceId ((RTio_ChanId) cid);
   dtp = IOLink_DeviceTablePtrValue (cid, did);
@@ -143,6 +164,7 @@ void IOChan_WriteLn (IOChan_ChanId cid)
     if (dtp->cid == (StdChans_NullChan ()))
       {}  /* empty.  */
     else if (((((1 << (ChanConsts_writeFlag-ChanConsts_readFlag)) & (dtp->flags)) != 0)) && ((((1 << (ChanConsts_textFlag-ChanConsts_readFlag)) & (dtp->flags)) != 0)))
+      /* do nothing  */
       (*dtp->doLnWrite.proc) (dtp);
     else
       EXCEPTIONS_RAISE (iochan, (EXCEPTIONS_ExceptionNumber) (unsigned int) (IOChan_notAvailable), (char *) "IOChan.WriteLn: attempting to write to a channel which is not configured as write and text", 90);
@@ -153,6 +175,13 @@ void IOChan_TextRead (IOChan_ChanId cid, void * to, unsigned int maxChars, unsig
   IOLink_DeviceId did;
   IOLink_DeviceTablePtr dtp;
 
+  /* Reads at most maxChars characters from the current line in cid,
+     and assigns corresponding values to successive components of an
+     ARRAY OF CHAR variable for which the address of the first
+     component is to. The number of characters read is assigned
+     to charsRead. The stored read result is set to allRight, 
+     endOfLine, or endOfInput.
+  */
   CheckValid (cid);
   did = RTio_GetDeviceId ((RTio_ChanId) cid);
   dtp = IOLink_DeviceTablePtrValue (cid, did);
@@ -175,6 +204,10 @@ void IOChan_TextWrite (IOChan_ChanId cid, void * from, unsigned int charsToWrite
   IOLink_DeviceId did;
   IOLink_DeviceTablePtr dtp;
 
+  /* Writes a number of characters given by the value of charsToWrite,
+     from successive components of an ARRAY OF CHAR variable for which
+     the address of the first component is from, to the channel cid.
+  */
   CheckValid (cid);
   did = RTio_GetDeviceId ((RTio_ChanId) cid);
   dtp = IOLink_DeviceTablePtrValue (cid, did);
@@ -184,6 +217,7 @@ void IOChan_TextWrite (IOChan_ChanId cid, void * from, unsigned int charsToWrite
     if (dtp->cid == (StdChans_NullChan ()))
       {}  /* empty.  */
     else if (((((1 << (ChanConsts_writeFlag-ChanConsts_readFlag)) & (dtp->flags)) != 0)) && ((((1 << (ChanConsts_textFlag-ChanConsts_readFlag)) & (dtp->flags)) != 0)))
+      /* do nothing  */
       (*dtp->doTextWrite.proc) (dtp, from, charsToWrite);
     else
       EXCEPTIONS_RAISE (iochan, (EXCEPTIONS_ExceptionNumber) (unsigned int) (IOChan_notAvailable), (char *) "IOChan.TextWrite: attempt to write data to a channel which is not configured as write and text", 94);
@@ -194,6 +228,12 @@ void IOChan_RawRead (IOChan_ChanId cid, void * to, unsigned int maxLocs, unsigne
   IOLink_DeviceId did;
   IOLink_DeviceTablePtr dtp;
 
+  /* Reads at most maxLocs items from cid, and assigns corresponding
+     values to successive components of an ARRAY OF LOC variable for
+     which the address of the first component is to. The number of
+     characters read is assigned to locsRead. The stored read result
+     is set to the value allRight, or endOfInput.
+  */
   CheckValid (cid);
   did = RTio_GetDeviceId ((RTio_ChanId) cid);
   dtp = IOLink_DeviceTablePtrValue (cid, did);
@@ -216,6 +256,10 @@ void IOChan_RawWrite (IOChan_ChanId cid, void * from, unsigned int locsToWrite)
   IOLink_DeviceId did;
   IOLink_DeviceTablePtr dtp;
 
+  /* Writes a number of items given by the value of charsToWrite,
+     from successive components of an ARRAY OF LOC variable for
+     which the address of the first component is from, to the channel cid.
+  */
   CheckValid (cid);
   did = RTio_GetDeviceId ((RTio_ChanId) cid);
   dtp = IOLink_DeviceTablePtrValue (cid, did);
@@ -235,6 +279,9 @@ void IOChan_GetName (IOChan_ChanId cid, char *s, unsigned int _s_high)
   IOLink_DeviceId did;
   IOLink_DeviceTablePtr dtp;
 
+  /* Copies to s a name associated with the channel cid, possibly truncated
+     (depending on the capacity of s).
+  */
   CheckValid (cid);
   did = RTio_GetDeviceId ((RTio_ChanId) cid);
   dtp = IOLink_DeviceTablePtrValue (cid, did);
@@ -249,6 +296,7 @@ void IOChan_Reset (IOChan_ChanId cid)
   IOLink_DeviceId did;
   IOLink_DeviceTablePtr dtp;
 
+  /* Resets the channel cid to a state defined by the device module.  */
   CheckValid (cid);
   did = RTio_GetDeviceId ((RTio_ChanId) cid);
   dtp = IOLink_DeviceTablePtrValue (cid, did);
@@ -263,6 +311,7 @@ void IOChan_Flush (IOChan_ChanId cid)
   IOLink_DeviceId did;
   IOLink_DeviceTablePtr dtp;
 
+  /* Flushes any data buffered by the device module out to the channel cid.  */
   CheckValid (cid);
   did = RTio_GetDeviceId ((RTio_ChanId) cid);
   dtp = IOLink_DeviceTablePtrValue (cid, did);
@@ -277,6 +326,7 @@ void IOChan_SetReadResult (IOChan_ChanId cid, IOConsts_ReadResults res)
   IOLink_DeviceId did;
   IOLink_DeviceTablePtr dtp;
 
+  /* Sets the read result value for the channel cid to the value res.  */
   CheckValid (cid);
   did = RTio_GetDeviceId ((RTio_ChanId) cid);
   dtp = IOLink_DeviceTablePtrValue (cid, did);
@@ -291,6 +341,9 @@ IOConsts_ReadResults IOChan_ReadResult (IOChan_ChanId cid)
   IOLink_DeviceId did;
   IOLink_DeviceTablePtr dtp;
 
+  /* Returns the stored read result value for the channel cid.
+     (This is initially the value notKnown).
+  */
   CheckValid (cid);
   did = RTio_GetDeviceId ((RTio_ChanId) cid);
   dtp = IOLink_DeviceTablePtrValue (cid, did);
@@ -306,6 +359,7 @@ ChanConsts_FlagSet IOChan_CurrentFlags (IOChan_ChanId cid)
   IOLink_DeviceId did;
   IOLink_DeviceTablePtr dtp;
 
+  /* Returns the set of flags that currently apply to the channel cid.  */
   CheckValid (cid);
   did = RTio_GetDeviceId ((RTio_ChanId) cid);
   dtp = IOLink_DeviceTablePtrValue (cid, did);
@@ -318,11 +372,20 @@ ChanConsts_FlagSet IOChan_CurrentFlags (IOChan_ChanId cid)
 
 unsigned int IOChan_IsChanException (void)
 {
+  /* Returns TRUE if the current coroutine is in the exceptional
+     execution state because of the raising of an exception from
+     ChanExceptions; otherwise returns FALSE.
+  */
   return (EXCEPTIONS_IsExceptionalExecution ()) && (EXCEPTIONS_IsCurrentSource (iochan));
 }
 
 IOChan_ChanExceptions IOChan_ChanException (void)
 {
+  /* If the current coroutine is in the exceptional execution state
+     because of the raising of an exception from ChanExceptions,
+     returns the corresponding enumeration value, and otherwise
+     raises an exception.
+  */
   if (IOChan_IsChanException ())
     return (IOChan_ChanExceptions) (EXCEPTIONS_CurrentNumber (iochan));
   else
@@ -335,6 +398,9 @@ IOChan_DeviceErrNum IOChan_DeviceError (IOChan_ChanId cid)
   IOLink_DeviceId did;
   IOLink_DeviceTablePtr dtp;
 
+  /* If a device error exception has been raised for the channel cid,
+     returns the error number stored by the device module.
+  */
   CheckValid (cid);
   did = RTio_GetDeviceId ((RTio_ChanId) cid);
   dtp = IOLink_DeviceTablePtrValue (cid, did);

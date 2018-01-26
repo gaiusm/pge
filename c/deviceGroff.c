@@ -1056,9 +1056,12 @@ static void moveTo (Points_Point p)
 
   p1 = scalePoint (p);
   p1 = addOffset (p1);
+  /* y position  */
   TextIO_WriteString ((IOChan_ChanId) file, (char *) ".sp |", 5);
   writeUnit (p1.y);
+  /* x position  */
   TextIO_WriteLn ((IOChan_ChanId) file);
+  /* x position  */
   TextIO_WriteString ((IOChan_ChanId) file, (char *) ".nop \\h'", 8);
   writeUnit (p1.x);
   TextIO_WriteString ((IOChan_ChanId) file, (char *) "'", 1);
@@ -1198,8 +1201,10 @@ static void drawCircle (glyphDesc g)
   if (g->gCircle.filled)
     {
       TextIO_WriteString ((IOChan_ChanId) file, (char *) "\\M[", 3);
+      /* WriteString(file, "\h'") ; writeUnit(scaleX(sub(center.x, radius))) ; WriteString(file, "'") ;  */
       writeColour (g->gCircle.colour);
       TextIO_WriteString ((IOChan_ChanId) file, (char *) "]", 1);
+      /* WriteString(file, "\h'") ; writeUnit(scaleX(sub(center.x, radius))) ; WriteString(file, "'") ;  */
       TextIO_WriteString ((IOChan_ChanId) file, (char *) "\\D'C ", 5);
       writeUnit (scaleX (Fractions_mult (g->gCircle.radius, Fractions_two ())));
       TextIO_WriteString ((IOChan_ChanId) file, (char *) "'\\M[]", 5);
@@ -1214,8 +1219,10 @@ static void drawCircle (glyphDesc g)
       TextIO_WriteString ((IOChan_ChanId) file, (char *) "'\\c", 3);
       TextIO_WriteLn ((IOChan_ChanId) file);
       TextIO_WriteString ((IOChan_ChanId) file, (char *) ".nop \\m[", 8);
+      /* WriteString(file, "\h'") ; writeUnit(scaleX(sub(center.x, radius))) ; WriteString(file, "'") ;  */
       writeColour (g->gCircle.colour);
       TextIO_WriteString ((IOChan_ChanId) file, (char *) "]", 1);
+      /* WriteString(file, "\h'") ; writeUnit(scaleX(sub(center.x, radius))) ; WriteString(file, "'") ;  */
       TextIO_WriteString ((IOChan_ChanId) file, (char *) "\\D'c ", 5);
       writeUnit (scaleX (Fractions_mult (g->gCircle.radius, Fractions_two ())));
       TextIO_WriteString ((IOChan_ChanId) file, (char *) "'\\m[]", 5);
@@ -1311,21 +1318,25 @@ static unsigned int clipLine (Points_Point p1, Points_Point p2, Points_Point *o1
       c = c2;
     if ((((1 << (leftEdge-leftEdge)) & (c)) != 0))
       {
+        /* we cross the left edge  */
         y = Fractions_mult (Fractions_add (p1.y, Fractions_sub (p2.y, p1.y)), Fractions_div (Fractions_negate (p1.x), Fractions_sub (p2.x, p1.x)));
         x = Fractions_zero ();
       }
     else if ((((1 << (rightEdge-leftEdge)) & (c)) != 0))
       {
+        /* we cross the right edge  */
         y = Fractions_mult (Fractions_add (p1.y, Fractions_sub (p2.y, p1.y)), Fractions_div (Fractions_sub (Fractions_one (), p1.x), Fractions_sub (p2.x, p1.x)));
         x = Fractions_one ();
       }
     else if ((((1 << (botEdge-leftEdge)) & (c)) != 0))
       {
+        /* we cross the bottom edge  */
         x = Fractions_mult (Fractions_add (p1.x, Fractions_sub (p2.x, p1.x)), Fractions_div (Fractions_negate (p1.y), Fractions_sub (p2.y, p1.y)));
         y = Fractions_zero ();
       }
     else if ((((1 << (topEdge-leftEdge)) & (c)) != 0))
       {
+        /* we cross the top edge  */
         x = Fractions_mult (Fractions_add (p1.x, Fractions_sub (p2.x, p1.x)), Fractions_div (Fractions_sub (Fractions_one (), p1.y), Fractions_sub (p2.y, p1.y)));
         y = Fractions_one ();
       }
@@ -1618,6 +1629,12 @@ void deviceGroff_glyphCircle (Points_Point pos, unsigned int fill, Fractions_Fra
 
 void deviceGroff_flipBuffer (void)
 {
+  /* 
+   IF (config^.fps#0) AND (NOT firstFrame)
+   THEN
+      wait
+   END ;
+  */
   if (! (empty ()))
     {
       newFrame ();

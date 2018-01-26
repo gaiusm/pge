@@ -72,12 +72,16 @@ static void placeBoundary (void)
   macroObjects_Macro m;
 
   m = macroObjects_initMacro ();
+  /* left edge  */
   m = macroObjects_moveTo (m, Points_initPoint (Fractions_zero (), Fractions_zero ()));
   m = macroObjects_rectangle (m, TRUE, Fractions_zero (), dark, Fractions_initFract (0, 1, 100), Fractions_one ());
+  /* right edge  */
   m = macroObjects_moveTo (m, Points_initPoint (Fractions_initFract (0, 99, 100), Fractions_zero ()));
   m = macroObjects_rectangle (m, TRUE, Fractions_zero (), dark, Fractions_initFract (0, 1, 100), Fractions_one ());
+  /* bot edge  */
   m = macroObjects_moveTo (m, Points_initPoint (Fractions_zero (), Fractions_zero ()));
   m = macroObjects_rectangle (m, TRUE, Fractions_zero (), dark, Fractions_one (), Fractions_initFract (0, 1, 100));
+  /* top edge  */
   m = macroObjects_moveTo (m, Points_initPoint (Fractions_zero (), Fractions_initFract (0, 99, 100)));
   m = macroObjects_rectangle (m, TRUE, Fractions_zero (), dark, Fractions_one (), Fractions_initFract (0, 1, 100));
   m = macroObjects_rootMacro (m);

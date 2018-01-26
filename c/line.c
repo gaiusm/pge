@@ -69,12 +69,16 @@ static void dropBox (deviceIf_Colour c, Fractions_Fract x);
 
 static void placeBoundary (macroObjects_Macro m)
 {
+  /* left edge  */
   m = macroObjects_moveTo (m, Points_initPoint (Fractions_zero (), Fractions_zero ()));
   m = macroObjects_rectangle (m, TRUE, Fractions_zero (), dark, Fractions_initFract (0, 1, 100), Fractions_one ());
+  /* right edge  */
   m = macroObjects_moveTo (m, Points_initPoint (Fractions_initFract (0, 99, 100), Fractions_zero ()));
   m = macroObjects_rectangle (m, TRUE, Fractions_zero (), dark, Fractions_initFract (0, 1, 100), Fractions_one ());
+  /* bot edge  */
   m = macroObjects_moveTo (m, Points_initPoint (Fractions_zero (), Fractions_zero ()));
   m = macroObjects_rectangle (m, TRUE, Fractions_zero (), dark, Fractions_one (), Fractions_initFract (0, 1, 100));
+  /* top edge  */
   m = macroObjects_moveTo (m, Points_initPoint (Fractions_zero (), Fractions_initFract (0, 99, 100)));
   m = macroObjects_rectangle (m, TRUE, Fractions_zero (), dark, Fractions_one (), Fractions_initFract (0, 1, 100));
 }
@@ -104,6 +108,7 @@ static void dropBox (deviceIf_Colour c, Fractions_Fract x)
   macroObjects_Macro m;
 
   m = macroObjects_initMacro ();
+  /* drop the ball at the top of stairs with a leftwards velocity  */
   m = macroObjects_moveTo (m, Points_initPoint (x, Fractions_initFract (0, 37, 40)));
   m = macroObjects_rectangle (m, TRUE, Fractions_zero (), c, Fractions_initFract (0, 1, 20), Fractions_initFract (0, 1, 20));
   m = macroObjects_rootMacro (m);

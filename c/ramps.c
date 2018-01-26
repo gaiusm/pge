@@ -70,12 +70,16 @@ static void dropBall (deviceIf_Colour c);
 
 static void placeBoundary (macroObjects_Macro m)
 {
+  /* left edge  */
   m = macroObjects_moveTo (m, Points_initPoint (Fractions_zero (), Fractions_zero ()));
   m = macroObjects_rectangle (m, TRUE, Fractions_zero (), (deviceIf_Colour) deviceIf_red (), Fractions_initFract (0, 1, 100), Fractions_one ());
+  /* right edge  */
   m = macroObjects_moveTo (m, Points_initPoint (Fractions_initFract (0, 99, 100), Fractions_zero ()));
   m = macroObjects_rectangle (m, TRUE, Fractions_zero (), (deviceIf_Colour) deviceIf_red (), Fractions_initFract (0, 1, 100), Fractions_one ());
+  /* bot edge  */
   m = macroObjects_moveTo (m, Points_initPoint (Fractions_zero (), Fractions_zero ()));
   m = macroObjects_rectangle (m, TRUE, Fractions_zero (), (deviceIf_Colour) deviceIf_red (), Fractions_one (), Fractions_initFract (0, 1, 100));
+  /* top edge  */
   m = macroObjects_moveTo (m, Points_initPoint (Fractions_zero (), Fractions_initFract (0, 99, 100)));
   m = macroObjects_rectangle (m, TRUE, Fractions_zero (), (deviceIf_Colour) deviceIf_red (), Fractions_one (), Fractions_initFract (0, 1, 100));
 }
@@ -97,6 +101,16 @@ static void placeRamps (void)
   m = macroObjects_triangle (m, TRUE, Fractions_zero (), light, Points_initPoint (Fractions_initFract (0, 7, 10), Fractions_zero ()), Points_initPoint (Fractions_zero (), Fractions_initFract (0, 1, 10)));
   m = macroObjects_moveTo (m, Points_initPoint (Fractions_initFract (0, 7, 10), Fractions_initFract (0, 3, 10)));
   m = macroObjects_triangle (m, TRUE, Fractions_zero (), light, Points_initPoint (Fractions_negate (Fractions_initFract (0, 7, 10)), Fractions_zero ()), Points_initPoint (Fractions_zero (), Fractions_initFract (0, 1, 10)));
+  /* 
+   n := rectangle(n, TRUE, zero(), light, initFract(0, 8, 10), initFract(0, 1, 10)) ;
+   p := dup(n) ;
+   n := rotate(n, initPoint(zero(), zero()), div(pi(), cardinal(20))) ;
+   m := append(m, n) ;
+   
+   m := moveTo(m, initPoint(initFract(0, 1, 10), initFract(0, 2, 10))) ;
+   p := rotate(p, initPoint(zero(), zero()), negate(div(pi(), cardinal(20)))) ;
+   m := append(m, p) ;
+  */
   placeBoundary (m);
   m = macroObjects_rootMacro (m);
   popWorld_populate (m, TRUE, TRUE);
@@ -112,6 +126,7 @@ static void dropBall (deviceIf_Colour c)
   macroObjects_Macro m;
 
   m = macroObjects_initMacro ();
+  /* drop the ball at the top of stairs with a leftwards velocity  */
   m = macroObjects_moveTo (m, Points_initPoint (Fractions_initFract (0, 17, 20), Fractions_initFract (0, 15, 20)));
   m = macroObjects_circle (m, TRUE, Fractions_zero (), c, size);
   m = macroObjects_rootMacro (m);

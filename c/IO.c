@@ -181,6 +181,15 @@ static void setFlag (termios_TERMIOS t, termios_Flag f, unsigned int b)
 
 static void doraw (termios_TERMIOS term)
 {
+  /* 
+    * from man 3 termios
+    *           termios_p->c_iflag &= ~(IGNBRK | BRKINT | PARMRK | ISTRIP
+    *                                   | INLCR | IGNCR | ICRNL | IXON);
+    *           termios_p->c_oflag &= ~OPOST;
+    *           termios_p->c_lflag &= ~(ECHO | ECHONL | ICANON | ISIG | IEXTEN);
+    *           termios_p->c_cflag &= ~(CSIZE | PARENB);
+    *           termios_p->c_cflag |= CS8;
+  */
   setFlag (term, (termios_Flag) termios_ignbrk, FALSE);
   setFlag (term, (termios_Flag) termios_ibrkint, FALSE);
   setFlag (term, (termios_Flag) termios_iparmrk, FALSE);
@@ -207,6 +216,17 @@ static void doraw (termios_TERMIOS term)
 
 static void dononraw (termios_TERMIOS term)
 {
+  /* 
+    * we undo these settings, (although we leave the character size alone)
+    *
+    * from man 3 termios
+    *           termios_p->c_iflag &= ~(IGNBRK | BRKINT | PARMRK | ISTRIP
+    *                                   | INLCR | IGNCR | ICRNL | IXON);
+    *           termios_p->c_oflag &= ~OPOST;
+    *           termios_p->c_lflag &= ~(ECHO | ECHONL | ICANON | ISIG | IEXTEN);
+    *           termios_p->c_cflag &= ~(CSIZE | PARENB);
+    *           termios_p->c_cflag |= CS8;
+  */
   setFlag (term, (termios_Flag) termios_ignbrk, TRUE);
   setFlag (term, (termios_Flag) termios_ibrkint, TRUE);
   setFlag (term, (termios_Flag) termios_iparmrk, TRUE);

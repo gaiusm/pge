@@ -79,10 +79,13 @@ static void fireCue (void)
   m = macroObjects_initMacro ();
   if (testCorner)
     if (testRight)
+      /* this will hit the right corner  */
       m = macroObjects_moveTo (m, Points_initPoint (Fractions_initFract (0, 8, 10), Fractions_initFract (0, 5, 10)));
     else
+      /* this will hit the left corner  */
       m = macroObjects_moveTo (m, Points_initPoint (Fractions_initFract (0, 2, 10), Fractions_initFract (0, 5, 10)));
   else
+    /* fire against the wall  */
     m = macroObjects_moveTo (m, Points_initPoint (Fractions_initFract (0, 5, 10), Fractions_initFract (0, 5, 10)));
   m = macroObjects_circle (m, TRUE, Fractions_zero (), (deviceIf_Colour) deviceGroff_green (), size);
   m = macroObjects_rootMacro (m);

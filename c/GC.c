@@ -227,8 +227,8 @@ static void RunCallBacks (GC_garbage g)
   c = g->callbacks;
   while (c != NULL)
     {
-      (*c->callp.proc) ();
-      c = c->next;
+      (*c->callp.proc) ();  /* calls the call back  */
+      c = c->next;  /* calls the call back  */
     }
 }
 
@@ -255,6 +255,7 @@ static void unMarkAll (void)
           d = Indexing_HighIndice (g->roots);
           libc_printf ((char *) ", rooted entities %d\\n", 22, d);
         }
+      /* throw away the free list  */
       g->freeList = NULL;
       Indexing_ForeachIndiceInIndexDo (g->allocated, (Indexing_IndexProcedure) {(Indexing_IndexProcedure_t) unMarkEntity});
       g = g->next;
@@ -346,6 +347,7 @@ static void tidyUpEntities (GC_garbage g)
             if ((libc_memset (e->data, GGCPOISON, (size_t) g->bytes)) == NULL)
               {}  /* empty.  */
         }
+      /* ignore return code from memset  */
       i += 1;
     }
   if (StatsOn)
@@ -389,7 +391,8 @@ static void initEntity (GC_garbage g, void * a, GC_entity e)
       if (en->data == a)
         {
           if (en != e)
-            M2RTS_HALT (-1);
+            M2RTS_HALT (-1);  /* known by a different entity - corruption of data structures  */
+          /* already known  */
           return;
         }
       else
@@ -425,6 +428,7 @@ static void findFree (GC_garbage g, GC_entity *e, void * *a)
     }
   else
     {
+      /* freeList entities _will_ be on the allocated array  */
       (*e) = g->freeList;
       (*a) = (*e)->data;
       g->freeList = g->freeList->next;
@@ -485,6 +489,7 @@ void GC_collect (GC_garbage g)
       d = Indexing_HighIndice (g->roots);
       libc_printf ((char *) ", rooted entities %d", 20, d);
     }
+  /* throw away the free list  */
   g->freeList = NULL;
   Indexing_ForeachIndiceInIndexDo (g->allocated, (Indexing_IndexProcedure) {(Indexing_IndexProcedure_t) unMarkEntity});
   Indexing_ForeachIndiceInIndexDo (g->roots, (Indexing_IndexProcedure) {(Indexing_IndexProcedure_t) GC_markEntity});
@@ -507,8 +512,8 @@ void GC_markEntity (GC_entity e)
       a = e->data;
       libc_printf ((char *) "marking address 0x%x using entity (0x%x)\\n", 42, a, e);
     }
-  Assertion_Assert (! ((((1 << (free_-free_)) & (e->status)) != 0)));
-  e->status |= (1 << (marked-free_ ));
+  Assertion_Assert (! ((((1 << (free_-free_)) & (e->status)) != 0)));  /* corrupt entity, it should never be marked if on the free list  */
+  e->status |= (1 << (marked-free_ ));  /* corrupt entity, it should never be marked if on the free list  */
 }
 
 
@@ -570,8 +575,8 @@ void GC_rootDeallocate (GC_garbage g, GC_entity *e, void * *a)
           n = DynamicStrings_string (g->desc);
           libc_printf ((char *) "unrooted address 0x%x (%s)\\n", 28, (*a), n);
         }
-      Indexing_RemoveIndiceFromIndex (g->roots, (void *) (*e));
-      (*e)->rIndex = 0;
+      Indexing_RemoveIndiceFromIndex (g->roots, (void *) (*e));  /* could improve by using e^.rIndex and DeleteIndiceFromIndex --fixme--  */
+      (*e)->rIndex = 0;  /* could improve by using e^.rIndex and DeleteIndiceFromIndex --fixme--  */
     }
 }
 
@@ -594,7 +599,8 @@ void GC_rootEntity (GC_garbage g, GC_entity e, void * a)
       if (en->data == a)
         {
           if (en != e)
-            M2RTS_HALT (-1);
+            M2RTS_HALT (-1);  /* rooted with a different entity - corruption of data structures  */
+          /* already rooted  */
           return;
         }
       else
@@ -636,6 +642,7 @@ void GC_registerCallback (GC_garbage g, GC_callP p)
 
 void GC_collectAll (void)
 {
+  /* gdbif.sleepSpin ;  */
   walkRootsAll ();
   unMarkAll ();
   walkRootsAll ();

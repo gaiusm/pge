@@ -19,21 +19,37 @@ void SWholeIO_WriteCard (unsigned int card, unsigned int width);
 
 void SWholeIO_ReadInt (int *int_)
 {
+  /* Skips leading spaces, and removes any remaining characters
+     from the default input stream that form part of a signed
+     whole number.  The value of this number is assigned to int.
+     The read result is set to the value allRight, outOfRange,
+     wrongFormat, endOfLine, or endOfInput.
+  */
   WholeIO_ReadInt ((IOChan_ChanId) StdChans_StdInChan (), int);
 }
 
 void SWholeIO_WriteInt (int int_, unsigned int width)
 {
+  /* Writes the value of int to the default output stream in
+     text form, in a field of the given minimum width.  */
   WholeIO_WriteInt ((IOChan_ChanId) StdChans_StdOutChan (), int_, width);
 }
 
 void SWholeIO_ReadCard (unsigned int *card)
 {
+  /* Skips leading spaces, and removes any remaining characters
+     from the default input stream that form part of an unsigned
+     whole number.  The value of this number is assigned to card.
+     The read result is set to the value allRight, outOfRange,
+     wrongFormat, endOfLine, or endOfInput.
+  */
   WholeIO_ReadCard ((IOChan_ChanId) StdChans_StdInChan (), card);
 }
 
 void SWholeIO_WriteCard (unsigned int card, unsigned int width)
 {
+  /* Writes the value of card to the default output stream in
+     text form, in a field of the given minimum width.  */
   WholeIO_WriteCard ((IOChan_ChanId) StdChans_StdOutChan (), card, width);
 }
 

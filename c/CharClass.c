@@ -20,31 +20,37 @@ unsigned int CharClass_IsWhiteSpace (char ch);
 
 unsigned int CharClass_IsNumeric (char ch)
 {
+  /* Returns TRUE if and only if ch is classified as a numeric character  */
   return (ch >= '0') && (ch <= '9');
 }
 
 unsigned int CharClass_IsLetter (char ch)
 {
+  /* Returns TRUE if and only if ch is classified as a letter  */
   return ((ch >= 'a') && (ch <= 'z')) || ((ch >= 'A') && (ch <= 'Z'));
 }
 
 unsigned int CharClass_IsUpper (char ch)
 {
+  /* Returns TRUE if and only if ch is classified as an upper case letter  */
   return (ch >= 'A') && (ch <= 'Z');
 }
 
 unsigned int CharClass_IsLower (char ch)
 {
+  /* Returns TRUE if and only if ch is classified as a lower case letter  */
   return (ch >= 'a') && (ch <= 'z');
 }
 
 unsigned int CharClass_IsControl (char ch)
 {
+  /* Returns TRUE if and only if ch represents a control function  */
   return ch < ' ';
 }
 
 unsigned int CharClass_IsWhiteSpace (char ch)
 {
+  /* Returns TRUE if and only if ch represents a space character or a format effector  */
   return (((ch == ' ') || (ch == ASCII_cr)) || (ch == ASCII_lf)) || (ch == ASCII_tab);
 }
 

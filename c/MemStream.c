@@ -458,11 +458,11 @@ static char dounreadchar (RTgenif_GenDevIF g, IOLink_DeviceTablePtr d, char ch)
       pc = m->buffer;
       pc += m->index;
       m->eoln = ch == ASCII_nl;
-      Assertion_Assert ((*pc) == ch);
+      Assertion_Assert ((*pc) == ch);  /* expecting to be pushing characters in exactly the reverse order  */
     }
   else
-    Assertion_Assert (FALSE);
-  return ch;
+    Assertion_Assert (FALSE);  /* expecting to be pushing characters in exactly the reverse order  */
+  return ch;  /* expecting to be pushing characters in exactly the reverse order  */
 }
 
 
@@ -538,6 +538,7 @@ static unsigned int dowbytes (RTgenif_GenDevIF g, IOLink_DeviceTablePtr d, void 
   if ((m->index+nBytes) > m->length)
     {
       while ((m->index+nBytes) > m->length)
+        /* buffer needs to grow  */
         m->length = m->length*2;
       Storage_REALLOCATE (&m->buffer, m->length);
       AssignLength (m, m->length);
@@ -795,6 +796,23 @@ static void Init (void)
 
 void MemStream_OpenWrite (IOChan_ChanId *cid, ChanConsts_FlagSet flags, ChanConsts_OpenResults *res, void * *buffer, unsigned int *length, unsigned int *used, unsigned int deallocOnClose)
 {
+  /* 
+   Attempts to obtain and open a channel connected to a contigeous
+   buffer in memory.  The write flag is implied; without the raw
+   flag, text is implied.  If successful, assigns to cid the identity of
+   the opened channel, assigns the value opened to res.
+   If a channel cannot be opened as required,
+   the value of res indicates the reason, and cid identifies the
+   invalid channel.
+
+   The parameters, buffer, length and used maybe updated as
+   data is written.  The buffer maybe reallocated
+   and its address might alter, however the parameters will
+   always reflect the current active buffer.  When this
+   channel is closed the buffer is deallocated and
+   buffer will be set to NIL, length and used will be set to
+   zero.
+  */
   if (Debugging)
     libc_printf ((char *) "OpenWrite called\\n", 18);
   flags |= (1 << (ChanConsts_writeFlag-ChanConsts_readFlag ));
@@ -805,6 +823,15 @@ void MemStream_OpenWrite (IOChan_ChanId *cid, ChanConsts_FlagSet flags, ChanCons
 
 void MemStream_OpenRead (IOChan_ChanId *cid, ChanConsts_FlagSet flags, ChanConsts_OpenResults *res, void * buffer, unsigned int length, unsigned int deallocOnClose)
 {
+  /* 
+   Attempts to obtain and open a channel connected to a contigeous
+   buffer in memory.  The read and old flags are implied; without
+   the raw flag, text is implied.  If successful, assigns to cid the
+   identity of the opened channel, assigns the value opened to res, and
+   selects input mode, with the read position corresponding to the start
+   of the buffer.  If a channel cannot be opened as required, the value of
+   res indicates the reason, and cid identifies the invalid channel.
+  */
   flags = (flags|ChanConsts_read)|ChanConsts_old;
   if (! ((((1 << (ChanConsts_rawFlag-ChanConsts_readFlag)) & (flags)) != 0)))
     flags |= (1 << (ChanConsts_textFlag-ChanConsts_readFlag ));

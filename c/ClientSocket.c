@@ -162,6 +162,21 @@ static void Init (void);
 
 static void look (IOLink_DeviceTablePtr d, char *ch, IOConsts_ReadResults *r)
 {
+  /* This file is part of GNU Modula-2.
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA  */
   RTgen_doLook (dev, d, ch, r);
 }
 
@@ -464,11 +479,11 @@ void ClientSocket_OpenSocket (IOChan_ChanId *cid, char *host_, unsigned int _hos
   /* make a local copy of each unbounded array.  */
   memcpy (host, host_, _host_high+1);
 
-  IOLink_MakeChan (did, cid);
-  Storage_ALLOCATE ((void **) &c, ClientInfoSize);
-  d = IOLink_DeviceTablePtrValue ((*cid), did);
-  RTdata_InitData (d, mid, (void *) c, (RTdata_FreeProcedure) {(RTdata_FreeProcedure_t) freeData});
-  (*res) = wrapsock_clientOpen ((wrapsock_clientInfo) c, &host, M2RTS_Length (host, _host_high), port);
+  IOLink_MakeChan (did, cid);  /* create new channel  */
+  Storage_ALLOCATE ((void **) &c, ClientInfoSize);  /* allocate client socket memory  */
+  d = IOLink_DeviceTablePtrValue ((*cid), did);  /* allocate client socket memory  */
+  RTdata_InitData (d, mid, (void *) c, (RTdata_FreeProcedure) {(RTdata_FreeProcedure_t) freeData});  /* attach memory to device and module  */
+  (*res) = wrapsock_clientOpen ((wrapsock_clientInfo) c, &host, M2RTS_Length (host, _host_high), port);  /* attach memory to device and module  */
   if ((*res) == ChanConsts_opened)
     e = 0;
   else

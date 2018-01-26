@@ -166,6 +166,21 @@ static void Init (void);
 
 static void look (IOLink_DeviceTablePtr d, char *ch, IOConsts_ReadResults *r)
 {
+  /* This file is part of GNU Modula-2.
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA  */
   RTgen_doLook (dev, d, ch, r);
 }
 
@@ -349,6 +364,16 @@ void SeqFile_OpenWrite (SeqFile_ChanId *cid, char *name_, unsigned int _name_hig
   /* make a local copy of each unbounded array.  */
   memcpy (name, name_, _name_high+1);
 
+  /* 
+   Attempts to obtain and open a channel connected to a stored rewindable
+   file of the given name.  The write flag is implied; without the raw
+   flag, text is implied.  If successful, assigns to cid the identity of
+   the opened channel, assigns the value opened to res, and selects
+   output mode, with the write position at the start of the file (i.e.
+   the file is of zero length).  If a channel cannot be opened as required,
+   the value of res indicates the reason, and cid identifies the
+   invalid channel.
+  */
   flags |= (1 << (ChanConsts_writeFlag-ChanConsts_readFlag ));
   if (! ((((1 << (ChanConsts_rawFlag-ChanConsts_readFlag)) & (flags)) != 0)))
     flags |= (1 << (ChanConsts_textFlag-ChanConsts_readFlag ));
@@ -394,6 +419,15 @@ void SeqFile_OpenRead (SeqFile_ChanId *cid, char *name_, unsigned int _name_high
   /* make a local copy of each unbounded array.  */
   memcpy (name, name_, _name_high+1);
 
+  /* 
+   Attempts to obtain and open a channel connected to a stored rewindable
+   file of the given name.  The read and old flags are implied; without
+   the raw flag, text is implied.  If successful, assigns to cid the
+   identity of the opened channel, assigns the value opened to res, and
+   selects input mode, with the read position corresponding to the start
+   of the file.  If a channel cannot be opened as required, the value of
+   res indicates the reason, and cid identifies the invalid channel.
+  */
   flags = (flags|ChanConsts_read)|ChanConsts_old;
   if (! ((((1 << (ChanConsts_rawFlag-ChanConsts_readFlag)) & (flags)) != 0)))
     flags |= (1 << (ChanConsts_textFlag-ChanConsts_readFlag ));

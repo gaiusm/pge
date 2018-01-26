@@ -699,7 +699,7 @@ static void invalidloc (void * a)
 
 static void function (void * a)
 {
-  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_functionException), "../git-pge/m2/RTExceptions.mod", 653, 9, "function", "... function ... ");
+  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_functionException), "../git-pge/m2/RTExceptions.mod", 653, 9, "function", "... function ... ");  /* --fixme-- what has happened ?  */
 }
 
 
@@ -936,8 +936,8 @@ RTExceptions_EHBlock RTExceptions_InitExceptionBlock (void)
 
   e = New ();
   e->number = UINT_MAX;
-  e->handlers = NewHandler ();
-  e->handlers->right = e->handlers;
+  e->handlers = NewHandler ();  /* add the dummy onto the head  */
+  e->handlers->right = e->handlers;  /* add the dummy onto the head  */
   e->handlers->left = e->handlers;
   e->right = e;
   return e;
@@ -971,9 +971,12 @@ void RTExceptions_PushHandler (RTExceptions_EHBlock e, unsigned int number, RTEx
     i = InitHandler (NewHandler (), (Handler) NULL, (Handler) NULL, (Handler) NULL, number, p);
   else
     {
+      /* remove, h,  */
       SubHandler (h);
+      /* stack it onto a new handler  */
       i = InitHandler (NewHandler (), (Handler) NULL, (Handler) NULL, h, number, p);
     }
+  /* add new handler  */
   AddHandler (e, i);
 }
 
@@ -991,6 +994,7 @@ void RTExceptions_PopHandler (RTExceptions_EHBlock e, unsigned int number)
   h = findHandler (e, number);
   if (h != NULL)
     {
+      /* remove, h,  */
       SubHandler (h);
       if (h->stack != NULL)
         AddHandler (e, h->stack);

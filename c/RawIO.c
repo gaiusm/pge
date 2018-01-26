@@ -101,6 +101,10 @@ void RawIO_Write (IOChan_ChanId cid, unsigned char *from_, unsigned int _from_hi
   /* make a local copy of each unbounded array.  */
   memcpy (from, from_, _from_high+1);
 
+  /* 
+   printf ("in RawIO.mod ");
+   memDump (SYSTEM.ADR(from), HIGH(from)+1) ;
+  */
   IOChan_RawWrite (cid, &from, (_from_high)+1);
 }
 

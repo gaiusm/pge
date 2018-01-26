@@ -127,9 +127,10 @@ unsigned int StrLib_StrLess (char *a_, unsigned int _a_high, char *b_, unsigned 
         return TRUE;
       else if (a[i] > b[i])
         return FALSE;
+      /* must be equal, move on to next character  */
       i += 1;
     }
-  return Higha < Highb;
+  return Higha < Highb;  /* substrings are equal so we go on length  */
 }
 
 unsigned int StrLib_StrEqual (char *a_, unsigned int _a_high, char *b_, unsigned int _b_high)

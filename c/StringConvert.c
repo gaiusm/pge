@@ -683,6 +683,7 @@ static DynamicStrings_String doDecimalPlaces (DynamicStrings_String s, unsigned 
 
   l = DynamicStrings_Length (s);
   i = 0;
+  /* remove '.'  */
   point = DynamicStrings_Index (s, '.', 0);
   if (point == 0)
     s = DynamicStrings_Slice (DynamicStrings_Mark (s), 1, 0);
@@ -695,7 +696,9 @@ static DynamicStrings_String doDecimalPlaces (DynamicStrings_String s, unsigned 
   if (l > 0)
     {
       while ((i < l) && ((DynamicStrings_char (s, i)) == '0'))
+        /* skip over leading zeros  */
         i += 1;
+      /* was the string full of zeros?  */
       if ((i == l) && ((DynamicStrings_char (s, i-1)) == '0'))
         {
           s = DynamicStrings_KillString (s);
@@ -703,10 +706,11 @@ static DynamicStrings_String doDecimalPlaces (DynamicStrings_String s, unsigned 
           return s;
         }
     }
+  /* insert leading zero  */
   s = DynamicStrings_ConCat (DynamicStrings_InitStringChar ('0'), DynamicStrings_Mark (s));
-  point += 1;
-  l = DynamicStrings_Length (s);
-  i = point;
+  point += 1;  /* and move point position to correct place  */
+  l = DynamicStrings_Length (s);  /* update new length  */
+  i = point;  /* update new length  */
   while ((n > 1) && (i < l))
     {
       n -= 1;
@@ -730,6 +734,7 @@ static DynamicStrings_String doDecimalPlaces (DynamicStrings_String s, unsigned 
         s = carryOne (DynamicStrings_Mark (s), (unsigned int) i);
       tenths = DynamicStrings_KillString (tenths);
     }
+  /* check whether we need to remove the leading zero  */
   if ((DynamicStrings_char (s, 0)) == '0')
     {
       s = DynamicStrings_Slice (DynamicStrings_Mark (s), 1, 0);
@@ -743,6 +748,7 @@ static DynamicStrings_String doDecimalPlaces (DynamicStrings_String s, unsigned 
       if (l < point)
         s = DynamicStrings_ConCat (s, DynamicStrings_Mult (DynamicStrings_Mark (DynamicStrings_InitStringChar ('0')), (unsigned int) point-l));
     }
+  /* re-insert the point  */
   if (point >= 0)
     {
       /* avoid gcc warning by using compound statement even if not strictly necessary.  */
@@ -773,6 +779,7 @@ static DynamicStrings_String doSigFig (DynamicStrings_String s, unsigned int n)
 
   l = DynamicStrings_Length (s);
   i = 0;
+  /* remove '.'  */
   point = DynamicStrings_Index (s, '.', 0);
   if (point >= 0)
     if (point == 0)
@@ -788,20 +795,24 @@ static DynamicStrings_String doSigFig (DynamicStrings_String s, unsigned int n)
   if (l > 0)
     {
       while ((i < l) && ((DynamicStrings_char (s, i)) == '0'))
+        /* skip over leading zeros  */
         i += 1;
+      /* was the string full of zeros?  */
       if ((i == l) && ((DynamicStrings_char (s, i-1)) == '0'))
         {
+          /* truncate string  */
           s = DynamicStrings_Slice (DynamicStrings_Mark (s), 0, (int) n);
           i = n;
         }
     }
-  z = i;
-  if (z == 0)
+  /* add a leading zero in case we need to overflow the carry  */
+  z = i;  /* remember where we inserted zero  */
+  if (z == 0)  /* remember where we inserted zero  */
     s = DynamicStrings_ConCat (DynamicStrings_InitStringChar ('0'), DynamicStrings_Mark (s));
   else
     s = DynamicStrings_ConCat (DynamicStrings_ConCatChar (DynamicStrings_Slice (DynamicStrings_Mark (s), 0, i), '0'), DynamicStrings_Mark (DynamicStrings_Slice (DynamicStrings_Mark (s), i, 0)));
-  n += 1;
-  l = DynamicStrings_Length (s);
+  n += 1;  /* and increase the number of sig figs needed  */
+  l = DynamicStrings_Length (s);  /* and increase the number of sig figs needed  */
   while ((n > 1) && (i < l))
     {
       n -= 1;
@@ -825,6 +836,7 @@ static DynamicStrings_String doSigFig (DynamicStrings_String s, unsigned int n)
         s = carryOne (DynamicStrings_Mark (s), (unsigned int) i);
       tenths = DynamicStrings_KillString (tenths);
     }
+  /* check whether we need to remove the leading zero  */
   if ((DynamicStrings_char (s, z)) == '0')
     {
       if (z == 0)
@@ -842,6 +854,7 @@ static DynamicStrings_String doSigFig (DynamicStrings_String s, unsigned int n)
       if (l < point)
         s = DynamicStrings_ConCat (s, DynamicStrings_Mult (DynamicStrings_Mark (DynamicStrings_InitStringChar ('0')), (unsigned int) point-l));
     }
+  /* re-insert the point  */
   if (point >= 0)
     {
       /* avoid gcc warning by using compound statement even if not strictly necessary.  */
@@ -904,6 +917,7 @@ DynamicStrings_String StringConvert_IntegerToString (int i, unsigned int width, 
     {
       if (i == (INT_MIN))
         {
+          /* remember that -15 MOD 4 = 1 in Modula-2  */
           c = ((unsigned int ) (abs (i+1)))+1;
           if (width > 0)
             return DynamicStrings_ConCat (StringConvert_IntegerToString (-((int ) (c / base)), width-1, padding, sign, base, lower), DynamicStrings_Mark (StringConvert_IntegerToString ((int) c % base, 0, ' ', FALSE, base, lower)));
@@ -980,8 +994,8 @@ int StringConvert_StringToInteger (DynamicStrings_String s, unsigned int base, u
   unsigned int c;
   unsigned int negative;
 
-  s = DynamicStrings_RemoveWhitePrefix (s);
-  l = DynamicStrings_Length (s);
+  s = DynamicStrings_RemoveWhitePrefix (s);  /* returns a new string, s  */
+  l = DynamicStrings_Length (s);  /* returns a new string, s  */
   c = 0;
   n = 0;
   negative = FALSE;
@@ -989,6 +1003,7 @@ int StringConvert_StringToInteger (DynamicStrings_String s, unsigned int base, u
     {
       while (((DynamicStrings_char (s, (int) n)) == '-') || ((DynamicStrings_char (s, (int) n)) == '+'))
         {
+          /* parse leading + and -  */
           if ((DynamicStrings_char (s, (int) n)) == '-')
             negative = ! negative;
           n += 1;
@@ -1021,13 +1036,14 @@ unsigned int StringConvert_StringToCardinal (DynamicStrings_String s, unsigned i
   unsigned int l;
   unsigned int c;
 
-  s = DynamicStrings_RemoveWhitePrefix (s);
-  l = DynamicStrings_Length (s);
+  s = DynamicStrings_RemoveWhitePrefix (s);  /* returns a new string, s  */
+  l = DynamicStrings_Length (s);  /* returns a new string, s  */
   c = 0;
   n = 0;
   if (n < l)
     {
       while ((DynamicStrings_char (s, (int) n)) == '+')
+        /* parse leading +  */
         n += 1;
       while ((n < l) && ((IsDecimalDigitValid (DynamicStrings_char (s, (int) n), base, &c)) || (IsHexidecimalDigitValid (DynamicStrings_char (s, (int) n), base, &c))))
         {
@@ -1061,6 +1077,8 @@ DynamicStrings_String StringConvert_LongIntegerToString (long int i, unsigned in
     {
       if (i == (LONG_MIN))
         {
+          /* remember that -15 MOD 4 is 1 in Modula-2, and although ABS(MIN(LONGINT)+1)
+            is very likely MAX(LONGINT), it is safer not to assume this is the case  */
           c = ((long unsigned int ) (labs (i+1)))+1;
           if (width > 0)
             return DynamicStrings_ConCat (StringConvert_LongIntegerToString (-((long int ) (c / ((long unsigned int ) (base)))), width-1, padding, sign, base, lower), DynamicStrings_Mark (StringConvert_LongIntegerToString ((long int) c % ((long unsigned int ) (base)), 0, ' ', FALSE, base, lower)));
@@ -1107,8 +1125,8 @@ long int StringConvert_StringToLongInteger (DynamicStrings_String s, unsigned in
   long unsigned int c;
   unsigned int negative;
 
-  s = DynamicStrings_RemoveWhitePrefix (s);
-  l = DynamicStrings_Length (s);
+  s = DynamicStrings_RemoveWhitePrefix (s);  /* returns a new string, s  */
+  l = DynamicStrings_Length (s);  /* returns a new string, s  */
   c = 0;
   n = 0;
   negative = FALSE;
@@ -1116,6 +1134,7 @@ long int StringConvert_StringToLongInteger (DynamicStrings_String s, unsigned in
     {
       while (((DynamicStrings_char (s, (int) n)) == '-') || ((DynamicStrings_char (s, (int) n)) == '+'))
         {
+          /* parse leading + and -  */
           if ((DynamicStrings_char (s, (int) n)) == '-')
             negative = ! negative;
           n += 1;
@@ -1180,13 +1199,14 @@ long unsigned int StringConvert_StringToLongCardinal (DynamicStrings_String s, u
   unsigned int l;
   long unsigned int c;
 
-  s = DynamicStrings_RemoveWhitePrefix (s);
-  l = DynamicStrings_Length (s);
+  s = DynamicStrings_RemoveWhitePrefix (s);  /* returns a new string, s  */
+  l = DynamicStrings_Length (s);  /* returns a new string, s  */
   c = 0;
   n = 0;
   if (n < l)
     {
       while ((DynamicStrings_char (s, (int) n)) == '+')
+        /* parse leading +  */
         n += 1;
       while ((n < l) && ((IsDecimalDigitValidLong (DynamicStrings_char (s, (int) n), base, &c)) || (IsHexidecimalDigitValidLong (DynamicStrings_char (s, (int) n), base, &c))))
         {
@@ -1245,13 +1265,14 @@ short unsigned int StringConvert_StringToShortCardinal (DynamicStrings_String s,
   unsigned int l;
   short unsigned int c;
 
-  s = DynamicStrings_RemoveWhitePrefix (s);
-  l = DynamicStrings_Length (s);
+  s = DynamicStrings_RemoveWhitePrefix (s);  /* returns a new string, s  */
+  l = DynamicStrings_Length (s);  /* returns a new string, s  */
   c = 0;
   n = 0;
   if (n < l)
     {
       while ((DynamicStrings_char (s, (int) n)) == '+')
+        /* parse leading +  */
         n += 1;
       while ((n < l) && ((IsDecimalDigitValidShort (DynamicStrings_char (s, (int) n), base, &c)) || (IsHexidecimalDigitValidShort (DynamicStrings_char (s, (int) n), base, &c))))
         {
@@ -1389,8 +1410,8 @@ long double StringConvert_StringToLongreal (DynamicStrings_String s, unsigned in
   unsigned int error;
   long double value;
 
-  s = DynamicStrings_RemoveWhitePrefix (s);
-  value = ldtoa_strtold (DynamicStrings_string (s), &error);
+  s = DynamicStrings_RemoveWhitePrefix (s);  /* new string is created  */
+  value = ldtoa_strtold (DynamicStrings_string (s), &error);  /* new string is created  */
   s = DynamicStrings_KillString (s);
   (*found) = ! error;
   return value;
@@ -1479,6 +1500,7 @@ DynamicStrings_String StringConvert_LongrealToString (long double x, unsigned in
             sign = FALSE;
           }
         else
+          /* minus 1 because all results will include a '.'  */
           s = DynamicStrings_Slice (DynamicStrings_Mark (StringConvert_ToDecimalPlaces (s, FractionWidth)), 0, (int) TotalWidth);
       else
         if (sign)
@@ -1488,6 +1510,7 @@ DynamicStrings_String StringConvert_LongrealToString (long double x, unsigned in
             sign = FALSE;
           }
         else
+          /* minus 1 because all results will include a '.'  */
           s = StringConvert_ToDecimalPlaces (s, FractionWidth);
     }
   if ((DynamicStrings_Length (s)) < TotalWidth)
@@ -1550,6 +1573,7 @@ DynamicStrings_String StringConvert_ToSigFig (DynamicStrings_String s, unsigned 
   else
     poTen = point;
   s = doSigFig (s, n);
+  /* if the last character is '.' remove it  */
   if (((DynamicStrings_Length (s)) > 0) && ((DynamicStrings_char (s, -1)) == '.'))
     return DynamicStrings_Slice (DynamicStrings_Mark (s), 0, -1);
   else
@@ -1595,6 +1619,7 @@ DynamicStrings_String StringConvert_ToDecimalPlaces (DynamicStrings_String s, un
         return s;
     }
   s = doDecimalPlaces (s, n);
+  /* if the last character is '.' remove it  */
   if (((DynamicStrings_Length (s)) > 0) && ((DynamicStrings_char (s, -1)) == '.'))
     return DynamicStrings_Slice (DynamicStrings_Mark (s), 0, -1);
   else

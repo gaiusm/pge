@@ -82,12 +82,16 @@ static void dropBall (deviceIf_Colour c, Fractions_Fract x);
 
 static void placeBoundary (macroObjects_Macro m)
 {
+  /* left edge  */
   m = macroObjects_moveTo (m, Points_initPoint (Fractions_zero (), Fractions_zero ()));
   m = macroObjects_rectangle (m, TRUE, Fractions_zero (), dark, Fractions_initFract (0, 1, 100), Fractions_one ());
+  /* right edge  */
   m = macroObjects_moveTo (m, Points_initPoint (Fractions_initFract (0, 99, 100), Fractions_zero ()));
   m = macroObjects_rectangle (m, TRUE, Fractions_zero (), dark, Fractions_initFract (0, 1, 100), Fractions_one ());
+  /* bot edge  */
   m = macroObjects_moveTo (m, Points_initPoint (Fractions_zero (), Fractions_zero ()));
   m = macroObjects_rectangle (m, TRUE, Fractions_zero (), dark, Fractions_one (), Fractions_initFract (0, 1, 100));
+  /* top edge  */
   m = macroObjects_moveTo (m, Points_initPoint (Fractions_zero (), Fractions_initFract (0, 99, 100)));
   m = macroObjects_rectangle (m, TRUE, Fractions_zero (), dark, Fractions_one (), Fractions_initFract (0, 1, 100));
 }
@@ -125,6 +129,7 @@ static void dropBox (deviceIf_Colour c, Fractions_Fract x)
   macroObjects_Macro m;
 
   m = macroObjects_initMacro ();
+  /* drop the ball at the top of stairs with a leftwards velocity  */
   m = macroObjects_moveTo (m, Points_initPoint (x, Fractions_initFract (0, 37, 40)));
   m = macroObjects_rectangle (m, TRUE, Fractions_zero (), c, Fractions_initFract (0, 1, 20), Fractions_initFract (0, 1, 20));
   m = macroObjects_rootMacro (m);
@@ -144,6 +149,7 @@ static void dropBall (deviceIf_Colour c, Fractions_Fract x)
   Fractions_Fract size;
 
   m = macroObjects_initMacro ();
+  /* drop the ball at the top of stairs with a leftwards velocity  */
   m = macroObjects_moveTo (m, Points_initPoint (x, Fractions_initFract (0, 37, 40)));
   size = Fractions_initFract (0, 1, 31);
   m = macroObjects_circle (m, TRUE, Fractions_zero (), c, size);
@@ -163,6 +169,7 @@ void _M2_bagatelle_init (__attribute__((unused)) int argc, __attribute__((unused
   dropBall ((deviceIf_Colour) deviceIf_yellow (), Fractions_initFract (0, 17, 20));
   dropBall ((deviceIf_Colour) deviceIf_purple (), Fractions_initFract (0, 14, 20));
   dropBall ((deviceIf_Colour) deviceIf_red (), Fractions_initFract (0, 11, 20));
+  /* dropBall(green(), initFract(0, 8, 20)) ;  */
   twoDsim_simulateFor (25.0);
 }
 

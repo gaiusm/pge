@@ -631,6 +631,7 @@ static double check_range (double r, char *function_, unsigned int _function_hig
   else
     {
       libc_printf ((char *) "%s: parameter value %s is out of range (%g) (using 0.0)\\n", 57, &function, &param, r);
+      /* THROW (ORD (ValueOutOfRange))  */
       return 0.0;
     }
 }
@@ -642,6 +643,7 @@ static double check_range (double r, char *function_, unsigned int _function_hig
 
 static void * nofree (void * a)
 {
+  /* do nothing  */
   return a;
 }
 

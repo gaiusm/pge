@@ -40,6 +40,7 @@ unsigned int EXCEPTIONS_IsExceptionalExecution (void);
 
 void EXCEPTIONS_AllocateSource (EXCEPTIONS_ExceptionSource *newSource)
 {
+  /* Allocates a unique value of type ExceptionSource  */
   Storage_ALLOCATE ((void **) &(*newSource), sizeof (_T1));
   (*newSource)->eh = RTExceptions_InitExceptionBlock ();
 }
@@ -51,14 +52,22 @@ void EXCEPTIONS_RAISE (EXCEPTIONS_ExceptionSource source, EXCEPTIONS_ExceptionNu
   /* make a local copy of each unbounded array.  */
   memcpy (message, message_, _message_high+1);
 
+  /* Associates the given values of source, number and message with
+     the current context and raises an exception.
+  */
   RTExceptions_SetExceptionSource ((void *) source);
   RTExceptions_SetExceptionBlock (source->eh);
   RTExceptions_Raise ((unsigned int) number, "/home/gaius/GM2/graft-6.4.0/gcc-6.4.0/gcc/gm2/gm2-libs-iso/EXCEPTIONS.mod", 57, 3, "RAISE", &message);
+  /* we should never reach here as Raise should jump to the exception handler  */
   M2RTS_Halt ((char *) "/home/gaius/GM2/graft-6.4.0/gcc-6.4.0/gcc/gm2/gm2-libs-iso/EXCEPTIONS.mod", 73, 59, (char *) "RAISE", 5, (char *) "should never return from RTException.Raise", 42);
 }
 
 EXCEPTIONS_ExceptionNumber EXCEPTIONS_CurrentNumber (EXCEPTIONS_ExceptionSource source)
 {
+  /* If the current coroutine is in the exceptional execution state
+     because of the raising of an exception from source, returns the
+     corresponding number, and otherwise raises an exception.
+  */
   if (RTExceptions_IsInExceptionState ())
     return RTExceptions_GetNumber (source->eh);
   else
@@ -72,6 +81,11 @@ void EXCEPTIONS_GetMessage (char *text, unsigned int _text_high)
   unsigned int h;
   char * p;
 
+  /* If the current coroutine is in the exceptional execution state,
+     returns the possibly truncated string associated with the
+     current context.  Otherwise, in normal execution state,
+     returns the empty string.
+  */
   if (RTExceptions_IsInExceptionState ())
     {
       h = _text_high;
@@ -92,11 +106,19 @@ void EXCEPTIONS_GetMessage (char *text, unsigned int _text_high)
 
 unsigned int EXCEPTIONS_IsCurrentSource (EXCEPTIONS_ExceptionSource source)
 {
+  /* If the current coroutine is in the exceptional execution state
+     because of the raising of an exception from source, returns TRUE,
+     and otherwise returns FALSE.
+  */
   return (RTExceptions_IsInExceptionState ()) && (source == (RTExceptions_GetExceptionSource ()));
 }
 
 unsigned int EXCEPTIONS_IsExceptionalExecution (void)
 {
+  /* If the current coroutine is in the exceptional execution state
+     because of the raising of an exception, returns TRUE,
+     and otherwise returns FALSE.
+  */
   return RTExceptions_IsInExceptionState ();
 }
 

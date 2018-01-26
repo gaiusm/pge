@@ -401,6 +401,14 @@ void COROUTINES_NEWCOROUTINE (PROC procBody, void * workspace, unsigned int size
   void * ctx;
   ThreadProcess tp;
 
+  /* Creates a new coroutine whose body is given by procBody, and
+     returns the identity of the coroutine in cr. workspace is a
+     pointer to the work space allocated to the coroutine; size
+     specifies the size of this workspace in terms of SYSTEM.LOC.
+
+     The optarg, initProtection, may contain a single parameter
+     which specifies the initial protection level of the coroutine.
+  */
   localInit ();
   tp = (ThreadProcess) {(ThreadProcess_t) procBody.proc};
   if ((pth_pth_uctx_create (&ctx)) == 0)
@@ -425,6 +433,9 @@ void COROUTINES_NEWCOROUTINE (PROC procBody, void * workspace, unsigned int size
 
 void COROUTINES_TRANSFER (COROUTINES_COROUTINE *from, COROUTINES_COROUTINE to)
 {
+  /* Returns the identity of the calling coroutine in from, and
+     transfers control to the coroutine specified by to.
+  */
   localInit ();
   (*from) = currentCoRoutine;
   if (to->context == (*from)->context)
@@ -447,6 +458,13 @@ void COROUTINES_IOTRANSFER (COROUTINES_COROUTINE *from, COROUTINES_COROUTINE to)
 {
   SourceList l;
 
+  /* Returns the identity of the calling coroutine in from and
+     transfers control to the coroutine specified by to.  On
+     occurrence of an interrupt, associated with the caller, control
+     is transferred back to the caller, and the identity of the
+     interrupted coroutine is returned in from.  The calling coroutine
+     must be associated with a source of interrupts.
+  */
   localInit ();
   l = currentCoRoutine->attached;
   if (l == NULL)
@@ -474,6 +492,8 @@ void COROUTINES_ATTACH (COROUTINES_INTERRUPTSOURCE source)
 {
   SourceList l;
 
+  /* Associates the specified source of interrupts with the calling
+     coroutine.  */
   localInit ();
   l = currentCoRoutine->attached;
   while (l != NULL)
@@ -492,6 +512,8 @@ void COROUTINES_DETACH (COROUTINES_INTERRUPTSOURCE source)
   SourceList l;
   SourceList m;
 
+  /* Dissociates the specified source of interrupts from the calling
+     coroutine.  */
   localInit ();
   l = currentCoRoutine->attached;
   m = l;
@@ -520,24 +542,33 @@ void COROUTINES_DETACH (COROUTINES_INTERRUPTSOURCE source)
 
 unsigned int COROUTINES_IsATTACHED (COROUTINES_INTERRUPTSOURCE source)
 {
+  /* Returns TRUE if and only if the specified source of interrupts is
+     currently associated with a coroutine; otherwise returns FALSE.
+  */
   localInit ();
   return (getAttached (source)) != NULL;
 }
 
 COROUTINES_COROUTINE COROUTINES_HANDLER (COROUTINES_INTERRUPTSOURCE source)
 {
+  /* Returns the coroutine, if any, that is associated with the source
+     of interrupts. The result is undefined if IsATTACHED(source) =
+     FALSE.
+  */
   localInit ();
   return getAttached (source);
 }
 
 COROUTINES_COROUTINE COROUTINES_CURRENT (void)
 {
+  /* Returns the identity of the calling coroutine.  */
   localInit ();
   return currentCoRoutine;
 }
 
 void COROUTINES_LISTEN (COROUTINES_PROTECTION p)
 {
+  /* Momentarily changes the protection of the calling coroutine to p.  */
   localInit ();
   RTint_Listen (FALSE, (RTint_DespatchVector) {(RTint_DespatchVector_t) IOTransferHandler}, (unsigned int) COROUTINES_UnassignedPriority);
 }
@@ -549,6 +580,7 @@ void COROUTINES_LISTEN (COROUTINES_PROTECTION p)
 
 COROUTINES_PROTECTION COROUTINES_PROT (void)
 {
+  /* Returns the protection of the calling coroutine.  */
   localInit ();
   return currentCoRoutine->protection;
 }

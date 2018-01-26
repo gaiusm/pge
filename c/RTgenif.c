@@ -255,6 +255,9 @@ RTgenif_GenDevIF RTgenif_InitGenDevIF (IOLink_DeviceId d, RTgenif_readchar rc, R
 {
   RTgenif_GenDevIF g;
 
+  /* 
+   InitGenDev - initializes a generic device.
+  */
   Storage_ALLOCATE ((void **) &g, sizeof (_T1));
   g->did = d;
   g->dorc = rc;

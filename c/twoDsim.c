@@ -2466,6 +2466,7 @@ static void apply_impulse_to_circle (Object movable, double x, double y, double 
   coord_Coord unitCollision;
   coord_Coord relativeVelocity;
 
+  /* gdbif.sleepSpin ;  */
   impulsePos.x = movable->c.pos.x;
   impulsePos.y = movable->c.pos.y;
   if (roots_nearZero (x))
@@ -2508,12 +2509,22 @@ static void apply_impulse_to_circle (Object movable, double x, double y, double 
         impulsePos.y = impulsePos.y+((libm_sin (theta))*movable->c.r);
       }
   c = coord_initCoord (movable->c.pos.x-impulsePos.x, movable->c.pos.y-impulsePos.y);
+  /* 
+   frameNote ;
+   drawFrame (NIL) ;
+   debugCircle (impulsePos, 0.02, white ()) ;
+  */
   r = libm_sqrt ((c.x*c.x)+(c.y*c.y));
   unitCollision = coord_initCoord (c.x/r, c.y/r);
   relativeVelocity = coord_initCoord (movable->vx, movable->vy);
+  /* 
+   debugLine (impulsePos, addCoord (impulsePos, c), yellow ()) ;
+   flipBuffer ;
+  */
   contactVel = coord_dotProd (relativeVelocity, c);
   if (contactVel < 0.0)
     {
+      /* moving towards.  */
       j = (-((1.0+1.0)*((relativeVelocity.x*unitCollision.x)+(relativeVelocity.y*unitCollision.y))))/(((unitCollision.x*unitCollision.x)+(unitCollision.y*unitCollision.y))*(1.0/movable->c.mass));
       movable->vx = movable->vx+((j*unitCollision.x)/movable->c.mass);
       movable->vy = movable->vy+((j*unitCollision.y)/movable->c.mass);
@@ -2550,11 +2561,13 @@ static unsigned int doCheckInterpenCircleCircle (Object fixed, Object movable)
     {
       if (trace)
         libc_printf ((char *) "interpen found two moving circles interpenetrating %d, %d   h0 = %g, h1 = %g\\n", 78, fixed->id, movable->id, h0, h1);
+      /* adjust movable circle.  */
       v = coord_scaleCoord (coord_normaliseCoord (d), h0);
       movable->c.pos = coord_addCoord (fixed->c.pos, v);
+      /* checkStationary (movable) ;  */
       movable->vx = movable->vx+((v.x*(h0-h1))/h0);
-      movable->vy = movable->vy+((v.y*(h0-h1))/h0);
-      movable->interpen += 1;
+      movable->vy = movable->vy+((v.y*(h0-h1))/h0);  /* give it a little push as well.  */
+      movable->interpen += 1;  /* give it a little push as well.  */
       return movable->interpen;
     }
   return 0;
@@ -2579,10 +2592,12 @@ static unsigned int doCheckInterpenCircleCircleMoving (Object c1, Object c2)
     {
       if (trace)
         libc_printf ((char *) "interpen found two moving circles interpenetrating %d, %d   h0 = %g, h1 = %g\\n", 78, c1->id, c2->id, h0, h1);
+      /* we should really adjust the circle with the lowest interpen value.  */
       v = coord_scaleCoord (coord_normaliseCoord (d), h0);
       c2->c.pos = coord_addCoord (c1->c.pos, v);
       c2->vx = c2->vx+((v.x*(h0-h1))/h0);
-      c2->vy = c2->vy+((v.y*(h0-h1))/h0);
+      c2->vy = c2->vy+((v.y*(h0-h1))/h0);  /* give it a little push as well.  */
+      /* checkStationary (c1) ;  */
       c2->interpen += 1;
       return c2->interpen;
     }
@@ -2618,14 +2633,20 @@ static unsigned int distanceLinePoint (coord_Coord c, coord_Coord p1, coord_Coor
   lengthSq = (sqr (C))+(sqr (D));
   normalised = -1.0;
   if (! (roots_nearZero (lengthSq)))
+    /* the dot product divided by length squared
+         gives you the projection distance from p1.
+         This is the fraction of the line that the point c
+         is the closest.  */
     normalised = dot/lengthSq;
   if (normalised < 0.0)
     {
+      /* misses line.  */
       (*p3) = p1;
       return FALSE;
     }
   else if (normalised > 1.0)
     {
+      /* misses line.  */
       (*p3) = p2;
       return FALSE;
     }
@@ -2679,21 +2700,63 @@ static unsigned int doCheckInterpenCirclePolygon (Object iptr, Object jptr)
     {
       getPolygonLine (i, jptr, &p1, &p2);
       if (((distanceLinePoint (c, p1, p2, &p3, &d)) && (! (roots_nearZero (r-d)))) && (r > d))
+        /* circle collides with line and point, p3, is the closest
+            point on line, p1->p2 to, c.  */
         if (! iptr->fixed)
           {
+            /* circle is not fixed, move it.  */
             if (roots_nearZero (d))
               {
                 /* avoid dangling else.  */
+                /* 
+               v := subCoord (jptr^.p.cOfG, p3) ;
+	       d := lengthCoord (v) ;
+               v := scaleCoord (v, (r+d)/d) ;
+               iptr^.c.pos := addCoord (jptr^.p.cOfG, v) ;
+  */
                 if (trace)
                   libc_printf ((char *) "distance is nearzero, seen collision between circle and line, new position %g, %g\\n", 83, iptr->c.pos.x, iptr->c.pos.y);
               }
             else
               {
+                /* 
+               printf ("line p1 = %g, %g -> %g, %g and point %g, %g nearest point %g, %g
+                ",
+                       p1.x, p1.y, p2.x, p2.y, c.x, c.y, p3.x, p3.y) ;
+               printf ("seen collision between circle and line, adjusting %d
+                ",
+                       iptr^.id) ;
+               printf ("radius = %g, distance = %g
+                ", r, d) ;
+               printf ("seen collision between circle and line, old position %g, %g
+                ",
+                       iptr^.c.pos.x, iptr^.c.pos.y) ;
+  */
                 v = coord_subCoord (c, p3);
                 v = checkZeroCoord (coord_scaleCoord (v, r/d));
+                /* 
+               printf ("v = %g, %g   p3 = %g, %g
+                ", v.x, v.y, p3.x, p3.y) ;
+  */
                 iptr->c.pos = checkZeroCoord (coord_addCoord (p3, v));
                 checkStationary (iptr);
               }
+            /* 
+               IF iptr^.stationary
+               THEN
+                  printf ("seen collision between circle and line, new position %g, %g  (now stationary)
+            ",
+                           iptr^.c.pos.x, iptr^.c.pos.y)
+               ELSE
+                  
+                  iptr^.vx := iptr^.vx - v.x ;
+                  iptr^.vy := iptr^.vy - v.y ;   give it a little push as well.  
+		  
+                  printf ("seen collision between circle and line, new position %g, %g, velocity %g, %g  (pushing it by: %g, %g)
+            ",
+                           iptr^.c.pos.x, iptr^.c.pos.y, iptr^.vx, iptr^.vy, v.x, v.y)
+               END
+  */
             iptr->c.pos = checkLimits (iptr->c.pos, r);
             iptr->interpen += 1;
             return iptr->interpen;
@@ -2856,7 +2919,9 @@ static void checkInterpenPolygon (void)
 
 static void checkInterpen (void)
 {
+  /* firstly we move circles away from polygons.  */
   checkInterpenPolygon ();
+  /* then we move circles away from circles.  */
   checkInterpenCircle ();
 }
 
@@ -2879,6 +2944,7 @@ static void resetStationary (void)
       if (objectExists (iptr))
         if (iptr->stationary)
           {
+            /* unset stationary, but ensure velocity is zero.  */
             iptr->vx = 0.0;
             iptr->vy = 0.0;
             iptr->stationary = FALSE;
@@ -2999,6 +3065,7 @@ static void calcSpringFixed (double k, double d, double l0, double l1, unsigned 
   movingp = Indexing_GetIndice (objects, moving);
   getObjectValues (fixedp, &fvx, &fvy, &fax, &fay);
   getObjectValues (movingp, &mvx, &mvy, &max, &may);
+  /* gdbif.sleepSpin ;  */
   if (trace)
     {
       libc_printf ((char *) "fvx, fvy = %g, %g   ", 20, fvx, fvy);
@@ -3068,6 +3135,7 @@ static void calcSpringMoving (double k, double d, double l0, double l1, unsigned
   o2p = Indexing_GetIndice (objects, o2);
   getObjectValues (o1p, &fvx, &fvy, &fax, &fay);
   getObjectValues (o2p, &mvx, &mvy, &max, &may);
+  /* gdbif.sleepSpin ;  */
   if (trace)
     {
       libc_printf ((char *) "fvx, fvy = %g, %g   ", 20, fvx, fvy);
@@ -3108,6 +3176,7 @@ static void doCalcSpringForce (unsigned int id, Object idp)
       case springOb:
         id1 = idp->s.id1;
         id2 = idp->s.id2;
+        /* calculate actual length of spring now.  */
         if ((isFixed (id1)) && (! (isFixed (id2))))
           calcSpringFixed (idp->s.k, idp->s.d, idp->s.l0, idp->s.l1, id, id1, id2);
         else if ((isFixed (id2)) && (! (isFixed (id1))))
@@ -3235,6 +3304,7 @@ static void doApplyForce (unsigned int i, Object iptr)
       }
   else if (isSpringObject (i))
     {
+      /* work out the acceleration due to the spring on each attached object.  */
       iptr->s.a1 = doApplySpringForce (iptr->s.id1, iptr->s.f1);
       iptr->s.a2 = doApplySpringForce (iptr->s.id2, iptr->s.f2);
     }
@@ -3277,16 +3347,20 @@ static void calcSpringEnergy (unsigned int i)
 
   Assert (isSpringObject (i), 1952);
   iptr = Indexing_GetIndice (objects, i);
-  iptr->ke = 0.0;
-  iptr->pe = (iptr->s.k*(sqr (iptr->s.l0-iptr->s.l1)))/2.0;
+  iptr->ke = 0.0;  /* no kinetic energy as a spring has no mass.  */
+  iptr->pe = (iptr->s.k*(sqr (iptr->s.l0-iptr->s.l1)))/2.0;  /* no kinetic energy as a spring has no mass.  */
   id1ptr = Indexing_GetIndice (objects, iptr->s.id1);
   id2ptr = Indexing_GetIndice (objects, iptr->s.id2);
+  /* give this to the two objects attached to the spring.  */
   if (id1ptr->fixed && ! id2ptr->fixed)
+    /* give it all to id2.  */
     id2ptr->pe = id2ptr->pe+iptr->pe;
   else if (id2ptr->fixed && ! id1ptr->fixed)
+    /* give it all to id1.  */
     id1ptr->pe = id1ptr->pe+iptr->pe;
   else if (! id2ptr->fixed && ! id1ptr->fixed)
     {
+      /* give it to both id1 and id2 using their mass as a radio.  */
       M = (twoDsim_get_mass (iptr->s.id1))+(twoDsim_get_mass (iptr->s.id2));
       id1ptr->pe = id1ptr->pe+((iptr->pe*(twoDsim_get_mass (iptr->s.id1)))/M);
       id2ptr->pe = id2ptr->pe+((iptr->pe*(twoDsim_get_mass (iptr->s.id2)))/M);
@@ -3337,6 +3411,7 @@ static void recalculateForceEnergy (void)
   if (trace)
     twoDsim_dumpWorld ();
   calcForce ();
+  /* calcEnergy ;  */
   applyForce ();
   if (trace)
     {
@@ -3857,6 +3932,7 @@ static void drawFrame (eventQueue e)
   Object optr;
 
   if (FrameSprings)
+    /* are we using frame based simulation to solve spring motion.  */
     updatePhysics (TRUE);
   Assert (((e == NULL) || (e->kind == collisionKind)) || (e->kind == springKind), 2719);
   if (DebugTrace)
@@ -3879,8 +3955,12 @@ static void drawFrame (eventQueue e)
         {
           if (Debugging)
             dumpObject (optr);
+          /* printf ("before doDrawFrame
+          ");  */
           doDrawFrame (optr, dt, getEventObjectColour (e, optr));
         }
+      /* printf ("after doDrawFrame
+      ");  */
       i += 1;
     }
 }
@@ -3963,9 +4043,11 @@ static void updateCircle (Object optr, double dt)
 
   if (! optr->deleted)
     {
+      /* update vx and pos.x  */
       ac = getAccelCoord (optr);
       optr->c.pos.x = newPositionScalar (optr->c.pos.x, optr->vx, ac.x, dt);
       optr->vx = optr->vx+(ac.x*dt);
+      /* update vy and pos.y  */
       optr->c.pos.y = newPositionScalar (optr->c.pos.y, optr->vy, ac.y, dt);
       optr->vy = optr->vy+(ac.y*dt);
     }
@@ -4025,11 +4107,13 @@ static void doUpdatePhysics (double dt)
   i = 1;
   while (i <= n)
     {
+      /* springs are dependant on circles and polygons, so these are moved first.  */
       optr = Indexing_GetIndice (objects, i);
       if (! (isSpringObject (i)))
         updateOb (optr, dt);
       i += 1;
     }
+  /* now the springs.  */
   i = 1;
   while (i <= n)
     {
@@ -4188,6 +4272,7 @@ static void updateStats (double dt)
 
 static void doFunctionEvent (eventQueue e)
 {
+  /* nothing to do.  */
   if (DebugTrace)
     {
       libc_printf ((char *) "doFunctionEvent\\n", 17);
@@ -4361,6 +4446,7 @@ static void checkStationaryCollision (Object a, Object b)
     {
       if (Debugging)
         libc_printf ((char *) "object %d has bumped into a stationary object %d\\n", 50, b->id, a->id);
+      /* gdbif.sleepSpin ;  */
       a->vy = 1.0;
       if (a->c.pos.x < b->c.pos.x)
         a->c.pos.x = a->c.pos.x-0.001;
@@ -4402,6 +4488,7 @@ static void collideAgainstFixedCircle (Object movable, coord_Coord center)
   coord_Coord normalCollision;
   coord_Coord relativeVelocity;
 
+  /* calculate normal collision value  */
   c.x = movable->c.pos.x-center.x;
   c.y = movable->c.pos.y-center.y;
   r = libm_sqrt ((c.x*c.x)+(c.y*c.y));
@@ -4428,6 +4515,7 @@ static void collideMovableCircles (Object iptr, Object jptr)
   coord_Coord normalCollision;
   coord_Coord relativeVelocity;
 
+  /* calculate normal collision value  */
   c.x = iptr->c.pos.x-jptr->c.pos.x;
   c.y = iptr->c.pos.y-jptr->c.pos.y;
   r = libm_sqrt ((c.x*c.x)+(c.y*c.y));
@@ -4482,12 +4570,13 @@ static void collideCircleAgainstFixedEdge (Object cPtr, coord_Coord p1, coord_Co
   coord_Coord l;
   coord_Coord vel;
 
-  sortLine (&p1, &p2);
-  l = coord_subCoord (p2, p1);
-  vel = coord_initCoord (cPtr->vx, cPtr->vy);
-  vel = reflect (vel, l);
-  cPtr->vx = vel.x;
-  cPtr->vy = vel.y;
+  /* firstly we need to find the normal to the line  */
+  sortLine (&p1, &p2);  /* p1 and p2 are the start end positions of the line  */
+  l = coord_subCoord (p2, p1);  /* l is the vector p1 -> p2  */
+  vel = coord_initCoord (cPtr->vx, cPtr->vy);  /* vel is the initial velocity  */
+  vel = reflect (vel, l);  /* vel is the initial velocity  */
+  cPtr->vx = vel.x;  /* update velocity of object, cPtr  */
+  cPtr->vy = vel.y;  /* update velocity of object, cPtr  */
   checkStationary (cPtr);
 }
 
@@ -4507,23 +4596,29 @@ static void circlePolygonCollision (eventQueue e, Object cPtr, Object pPtr)
       {
         case history_corner:
           if (cPtr->fixed)
+            /* --fixme--   to do later  */
             M2RTS_HALT (-1);
           else if (pPtr->fixed)
+            /* moving circle hits fixed polygon corner  */
             collideAgainstFixedCircle (cPtr, e->ePtr->cp.cPoint);
           else
+            /* both moving, to do later --fixme--  */
             M2RTS_HALT (-1);
           break;
 
         case history_edge:
           if (cPtr->fixed)
+            /* --fixme--   to do later  */
             M2RTS_HALT (-1);
           else if (pPtr->fixed)
             {
+              /* moving circle hits fixed polygon, on the edge  */
               ln = e->ePtr->cp.lineNo;
               getPolygonLine (ln, pPtr, &p1, &p2);
               collideCircleAgainstFixedEdge (cPtr, p1, p2);
             }
           else
+            /* both moving, to do later --fixme--  */
             M2RTS_HALT (-1);
           break;
 
@@ -4532,7 +4627,7 @@ static void circlePolygonCollision (eventQueue e, Object cPtr, Object pPtr)
           CaseException ("../git-pge/m2/twoDsim.def", 2, 1);
       }
   else
-    M2RTS_HALT (-1);
+    M2RTS_HALT (-1);  /* should be circlePolygonEvent  */
 }
 
 
@@ -4556,6 +4651,8 @@ static void collidePolygonAgainstFixedCircle (Object o, coord_Coord collision)
 
 static void collidePolygonAgainstFixedEdge (Object o, coord_Coord p1, coord_Coord p2)
 {
+  /* find the point of collision, this is the mid point along
+      the shortest intersection between, o, and p1->p2.  */
   collideCircleAgainstFixedEdge (o, p1, p2);
   if (Debugging)
     dumpObject (o);
@@ -4623,10 +4720,12 @@ static void updatePolygonVelocity (Object o, double j, coord_Coord n, coord_Coor
 {
   coord_Coord va;
 
+  /* linear velocity update.   (eq 8a)  */
   va = coord_initCoord (o->vx, o->vy);
   va = coord_addCoord (va, coord_scaleCoord (n, j/o->p.mass));
   o->vx = va.x;
   o->vy = va.y;
+  /* angular velocity update.  (eq 8b)  */
   o->angularVelocity = o->angularVelocity+((coord_dotProd (rpn, coord_scaleCoord (n, j)))/o->inertia);
 }
 
@@ -4638,6 +4737,17 @@ static void updatePolygonVelocity (Object o, double j, coord_Coord n, coord_Coor
 
 static void polygonPolygonCollision (eventQueue e, Object id1, Object id2)
 {
+  /* 
+   IF id1^.fixed
+   THEN
+      collidePolygonAgainstFixedPolygon (e, id2, id1)
+   ELSIF id2^.fixed
+   THEN
+      collidePolygonAgainstFixedPolygon (e, id1, id2)
+   ELSE
+      collidePolygonAgainstMovingPolygon (e, id1, id2)
+   END
+  */
   collidePolygonAgainstMovingPolygon (e, id1, id2);
 }
 
@@ -4682,13 +4792,13 @@ static void collidePolygonAgainstFixedPolygon (eventQueue e, Object id1, Object 
   coord_Coord p;
   coord_Coord v;
 
-  Assert (! id1->fixed, 3689);
+  Assert (! id1->fixed, 3689);  /* point of collision  */
   Assert (id2->fixed, 3690);
   Assert (e->ePtr->etype == polygonPolygonEvent, 3691);
   if (Debugging)
     libc_printf ((char *) "collidePolygonAgainstFixedPolygon\\n", 35);
-  drawFrame (e);
-  p = e->ePtr->pp.cPoint;
+  drawFrame (e);  /* ******************  */
+  p = e->ePtr->pp.cPoint;  /* ******************  */
   if (e->ePtr->pp.wpid2 == history_edge)
     {
       getPolygonLine (e->ePtr->pp.lineCorner2, (Object) Indexing_GetIndice (objects, e->ePtr->pp.pid2), &p1, &p2);
@@ -4696,17 +4806,18 @@ static void collidePolygonAgainstFixedPolygon (eventQueue e, Object id1, Object 
       debugLine (p1, p2, (deviceIf_Colour) deviceIf_yellow ());
     }
   else
+    /* hits corner, so we use the normal from the corner to the C of G of he polygon.  */
     l = coord_subCoord (p, id2->p.cOfG);
   v = rotationalVelocity (id1->angularVelocity, coord_initCoord (id1->vx, id1->vy), coord_subCoord (p, id1->p.cOfG));
   rap = coord_subCoord (p, id1->p.cOfG);
   rapn = coord_perpendicular (rap);
   I_ = (sqr (coord_dotProd (rapn, n)))/id1->inertia;
   m = 1.0/id1->p.mass;
-  debugCircle (id1->p.cOfG, 0.002, (deviceIf_Colour) deviceIf_yellow ());
-  debugCircle (id2->p.cOfG, 0.002, (deviceIf_Colour) deviceIf_purple ());
-  j = (-(1.0*(coord_dotProd (v, n))))/(((coord_dotProd (n, n))*m)+I_);
+  debugCircle (id1->p.cOfG, 0.002, (deviceIf_Colour) deviceIf_yellow ());  /* ******************  c of g for id1  */
+  debugCircle (id2->p.cOfG, 0.002, (deviceIf_Colour) deviceIf_purple ());  /* ******************  c of g for id2  */
+  j = (-(1.0*(coord_dotProd (v, n))))/(((coord_dotProd (n, n))*m)+I_);  /* ******************  c of g for id2  */
   updatePolygonVelocity (id1, -j, n, rapn);
-  deviceIf_flipBuffer ();
+  deviceIf_flipBuffer ();  /* ******************  */
 }
 
 
@@ -4749,26 +4860,29 @@ static void collidePolygonAgainstMovingPolygon (eventQueue e, Object id1, Object
     }
   Assert (e->ePtr->etype == polygonPolygonEvent, 3755);
   p = e->ePtr->pp.cPoint;
-  deviceIf_frameNote ();
-  drawFrame (e);
-  if ((e->ePtr->pp.wpid1 == history_edge) && (e->ePtr->pp.wpid2 == history_edge))
+  deviceIf_frameNote ();  /* ******************  */
+  drawFrame (e);  /* ******************  */
+  if ((e->ePtr->pp.wpid1 == history_edge) && (e->ePtr->pp.wpid2 == history_edge))  /* ******************  */
     {
       if (Debugging)
         libc_printf ((char *) "the edges of two polygon collide\\n", 34);
       getPolygonLine (e->ePtr->pp.lineCorner1, (Object) Indexing_GetIndice (objects, e->ePtr->pp.pid1), &p1, &p2);
-      sortLine (&p1, &p2);
-      v1 = coord_subCoord (p2, p1);
-      coord_perpendiculars (v1, &n, &n2);
+      sortLine (&p1, &p2);  /* p1 and p2 are the start end positions of the line  */
+      v1 = coord_subCoord (p2, p1);  /* v1 is the vector p1 -> p2  */
+      coord_perpendiculars (v1, &n, &n2);  /* n and n2 are normal vectors to the vector v1  */
+      /* n needs to point into id1.  */
       debugLine (p1, p2, (deviceIf_Colour) deviceIf_yellow ());
     }
   else if (e->ePtr->pp.wpid1 == history_edge)
     {
+      /* corner collision.  */
       if (Debugging)
         libc_printf ((char *) "the edge of polygon collides with corner of polygon\\n", 53);
       Assert (e->ePtr->pp.wpid2 == history_corner, 3780);
       getPolygonLine (e->ePtr->pp.lineCorner2, (Object) Indexing_GetIndice (objects, e->ePtr->pp.pid2), &p1, &p2);
-      v1 = coord_subCoord (p2, p1);
-      coord_perpendiculars (v1, &n, &n2);
+      v1 = coord_subCoord (p2, p1);  /* v1 is the vector p1 -> p2  */
+      coord_perpendiculars (v1, &n, &n2);  /* n and n2 are normal vectors to the vector v1  */
+      /* n needs to point into id1.  */
       debugLine (p1, p2, (deviceIf_Colour) deviceIf_yellow ());
     }
   else if (e->ePtr->pp.wpid2 == history_edge)
@@ -4777,19 +4891,22 @@ static void collidePolygonAgainstMovingPolygon (eventQueue e, Object id1, Object
         libc_printf ((char *) "the edge of polygon collides with corner of polygon\\n", 53);
       Assert (e->ePtr->pp.wpid1 == history_corner, 3793);
       getPolygonLine (e->ePtr->pp.lineCorner1, (Object) Indexing_GetIndice (objects, e->ePtr->pp.pid1), &p1, &p2);
-      v1 = coord_subCoord (p2, p1);
-      coord_perpendiculars (v1, &n, &n2);
+      v1 = coord_subCoord (p2, p1);  /* v1 is the vector p1 -> p2  */
+      coord_perpendiculars (v1, &n, &n2);  /* n and n2 are normal vectors to the vector v1  */
+      /* n needs to point into id1.  */
       debugLine (p1, p2, (deviceIf_Colour) deviceIf_yellow ());
     }
   else
     libc_printf ((char *) "the corners of two polygon collide\\n", 36);
-  debugCircle (id1->p.cOfG, 0.002, (deviceIf_Colour) deviceIf_yellow ());
-  debugCircle (id2->p.cOfG, 0.002, (deviceIf_Colour) deviceIf_purple ());
+  debugCircle (id1->p.cOfG, 0.002, (deviceIf_Colour) deviceIf_yellow ());  /* ******************  c of g for id1  */
+  debugCircle (id2->p.cOfG, 0.002, (deviceIf_Colour) deviceIf_purple ());  /* ******************  c of g for id2  */
+  /* calculate relative velocity.  */
   rap = coord_subCoord (p, id1->p.cOfG);
   rbp = coord_subCoord (p, id2->p.cOfG);
   vap = coord_addCoord (coord_initCoord (id1->vx, id1->vy), coord_scaleCoord (rap, id1->angularVelocity));
   vbp = coord_addCoord (coord_initCoord (id2->vx, id2->vy), coord_scaleCoord (rap, id2->angularVelocity));
   vab = coord_subCoord (vap, vbp);
+  /* calculate impulse factor.  */
   if (id1->fixed)
     m = 0.0;
   else
@@ -4797,6 +4914,7 @@ static void collidePolygonAgainstMovingPolygon (eventQueue e, Object id1, Object
   if (! id2->fixed)
     m = m+(1.0/id2->p.mass);
   denominator = m*(coord_dotProd (n, n));
+  /* calculate angular factors.  */
   if (id1->fixed)
     ca = 0.0;
   else
@@ -4806,6 +4924,7 @@ static void collidePolygonAgainstMovingPolygon (eventQueue e, Object id1, Object
   else
     cb = (sqr (coord_dotProd (coord_perpendicular (rbp), n)))/id2->inertia;
   denominator = (denominator+ca)+cb;
+  /* calculate total impulse of collision, j.  */
   vabDotN = coord_dotProd (vab, n);
   if (Debugging)
     libc_printf ((char *) "vabDotN = %g\\n", 14, vabDotN);
@@ -4814,6 +4933,7 @@ static void collidePolygonAgainstMovingPolygon (eventQueue e, Object id1, Object
   j2 = (1.0+Elasticity)*modifiedVel;
   if (Debugging)
     libc_printf ((char *) "j1 = %g, j2 = %g\\n", 18, j1, j2);
+  /* update the velocities.  */
   if (! id1->fixed)
     {
       vF1 = coord_addCoord (coord_initCoord (id1->vx, id1->vy), coord_scaleCoord (n, j1/id1->p.mass));
@@ -4826,6 +4946,7 @@ static void collidePolygonAgainstMovingPolygon (eventQueue e, Object id1, Object
       id2->vx = vF2.x;
       id2->vy = vF2.y;
     }
+  /* update the angular velocities.  */
   if (id1->fixed)
     j2 = j2*2.0;
   if (id2->fixed)
@@ -4840,7 +4961,7 @@ static void collidePolygonAgainstMovingPolygon (eventQueue e, Object id1, Object
       id2->angularMomentum = id2->angularMomentum+(coord_dotProd (rbp, coord_scaleCoord (n, j2)));
       id2->angularVelocity = (1.0/id2->inertia)*id2->angularMomentum;
     }
-  deviceIf_flipBuffer ();
+  deviceIf_flipBuffer ();  /* ******************  */
 }
 
 
@@ -4897,7 +5018,15 @@ static void doCollision (eventQueue e)
       drawFrame (e);
       deviceIf_flipBuffer ();
     }
+  /* 
+      collectAll
+  */
   physicsCollision (e);
+  /* 
+   printf ("near end of doCollision
+  ");
+   printQueue ;
+  */
   addNextObjectEvent ();
 }
 
@@ -5103,6 +5232,7 @@ static unsigned int earlierCircleCollisionOrbiting (double *t, double *tc, coord
 
   d1 = coord_lengthCoord (coord_subCoord (c1p, c1cofg));
   d2 = coord_lengthCoord (coord_subCoord (c2p, c2cofg));
+  /* describe line 2 by its Y coordinates.  */
   maximaCircleCollisionOrbiting ((double *) &array.array[0], 8, c1p.x, c1v.x, c1a.x, d1, c1w, c1r, c2p.x, c2v.x, c2a.x, c2w, c2r, c1p.y, c1v.y, c1a.y, d2, c1w, c1r, c2p.y, c2v.y, c2a.y, c2w, c2r, c1radius+c2radius);
   A = array.array[8];
   B = array.array[7];
@@ -5113,11 +5243,14 @@ static unsigned int earlierCircleCollisionOrbiting (double *t, double *tc, coord
   G = array.array[2];
   H = array.array[1];
   I_ = array.array[0];
+  /* now solve for values of t which satisfy:
+      At^8 + Bt^7 + Ct^6 + Dt^5 + Et^4 + Ft^3 + Gt^2 + Ht + I = 0  */
   if (roots_findOctic (A, B, C, D, E, F, G, H, I_, t))
     {
       T = ((((((((A*(oct ((*t))))+(B*(sept ((*t)))))+(C*(hex ((*t)))))+(D*(pent ((*t)))))+(E*(quad ((*t)))))+(F*(cub ((*t)))))+(G*(sqr ((*t)))))+(H*(*t)))+I_;
       if (Debugging)
         libc_printf ((char *) "%gt^8 + %gt^7 +%gt^6 + %gt^5 + %gt^4 + %gt^3 + %gt^2 + %gt + %g = %g    (t=%g)\\n", 80, A, B, C, D, E, F, G, H, I_, T, (*t));
+      /* remember tc is -1.0 initially, to force it to be set once.  */
       if ((((*tc) < 0.0) || ((*t) < (*tc))) && (! (roots_nearZero ((*t)))))
         return TRUE;
     }
@@ -5182,18 +5315,24 @@ static unsigned int earlierCircleCollision (eventDesc edesc, unsigned int id1, u
   coord_Coord v12;
   coord_Coord r12;
 
+  /* thanks to wxmaxima  (expand ; factor ; ratsimp)  */
   A = (((((sqr (n))-((2.0*m)*n))+(sqr (m)))+(sqr (f)))-((2.0*e)*f))+(sqr (e));
   B = (((((4.0*l)-(4.0*k))*n)+(((4.0*k)-(4.0*l))*m))+(((4.0*d)-(4.0*c))*f))+(((4.0*c)-(4.0*d))*e);
   C = (((((((((((4.0*h)-(4.0*g))*n)+(((4.0*g)-(4.0*h))*m))+(4.0*(sqr (l))))-((8.0*k)*l))+(4.0*(sqr (k))))+(((4.0*b)-(4.0*a))*f))+(((4.0*a)-(4.0*b))*e))+(4.0*(sqr (d))))-((8.0*c)*d))+(4.0*(sqr (c)));
   D = (((((8.0*h)-(8.0*g))*l)+(((8.0*g)-(8.0*h))*k))+(((8.0*b)-(8.0*a))*d))+(((8.0*a)-(8.0*b))*c);
   E = ((((((4.0*(sqr (h)))-((8.0*g)*h))+(4.0*(sqr (g))))+(4.0*(sqr (b))))-((8.0*a)*b))+(4.0*(sqr (a))))-(sqr (2.0*(p+o)));
+  /* 
+   maximaCircleCollision (array,
+                          a, b, c, d, e, f, g, h, k, l, m, n, o, p) ;
+  */
   manualCircleCollision ((double *) &array.array[0], 4, a, b, c, d, e, f, g, h, k, l, m, n, o, p);
   AssertRDebug (array.array[4], A, (char *) "A", 1);
   AssertRDebug (array.array[3], B, (char *) "B", 1);
   AssertRDebug (array.array[2], C, (char *) "C", 1);
   AssertRDebug (array.array[1], D, (char *) "D", 1);
   AssertRDebug (array.array[0], E, (char *) "E", 1);
-  if (roots_findQuartic (A, B, C, D, E, t))
+  /* now solve for values of t which satisfy   At^4 + Bt^3 + Ct^2 + Dt^1 + Et^0 = 0  */
+  if (roots_findQuartic (A, B, C, D, E, t))  /* this function will alter, t.  */
     {
       T = ((((A*((sqr ((*t)))*(sqr ((*t)))))+(B*((sqr ((*t)))*(*t))))+(C*(sqr ((*t)))))+(D*(*t)))+E;
       if (Debugging)
@@ -5202,6 +5341,7 @@ static unsigned int earlierCircleCollision (eventDesc edesc, unsigned int id1, u
           libc_printf ((char *) "found collision at %g\\n", 23, (*t));
         }
       Assert ((*t) >= 0.0, 4290);
+      /* remember edesc = NIL if bestTimeOfCollision is unassigned.  */
       if ((edesc == NULL) || ((*t) < bestTimeOfCollision))
         {
           c1 = newPositionCoord (coord_initCoord (a, g), coord_initCoord (c, k), coord_initCoord (e, m), (*t));
@@ -5213,8 +5353,28 @@ static unsigned int earlierCircleCollision (eventDesc edesc, unsigned int id1, u
           (*cp) = cp2;
           if (roots_nearSame (coord_lengthCoord (v12), o+p))
             {
+              /* 
+            printf ("
+              c1 = %g, %g
+              ", c1.x, c1.y) ;
+            printf ("c2 = %g, %g
+              ", c2.x, c2.y) ;
+            printf ("o = %g, p = %g
+              ", o, p) ;
+            printf ("cp2 = %g, %g
+              ", cp2.x, cp2.y) ;
+            printf ("v12 = c1 - c2 = %g, %g
+              ", v12.x, v12.y) ;
+	    r12 := scaleCoord (v12, o/(o+p)) ;
+	    printf ("r12 = v12 scaled by %g = %g, %g
+              ", o/(o+p), r12.x, r12.y) ;
+            printf ("cp1 = c2 + r12 = %g, %g
+              ", cp1.x, cp1.y) ;
+  */
               Assert (roots_nearCoord (cp1, cp2), 4318);
+              /* found a value of t which is better than bestTimeOfCollision, but it might be a duplicate collision.  */
               if (! (history_isDuplicateC (currentTime, (*t), id1, id2, (history_whereHit) history_edge, (history_whereHit) history_edge, (*cp))))
+                /* ok, this has not been seen before.  */
                 return TRUE;
             }
           else
@@ -5332,7 +5492,25 @@ static void findCollisionCircles (Object iptr, Object jptr, eventDesc *edesc, do
   double T;
   coord_Coord cp;
 
+  /* 
+        a        xi
+        g        yi
+        o        ri
+        c        vxi
+        k        vyi
+        e        axi
+        m        ayi
+  */
   getCircleValues (iptr, &a, &g, &o, &c, &k, &e, &m);
+  /* 
+        b         xj
+        h         yj
+        p         rj
+        d         vxj
+        l         vyj
+        f         ajx
+        n         ajy
+  */
   getCircleValues (jptr, &b, &h, &p, &d, &l, &f, &n);
   if (earlierCircleCollision ((*edesc), iptr->id, jptr->id, &t, (*tc), &cp, a, b, c, d, e, f, g, h, k, l, m, n, o, p))
     {
@@ -5357,8 +5535,8 @@ static void stop (void)
 
 static eventDesc makeCirclesPolygonDesc (eventDesc edesc, unsigned int cid, unsigned int pid, unsigned int lineNo, unsigned int pointNo, history_whereHit wpid1, history_whereHit wpid2, coord_Coord collisionPoint)
 {
-  Assert (wpid1 == history_corner, 4493);
-  if (edesc == NULL)
+  Assert (wpid1 == history_corner, 4493);  /* circle must always be treated as corner.  */
+  if (edesc == NULL)  /* circle must always be treated as corner.  */
     edesc = newDesc ();
   edesc->etype = circlePolygonEvent;
   edesc->cp.pid = pid;
@@ -5385,15 +5563,19 @@ static unsigned int checkIfPointHits (double timeOfPrevCollision, double t, doub
 {
   double x;
 
+  /* if t is later than timeOfPrevCollision, then we don't care as we already have found an earlier hit.  */
   if (trace)
     libc_printf ((char *) "current best collision time is %g the new collision exists at time %g\\n", 71, timeOfPrevCollision, t);
   if ((timeOfPrevCollision == -1.0) || (t < timeOfPrevCollision))
     {
+      /* at time, t, what is the value of x ?  */
       x = newPositionScalar (s, u, a, t);
       if (trace)
         libc_printf ((char *) "line 0.0 .. %g  and point at %g ", 32, length, x);
+      /* if x lies between 0 .. length then it hits!  */
       if ((x >= 0.0) && (x <= length))
         {
+          /* new earlier collision time found  */
           if (trace)
             libc_printf ((char *) "will hit line\\n", 15);
           return TRUE;
@@ -5574,7 +5756,9 @@ static unsigned int checkPointCollision (double *timeOfPrevCollision, double t, 
     {
       if (trace)
         libc_printf ((char *) "it crosses the region of interest (current best time %g)\\n", 58, (*timeOfPrevCollision));
+      /* a hit, find where  */
       (*collisionPoint) = newPositionCoord (c, cvel, caccel, t);
+      /* return TRUE providing that we do not already know about it  */
       if (history_isDuplicateC (currentTime, t, id1, id2, (history_whereHit) history_edge, (history_whereHit) history_edge, (*collisionPoint)))
         {
           if (trace)
@@ -5619,20 +5803,23 @@ static unsigned int earlierPointLineCollision (double *timeOfCollision, coord_Co
 
   if (trace)
     libc_printf ((char *) "earlierPointLineCollision entered and best time is %g\\n", 55, (*timeOfCollision));
+  /* we pretend that the line is stationary, by computing the relative velocity and acceleration  */
   rvel = coord_subCoord (cvel, lvel);
   raccel = coord_subCoord (caccel, laccel);
   if (trace)
     libc_printf ((char *) "relative vel  (%g, %g),  accel (%g, %g)\\n", 41, rvel.x, rvel.y, raccel.x, raccel.y);
+  /* now translate p1 onto the origin  */
   p3 = coord_subCoord (p2, p1);
   hypot = coord_lengthCoord (p3);
+  /* now find theta the angle of the vector, p3  */
   theta = libm_asin (p3.y/hypot);
   if (trace)
     libc_printf ((char *) "rotating line by %g degrees  (length of line is %g)\\n", 53, (180.0*theta)/3.14159, hypot);
-  c0 = coord_subCoord (c, p1);
-  c1 = coord_rotateCoord (c0, -theta);
-  rvel = coord_rotateCoord (rvel, -theta);
-  raccel = coord_rotateCoord (raccel, -theta);
-  raccel = checkZeroCoord (raccel);
+  c0 = coord_subCoord (c, p1);  /* translate c by the same as the line  */
+  c1 = coord_rotateCoord (c0, -theta);  /* and rotate point, c0.  */
+  rvel = coord_rotateCoord (rvel, -theta);  /* and relative velocity  */
+  raccel = coord_rotateCoord (raccel, -theta);  /* and relative acceleration  */
+  raccel = checkZeroCoord (raccel);  /* and relative acceleration  */
   rvel = checkZeroCoord (rvel);
   if (trace)
     libc_printf ((char *) "after rotation we have relative vel  (%g, %g),  accel (%g, %g)\\n", 64, rvel.x, rvel.y, raccel.x, raccel.y);
@@ -5642,6 +5829,16 @@ static unsigned int earlierPointLineCollision (double *timeOfCollision, coord_Co
       hPoint (c1, (deviceIf_Colour) deviceIf_purple ());
       hFlush ();
     }
+  /* 
+      now solve for, t, when y=0, use S = UT + 1/2 AT^2
+      at y = 0 we have:
+
+      0 = rvel.y * t + 1/2 * raccel.y * t^2
+
+      Using quadratic:
+
+      at^2 + bt + c = 0
+  */
   if (roots_findQuadratic (raccel.y/2.0, rvel.y, c1.y, &t0, &t1))
     {
       if (trace)
@@ -5650,6 +5847,7 @@ static unsigned int earlierPointLineCollision (double *timeOfCollision, coord_Co
         {
           if (trace)
             libc_printf ((char *) "the point never crosses the line in the future\\n", 48);
+          /* get out of here quick - no point of predicting collisions in the past :-)  */
           return FALSE;
         }
       else
@@ -5657,10 +5855,12 @@ static unsigned int earlierPointLineCollision (double *timeOfCollision, coord_Co
           {
             if (trace)
               libc_printf ((char *) "the point crosses the line once\\n", 33);
+            /* only one root  */
             if (checkPointCollision (timeOfCollision, t0, hypot, c1.x, rvel.x, raccel.x, c, cvel, caccel, collisionPoint, id1, id2))
               return TRUE;
           }
         else
+          /* two roots, ignore a negative root  */
           if (t0 < 0.0)
             {
               if (trace)
@@ -5668,6 +5868,7 @@ static unsigned int earlierPointLineCollision (double *timeOfCollision, coord_Co
                   libc_printf ((char *) "the point crosses the line once in the future and once in the past\\n", 68);
                   libc_printf ((char *) "only examining root %g, remember best is %g\\n", 45, t1, (*timeOfCollision));
                 }
+              /* test only positive root, t1  */
               if (checkPointCollision (timeOfCollision, t1, hypot, c1.x, rvel.x, raccel.x, c, cvel, caccel, collisionPoint, id1, id2))
                 return TRUE;
             }
@@ -5675,6 +5876,7 @@ static unsigned int earlierPointLineCollision (double *timeOfCollision, coord_Co
             {
               if (trace)
                 libc_printf ((char *) "the point crosses the line once in the future and once in the past\\n", 68);
+              /* test only positive root, t0  */
               if (checkPointCollision (timeOfCollision, t0, hypot, c1.x, rvel.x, raccel.x, c, cvel, caccel, collisionPoint, id1, id2))
                 return TRUE;
             }
@@ -5682,6 +5884,7 @@ static unsigned int earlierPointLineCollision (double *timeOfCollision, coord_Co
             {
               if (trace)
                 libc_printf ((char *) "the point crosses the line twice in the future\\n", 48);
+              /* ok two positive roots, test smallest (earlist first and then bail out if it hits)  */
               if (t0 < t1)
                 {
                   if (checkPointCollision (timeOfCollision, t0, hypot, c1.x, rvel.x, raccel.x, c, cvel, caccel, collisionPoint, id1, id2))
@@ -5764,16 +5967,22 @@ static void findEarlierCircleEdgeCollision (double *timeOfCollision, unsigned in
   coord_Coord collisonPoint;
 
   sortLine (&p1, &p2);
+  /* create the vector p1 -> p2.  */
   v1 = coord_subCoord (p2, p1);
+  /* compute the normal for v1, normalise it, and multiply by radius.  */
   coord_perpendiculars (v1, &d1, &d2);
   d1 = coord_scaleCoord (coord_normaliseCoord (d1), radius);
   d2 = coord_scaleCoord (coord_normaliseCoord (d2), radius);
+  /* now add d1, d2 to p1 to obtain p3, p4.  */
   p3 = coord_addCoord (p1, d1);
   p4 = coord_addCoord (p1, d2);
+  /* now add d1 and d2 to p2 to get p5 and p6.  */
   p5 = coord_addCoord (p2, d1);
   p6 = coord_addCoord (p2, d2);
+  /* ok, now we only need to find when line between p3, p5 hits the centre of the circle.  */
   if (earlierPointLineCollision (timeOfCollision, center, velCircle, accelCircle, p3, p5, velLine, accelLine, &collisonPoint, cid, pid))
     {
+      /* circle hits line, p1, in tc seconds.  */
       if (Debugging)
         libc_printf ((char *) "circle hits line (%g, %g) (%g, %g) in %g\\n", 42, p1.x, p1.y, p2.x, p2.y, (*timeOfCollision));
       (*edesc) = (*createDesc.proc) ((*edesc), cid, pid, lineP, lineC, (history_whereHit) history_corner, (history_whereHit) history_edge, collisonPoint);
@@ -5788,8 +5997,10 @@ static void findEarlierCircleEdgeCollision (double *timeOfCollision, unsigned in
           GC_collectAll ();
         }
     }
+  /* ok, now we only need to find when line between p4, p6 hits the centre of the circle.  */
   if (earlierPointLineCollision (timeOfCollision, center, velCircle, accelCircle, p4, p6, velLine, accelLine, &collisonPoint, cid, pid))
     {
+      /* circle hits line, p1, in tc seconds  */
       if (Debugging)
         libc_printf ((char *) "circle hits line (%g, %g) (%g, %g) in %g\\n", 42, p1.x, p1.y, p2.x, p2.y, (*timeOfCollision));
       (*edesc) = (*createDesc.proc) ((*edesc), cid, pid, lineP, lineC, (history_whereHit) history_corner, (history_whereHit) history_edge, collisonPoint);
@@ -5867,15 +6078,26 @@ static void findCollisionCircleLine (Object cPtr, Object pPtr, unsigned int line
   cid = cPtr->id;
   pid = pPtr->id;
   getPolygonLine (lineP, pPtr, &p1, &p2);
+  /* we perform 4 checks.
+
+         (i) and (ii)     pretend the circle has radius 0.0 and see if it hits two new circles at
+                          point, p1, and, p2 with the original radius.
+         (iii) and (iv)   now draw two lines between the edge of the two new circles and see if the
+                          center of the original circle intersects with either line.
+
+         the smallest positive time is the time of the next collision.
+  */
   getObjectValues (cPtr, &cvx, &cvy, &cax, &cay);
   getObjectValues (pPtr, &pvx, &pvy, &pax, &pay);
+  /* i  */
   if (earlierCircleCollision ((*edesc), cid, pid, &t, (*timeOfCollision), &cp, p1.x, center.x, pvx, cvx, pax, cax, p1.y, center.y, pvy, cvy, pay, cay, radius, 0.0))
     {
+      /* circle hits corner of the line, p1, in tc seconds.  */
       if (Debugging)
         libc_printf ((char *) "circle hits corner at %g, %g  in %g\\n", 37, p1.x, p1.y, t);
       (*timeOfCollision) = t;
-      (*edesc) = (*createDesc.proc) ((*edesc), cid, pid, lineP, lineC, (history_whereHit) history_corner, (history_whereHit) history_corner, p1);
-      if (drawPrediction)
+      (*edesc) = (*createDesc.proc) ((*edesc), cid, pid, lineP, lineC, (history_whereHit) history_corner, (history_whereHit) history_corner, p1);  /* point no, lineC.  */
+      if (drawPrediction)  /* point no, lineC.  */
         {
           deviceIf_frameNote ();
           drawFrame ((eventQueue) NULL);
@@ -5885,13 +6107,15 @@ static void findCollisionCircleLine (Object cPtr, Object pPtr, unsigned int line
           GC_collectAll ();
         }
     }
+  /* ii  */
   if (earlierCircleCollision ((*edesc), cid, pid, &t, (*timeOfCollision), &cp, p2.x, center.x, pvx, cvx, pax, cax, p2.y, center.y, pvy, cvy, pay, cay, radius, 0.0))
     {
+      /* circle hits corner of the line, p2, in tc seconds.  */
       if (Debugging)
         libc_printf ((char *) "circle hits corner at %g, %g  in %g  (lineP+1)\\n", 48, p2.x, p2.y, t);
       (*timeOfCollision) = t;
-      (*edesc) = (*createDesc.proc) ((*edesc), cid, pid, lineP+1, lineC, (history_whereHit) history_corner, (history_whereHit) history_corner, p2);
-      if (drawPrediction)
+      (*edesc) = (*createDesc.proc) ((*edesc), cid, pid, lineP+1, lineC, (history_whereHit) history_corner, (history_whereHit) history_corner, p2);  /* point no, lineP+1.  */
+      if (drawPrediction)  /* point no, lineP+1.  */
         {
           deviceIf_frameNote ();
           drawFrame ((eventQueue) NULL);
@@ -5905,6 +6129,7 @@ static void findCollisionCircleLine (Object cPtr, Object pPtr, unsigned int line
   accelCircle = coord_initCoord (cax, cay);
   velLine = coord_initCoord (pvx, pvy);
   accelLine = coord_initCoord (pax, pay);
+  /* iii and iv  */
   findEarlierCircleEdgeCollision (timeOfCollision, cid, pid, lineP, lineC, edesc, center, radius, velCircle, accelCircle, p1, p2, velLine, accelLine, createDesc);
 }
 
@@ -5939,17 +6164,28 @@ static void findCollisionCircleLineOrbiting (Object cPtr, Object pPtr, unsigned 
   cid = cPtr->id;
   pid = pPtr->id;
   getPolygonLine (lineP, pPtr, &p1, &p2);
+  /* we perform 4 checks.
+
+         (i) and (ii)     pretend the circle has radius 0.0 and see if it hits two new circles at
+                          point, p1, and, p2 with the original radius.
+         (iii) and (iv)   now draw two lines between the edge of the two new circles and see if the
+                          center of the original circle intersects with either line.
+
+         the smallest positive time is the time of the next collision.
+  */
   getObjectValues (cPtr, &cv.x, &cv.y, &ca.x, &ca.y);
   getObjectValues (pPtr, &pv.x, &pv.y, &pa.x, &pa.y);
   getObjectOrbitingValues (cPtr, &cr, &cw, &ccofg);
   getObjectOrbitingValues (pPtr, &pr, &pw, &pcofg);
+  /* i  */
   if (earlierCircleCollisionOrbiting (&t, timeOfCollision, center, radius, cr, cw, ccofg, cv, ca, p1, 0.0, pr, pw, pcofg, pv, pa))
     {
+      /* circle hits corner of the line, p1, in tc seconds.  */
       if (Debugging)
         libc_printf ((char *) "circle hits corner at %g, %g  in %g seconds\\n", 45, p1.x, p1.y, t);
       (*timeOfCollision) = t;
-      (*edesc) = (*createDesc.proc) ((*edesc), cid, pid, lineP, lineC, (history_whereHit) history_corner, (history_whereHit) history_corner, p1);
-      if (drawPrediction)
+      (*edesc) = (*createDesc.proc) ((*edesc), cid, pid, lineP, lineC, (history_whereHit) history_corner, (history_whereHit) history_corner, p1);  /* point no, lineC.  */
+      if (drawPrediction)  /* point no, lineC.  */
         {
           deviceIf_frameNote ();
           drawFrame ((eventQueue) NULL);
@@ -5959,13 +6195,15 @@ static void findCollisionCircleLineOrbiting (Object cPtr, Object pPtr, unsigned 
           GC_collectAll ();
         }
     }
+  /* ii  */
   if (earlierCircleCollisionOrbiting (&t, timeOfCollision, center, radius, cr, cw, ccofg, cv, ca, p2, 0.0, pr, pw, pcofg, pv, pa))
     {
+      /* circle hits corner of the line, p2, in tc seconds.  */
       if (Debugging)
         libc_printf ((char *) "circle hits corner at %g, %g  in %g seconds  (lineP+1)\\n", 56, p2.x, p2.y, t);
       (*timeOfCollision) = t;
-      (*edesc) = (*createDesc.proc) ((*edesc), cid, pid, lineP+1, lineC, (history_whereHit) history_corner, (history_whereHit) history_corner, p2);
-      if (drawPrediction)
+      (*edesc) = (*createDesc.proc) ((*edesc), cid, pid, lineP+1, lineC, (history_whereHit) history_corner, (history_whereHit) history_corner, p2);  /* point no, lineP+1.  */
+      if (drawPrediction)  /* point no, lineP+1.  */
         {
           deviceIf_frameNote ();
           drawFrame ((eventQueue) NULL);
@@ -6060,9 +6298,13 @@ static void findCollisionLineLineOrbiting (Object iPtr, Object jPtr, unsigned in
 
   getPolygonLine (iLine, iPtr, &i0, &i1);
   getPolygonLine (jLine, jPtr, &j0, &j1);
+  /* test i0 crossing jLine  */
   findCollisionCircleLineOrbiting (iPtr, jPtr, iLine, jLine, i0, 0.0, edesc, tc, (descP) {(descP_t) makePolygonPolygon});
+  /* test i1 crossing line j  */
   findCollisionCircleLineOrbiting (iPtr, jPtr, iLine, jLine, i1, 0.0, edesc, tc, (descP) {(descP_t) makePolygonPolygon});
+  /* test j0 crossing line i  */
   findCollisionCircleLineOrbiting (jPtr, iPtr, iLine, jLine, j0, 0.0, edesc, tc, (descP) {(descP_t) makePolygonPolygon});
+  /* test j1 crossing line i  */
   findCollisionCircleLineOrbiting (jPtr, iPtr, iLine, jLine, j1, 0.0, edesc, tc, (descP) {(descP_t) makePolygonPolygon});
 }
 
@@ -6075,9 +6317,13 @@ static void findCollisionLineLineNonOrbiting (Object iPtr, Object jPtr, unsigned
 
   getPolygonLine (iLine, iPtr, &i0, &i1);
   getPolygonLine (jLine, jPtr, &j0, &j1);
+  /* test i0 crossing jLine  */
   findCollisionCircleLine (iPtr, jPtr, iLine, jLine, i0, 0.0, edesc, tc, (descP) {(descP_t) makePolygonPolygon});
+  /* test i1 crossing line j  */
   findCollisionCircleLine (iPtr, jPtr, iLine, jLine, i1, 0.0, edesc, tc, (descP) {(descP_t) makePolygonPolygon});
+  /* test j0 crossing line i  */
   findCollisionCircleLine (jPtr, iPtr, iLine, jLine, j0, 0.0, edesc, tc, (descP) {(descP_t) makePolygonPolygon});
+  /* test j1 crossing line i  */
   findCollisionCircleLine (jPtr, iPtr, iLine, jLine, j1, 0.0, edesc, tc, (descP) {(descP_t) makePolygonPolygon});
 }
 
@@ -6184,6 +6430,7 @@ static void findCollisionLineRPoint (Object iPtr, Object rPtr, unsigned int i, u
   coord_Coord ja;
   coord_Coord rcofg;
 
+  /* now we ask when/if point jp crosses line p1, p2  */
   findEarliestCollisionRLineRPoint (iPtr, rPtr, i, j, edesc, tc, p1.y, iu.y, ia.y, offset, iw, o, jpos.y, ju.y, ja.y, jp.r, jw, jp.w, p1, p2);
 }
 
@@ -6194,9 +6441,13 @@ static void findCollisionLineRPoint (Object iPtr, Object rPtr, unsigned int i, u
 
 static void findCollisionLineRLine (Object iPtr, Object rPtr, unsigned int i, unsigned int j, eventDesc *edesc, double *tc)
 {
+  /* test point rj-1 crossing line i  */
   findCollisionLineRPoint (iPtr, rPtr, i, j-1, edesc, tc);
+  /* test point rj crossing line i  */
   findCollisionLineRPoint (iPtr, rPtr, i, j, edesc, tc);
+  /* test point ii-1 crossing line j  */
   findCollisionLineRPoint (rPtr, iPtr, j, i-1, edesc, tc);
+  /* test point ii crossing line j  */
   findCollisionLineRPoint (rPtr, iPtr, j, i, edesc, tc);
 }
 
@@ -6524,10 +6775,12 @@ static unsigned int earlierSpringLength (eventDesc edesc, unsigned int id, doubl
   double T;
 
   manualCircleCollision ((double *) &array.array[0], 4, c1.x, c2.x, v1.x, v2.x, a1.x, a2.x, c1.y, c2.y, v1.y, v2.y, a1.y, a2.y, l, 0.0);
+  /* now solve for values of t which satisfy   array[4]*t^4 + array[3]*t^3 + array[2]*t^2 + array[1]*t^1 + array[0]*t^0 = 0  */
   n = roots_findQuarticRoots (array.array[4], array.array[3], array.array[2], array.array[1], array.array[0], (double *) &roots.array[0], 3);
   j = 0;
   while (j < n)
     {
+      /* we try each root in turn, selecting the smallest positive which has not been seen before.  */
       (*t) = roots.array[j];
       T = ((((array.array[4]*((sqr ((*t)))*(sqr ((*t)))))+(array.array[3]*((sqr ((*t)))*(*t))))+(array.array[2]*(sqr ((*t)))))+(array.array[1]*(*t)))+array.array[0];
       if (Debugging)
@@ -6536,8 +6789,10 @@ static unsigned int earlierSpringLength (eventDesc edesc, unsigned int id, doubl
           libc_printf ((char *) "found spring reaches length %g at %g\\n", 38, l, (*t));
         }
       Assert ((*t) >= 0.0, 5957);
+      /* remember edesc = NIL if bestTime is unassigned.  */
       if ((edesc == NULL) || ((*t) < bestTime))
         if (! (history_isDuplicateS (currentTime, (*t), id, sp)))
+          /* ok, this has not been seen before.  */
           return TRUE;
       j += 1;
     }
@@ -6606,8 +6861,57 @@ static void calcSpringLengthEvents (unsigned int i)
   t = -1.0;
   getSpringEndValues (id1, &c1, &v1, &a1);
   getSpringEndValues (id2, &c2, &v2, &a2);
+  /* 
+   test := -1.0 ;
+   IF earlierCircleCollision (edesc, i, i,
+                              t, ts, cp,
+                              c1.x, c2.x, v1.x, v2.x, a1.x, a2.x,
+                              c1.y, c2.y, v1.y, v2.y, a1.y, a2.y, iptr^.s.l0, 0.0)
+   THEN
+      test := t ;
+      edesc := NIL ;
+      ts := -1.0 ;
+      printf ("should get to the mid point in %g seconds
+  ", t)
+   END ;
+   t := -1.0 ;
+
+   id1ptr := GetIndice (objects, id1) ;
+   id2ptr := GetIndice (objects, id2) ;
+   getCircleValues (id1ptr, a, g, o, c, k, e, m) ;
+
+   
+        b         xj
+        h         yj
+        p         rj
+        d         vxj
+        l         vyj
+        f         ajx
+        n         ajy
+   
+
+   getCircleValues (id2ptr, b, h, p, d, l, f, n) ;
+   o := 0.0 ;
+   p := iptr^.s.l0 ;
+   IF earlierCircleCollision (edesc, id1, id2,
+                              t, ts, cp,
+                              a, b, c, d, e, f, g, h, k, l, m, n, o, p)
+   THEN
+      test := t ;
+      edesc := NIL ;
+      ts := -1.0 ;
+      printf ("should get to the mid point in %g seconds
+  ", t)
+   END ;
+   t := -1.0 ;
+  */
   if (earlierSpringLength (edesc, i, &t, ts, c1, v1, a1, c2, v2, a2, iptr->s.l0, (history_springPoint) history_midPoint))
     {
+      /* 
+      printf ("actually found a mid point value of %g
+      ", t) ;
+      AssertRFail (test, t) ;
+  */
       ts = t;
       if (trace)
         libc_printf ((char *) "spring %d reaches midpoint in %g seconds\\n", 42, i, t);
@@ -6642,6 +6946,7 @@ static void calcSpringLengthEvents (unsigned int i)
 
 static void manualSpringVelocityZero (double *array, unsigned int _array_high, double a, double b, double c, double d, double e, double f, double g, double h)
 {
+  /* thanks to wxmaxima and max2code.  */
   array[0] = ((((0.0+0.0)-(sqr (g)))-(sqr (e)))+(sqr (c)))+(sqr (a));
   array[1] = (((-((2.0*g)*h))-((2.0*e)*f))+((2.0*c)*d))+((2.0*a)*b);
   array[2] = (((-(sqr (h)))-(sqr (f)))+(sqr (d)))+(sqr (b));
@@ -6670,12 +6975,14 @@ static void earlierSpringEnd (unsigned int id, coord_Coord v1, coord_Coord a1, c
 
   manualSpringVelocityZero ((double *) &array.array[0], 2, v1.x, a1.x, v1.y, a1.y, v2.x, a2.x, v2.y, a2.y);
   n = roots_findQuadraticRoots (array.array[2], array.array[1], array.array[0], (double *) &root.array[0], 1);
+  /* now try each root in turn recording the lowest unique only.  */
   i = 0;
   while (i < n)
     {
       t = root.array[i];
       if (! (history_isDuplicateS (currentTime, t, id, (history_springPoint) history_endPoint)))
         {
+          /* ok, this has not been seen before, so we add it.  */
           edesc = makeSpringDesc ((eventDesc) NULL, id, (history_springPoint) history_endPoint);
           addSpringEvent (t, (eventProc) {(eventProc_t) doSpring}, edesc);
           anticipateSpring (t, edesc);
@@ -6759,9 +7066,12 @@ static void calcSpringEndEventsKE (double *ts, unsigned int i, eventDesc *edesc)
 
 static void calcSpringEventTime (unsigned int i)
 {
+  /* gdbif.sleepSpin ;  */
   calcSpringLengthEvents (i);
   if (DebugTrace)
     printQueue ();
+  /* these spring event categories, midEvent and lengthEvent are
+      treated independently and both stored on the queue.  */
   calcSpringEndEvents (i);
   if (DebugTrace)
     printQueue ();
@@ -6813,6 +7123,7 @@ static void reverseSpringAccel (Object o)
     {
       id1p = Indexing_GetIndice (objects, o->s.id1);
       id2p = Indexing_GetIndice (objects, o->s.id2);
+      /* gdbif.sleepSpin ;  */
       if (trace)
         {
           libc_printf ((char *) "entered reverse spring acceleration\\n", 37);
@@ -6877,9 +7188,11 @@ static void doSpringMidPoint (eventQueue e)
 
   if (trace)
     libc_printf ((char *) "doSpringMidPoint called at time %g\\n", 36, currentTime);
+  /* firstly we remove some energy from the moving objects.  */
   idptr = Indexing_GetIndice (objects, e->ePtr->sp.id);
   id1ptr = Indexing_GetIndice (objects, idptr->s.id1);
   id2ptr = Indexing_GetIndice (objects, idptr->s.id2);
+  /* Assert (nearSame (idptr^.s.l0, lengthCoord (subCoord (getCofG (idptr^.s.id1), getCofG (idptr^.s.id2)))), __LINE__) ;  */
   if (idptr->s.drawMid)
     {
       if (trace)
@@ -6892,6 +7205,24 @@ static void doSpringMidPoint (eventQueue e)
       doDrawFrame (id2ptr, 0.0, (deviceIf_Colour) idptr->s.midColour);
       deviceIf_flipBuffer ();
     }
+  /* 
+   IF NOT id1ptr^.fixed
+   THEN
+      inElasticSpring (id1ptr^.vx) ;
+      inElasticSpring (id1ptr^.vy) ;
+      id1ptr^.vx := 0.0 ;
+      id1ptr^.vy := 0.0 ;
+      dumpObject (id1ptr)
+   END ;
+   IF NOT id2ptr^.fixed
+   THEN
+      inElasticSpring (id2ptr^.vx) ;
+      inElasticSpring (id2ptr^.vy) ;
+      id2ptr^.vx := 0.0 ;
+      id2ptr^.vy := 0.0 ;
+      dumpObject (id2ptr)
+   END ;
+  */
   if (! FrameSprings)
     {
       if (trace)
@@ -6936,6 +7267,7 @@ static void doSpringEndPoint (eventQueue e)
     }
   if (! FrameSprings)
     {
+      /* we remove some energy from the moving objects.  */
       recalculateForceEnergy ();
       inElasticSpring (&id1ptr->saccel.x);
       inElasticSpring (&id1ptr->saccel.y);
@@ -6955,11 +7287,13 @@ static void doSpringCallPoint (eventQueue e)
   Object o;
   fcDesc fc;
 
+  /* gdbif.sleepSpin ;  */
   Assert (e->ePtr->etype == springEvent, 6509);
   Assert (e->ePtr->sp.type == history_callPoint, 6510);
   o = Indexing_GetIndice (objects, e->ePtr->sp.id);
   Assert (isSpringObject (e->ePtr->sp.id), 6512);
-  o->s.hasCallBackLength = FALSE;
+  o->s.hasCallBackLength = FALSE;  /* turn this off.  */
+  /* now invoke the call.  */
   twoDsim_createFunctionEvent (0.0, o->s.func, o->id);
   if (trace)
     printQueue ();
@@ -6972,14 +7306,17 @@ static void doSpringCallPoint (eventQueue e)
 
 static void doSpring (eventQueue e)
 {
+  /* gdbif.sleepSpin () ;  */
   if (trace)
     {
       libc_printf ((char *) "doSpring called\\n", 17);
       if (e->ePtr->sp.type == history_midPoint)
         {}  /* empty.  */
+      /* gdbif.sleepSpin  */
       if (e->ePtr->sp.type == history_endPoint)
         {}  /* empty.  */
     }
+  /* gdbif.sleepSpin  */
   updatePhysics ((e->ePtr->sp.type == history_endPoint) || FrameSprings);
   springOccurred (e->ePtr);
   switch (e->ePtr->sp.type)
@@ -7000,6 +7337,7 @@ static void doSpring (eventQueue e)
       default:
         CaseException ("../git-pge/m2/twoDsim.def", 2, 1);
     }
+  /* gdbif.sleepSpin ;  */
   addNextObjectEvent ();
 }
 
@@ -7133,6 +7471,8 @@ static void addNextObjectEvent (void)
       libc_printf ((char *) "no spring or collision events here\\n", 36);
       printQueue ();
     }
+  /* addNextSpringEvent must be run before addNextCollisionEvent
+      as it will update the spring acceleration  */
   addNextSpringEvent ();
   addNextCollisionEvent ();
   if (trace)
@@ -7163,9 +7503,9 @@ static void resetQueue (void)
   eventQueue f;
   eventQueue e;
 
-  c = NULL;
-  f = NULL;
-  e = eventQ;
+  c = NULL;  /* collision event  */
+  f = NULL;  /* draw frame event  */
+  e = eventQ;  /* draw frame event  */
   while ((e != NULL) && ((c == NULL) || (f == NULL)))
     {
       if ((e->kind == collisionKind) || (e->kind == springKind))
@@ -7401,6 +7741,7 @@ static void recordEvent (void)
     {
       if (DebugTrace)
         libc_printf ((char *) "before writeEvent\\n", 19);
+      /* gdbif.sleepSpin ;  */
       writeEvent (eventQ);
       if (DebugTrace)
         libc_printf ((char *) "after writeEvent\\n", 18);
@@ -8308,6 +8649,7 @@ unsigned int twoDsim_spring (unsigned int id1, unsigned int id2, double k, doubl
   optr->s.draw = FALSE;
   optr->s.drawEnd = FALSE;
   optr->s.drawMid = FALSE;
+  /* and stop the current position from being the next endPoint.  */
   anticipateSpring (currentTime, makeSpringDesc ((eventDesc) NULL, id, (history_springPoint) history_endPoint));
   libc_printf ((char *) "in spring about to recalculate forces\\n", 39);
   recalculateForceEnergy ();
@@ -8527,6 +8869,9 @@ void twoDsim_simulateFor (double t)
   double s;
   double dt;
 
+  /* 
+   gdbif.sleepSpin ;
+  */
   s = 0.0;
   if (twoDsim_checkObjects ())
     {
@@ -8640,6 +8985,7 @@ void twoDsim_processEvent (void)
 {
   double dt;
 
+  /* gdbif.sleepSpin ;  */
   if (Debugging)
     libc_printf ((char *) "processEvent before pumpQueue\\n", 31);
   pumpQueue ();
@@ -8927,6 +9273,7 @@ unsigned int twoDsim_checkObjects (void)
 
 void _M2_twoDsim_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
+  /* gdbif.sleepSpin  */
   Init ();
 }
 

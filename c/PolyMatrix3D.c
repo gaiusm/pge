@@ -194,6 +194,7 @@ PolyMatrix3D_Matrix PolyMatrix3D_mark (PolyMatrix3D_Matrix m)
   GC_markEntity (m->gentity);
   for (i=1; i<=PolyMatrix3D_MaxDimension; i++)
     for (j=1; j<=PolyMatrix3D_MaxDimension; j++)
+      /* and mark all its values  */
       Fractions_mark (m->value.array[i-1].array[j-1]);
   return m;
 }
@@ -272,12 +273,15 @@ PolyMatrix3D_Matrix PolyMatrix3D_mult (PolyMatrix3D_Matrix a, PolyMatrix3D_Matri
   PolyMatrix3D_Matrix m;
 
   m = PolyMatrix3D_init ();
+  /* 1st row  */
   m->value.array[1-1].array[1-1] = Fractions_add3 (Fractions_mult (a->value.array[1-1].array[1-1], b->value.array[1-1].array[1-1]), Fractions_mult (a->value.array[1-1].array[2-1], b->value.array[2-1].array[1-1]), Fractions_mult (a->value.array[1-1].array[3-1], b->value.array[3-1].array[1-1]));
   m->value.array[1-1].array[2-1] = Fractions_add3 (Fractions_mult (a->value.array[1-1].array[1-1], b->value.array[1-1].array[2-1]), Fractions_mult (a->value.array[1-1].array[2-1], b->value.array[2-1].array[2-1]), Fractions_mult (a->value.array[1-1].array[3-1], b->value.array[3-1].array[2-1]));
   m->value.array[1-1].array[3-1] = Fractions_add3 (Fractions_mult (a->value.array[1-1].array[1-1], b->value.array[1-1].array[3-1]), Fractions_mult (a->value.array[1-1].array[2-1], b->value.array[2-1].array[3-1]), Fractions_mult (a->value.array[1-1].array[3-1], b->value.array[3-1].array[3-1]));
+  /* 2nd row  */
   m->value.array[2-1].array[1-1] = Fractions_add3 (Fractions_mult (a->value.array[2-1].array[1-1], b->value.array[1-1].array[1-1]), Fractions_mult (a->value.array[2-1].array[2-1], b->value.array[2-1].array[1-1]), Fractions_mult (a->value.array[2-1].array[3-1], b->value.array[3-1].array[1-1]));
   m->value.array[2-1].array[2-1] = Fractions_add3 (Fractions_mult (a->value.array[2-1].array[1-1], b->value.array[1-1].array[2-1]), Fractions_mult (a->value.array[2-1].array[2-1], b->value.array[2-1].array[2-1]), Fractions_mult (a->value.array[2-1].array[3-1], b->value.array[3-1].array[2-1]));
   m->value.array[2-1].array[3-1] = Fractions_add3 (Fractions_mult (a->value.array[2-1].array[1-1], b->value.array[1-1].array[3-1]), Fractions_mult (a->value.array[2-1].array[2-1], b->value.array[2-1].array[3-1]), Fractions_mult (a->value.array[2-1].array[3-1], b->value.array[3-1].array[3-1]));
+  /* 3rd row  */
   m->value.array[3-1].array[1-1] = Fractions_add3 (Fractions_mult (a->value.array[3-1].array[1-1], b->value.array[1-1].array[1-1]), Fractions_mult (a->value.array[3-1].array[2-1], b->value.array[2-1].array[1-1]), Fractions_mult (a->value.array[3-1].array[3-1], b->value.array[3-1].array[1-1]));
   m->value.array[3-1].array[2-1] = Fractions_add3 (Fractions_mult (a->value.array[3-1].array[1-1], b->value.array[1-1].array[2-1]), Fractions_mult (a->value.array[3-1].array[2-1], b->value.array[2-1].array[2-1]), Fractions_mult (a->value.array[3-1].array[3-1], b->value.array[3-1].array[2-1]));
   m->value.array[3-1].array[3-1] = Fractions_add3 (Fractions_mult (a->value.array[3-1].array[1-1], b->value.array[1-1].array[3-1]), Fractions_mult (a->value.array[3-1].array[2-1], b->value.array[2-1].array[3-1]), Fractions_mult (a->value.array[3-1].array[3-1], b->value.array[3-1].array[3-1]));

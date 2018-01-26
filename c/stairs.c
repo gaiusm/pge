@@ -81,6 +81,7 @@ static void dropBall (void)
   macroObjects_Macro m;
 
   m = macroObjects_initMacro ();
+  /* drop the ball at the top of stairs with a leftwards velocity  */
   m = macroObjects_moveTo (m, Points_initPoint (Fractions_initFract (0, 9, 10), Fractions_initFract (0, 9, 10)));
   m = macroObjects_circle (m, TRUE, Fractions_zero (), (deviceIf_Colour) deviceIf_green (), size);
   m = macroObjects_rootMacro (m);

@@ -197,18 +197,23 @@ static DynamicStrings_String HandleEscape (DynamicStrings_String s)
   while (i >= 0)
     {
       if (i > 0)
+        /* initially i might be zero which means the end of the string, which is not what we want  */
         d = DynamicStrings_ConCat (d, DynamicStrings_Slice (s, j, i));
       ch = DynamicStrings_char (s, i+1);
       if (ch == 'n')
+        /* requires a newline  */
         d = DynamicStrings_ConCat (d, DynamicStrings_Mark (DynamicStrings_InitStringChar (ASCII_nl)));
       else if (ch == 't')
+        /* requires a tab (yuck)  */
         d = DynamicStrings_ConCat (d, DynamicStrings_Mark (DynamicStrings_InitStringChar (ASCII_tab)));
       else
+        /* copy escaped character  */
         d = DynamicStrings_ConCat (d, DynamicStrings_Mark (DynamicStrings_InitStringChar (ch)));
       i += 2;
       j = i;
       i = DynamicStrings_Index (s, '\\', (unsigned int ) (i));
     }
+  /* s := Assign(s, Mark(ConCat(d, Mark(Slice(s, j, 0))))) ;    dont Mark(s) in the Slice as we Assign contents  */
   s = DynamicStrings_ConCat (d, DynamicStrings_Mark (DynamicStrings_Slice (DynamicStrings_Mark (s), j, 0)));
   DSdbExit (s);
   return s;
@@ -283,10 +288,13 @@ static DynamicStrings_String FormatString (DynamicStrings_String s, unsigned cha
             {
               /* avoid gcc warning by using compound statement even if not strictly necessary.  */
               if (left)
+                /* place trailing spaces after, p  */
                 p = DynamicStrings_ConCat (p, DynamicStrings_Mark (DynamicStrings_Mult (DynamicStrings_Mark (DynamicStrings_InitString ((char *) " ", 1)), (unsigned int) width-((int ) (DynamicStrings_Length (p))))));
               else
+                /* padd string, p, with leading spaces  */
                 p = DynamicStrings_ConCat (DynamicStrings_Mult (DynamicStrings_Mark (DynamicStrings_InitString ((char *) " ", 1)), (unsigned int) width-((int ) (DynamicStrings_Length (p)))), DynamicStrings_Mark (p));
             }
+          /* include string, p, into s  */
           s = DynamicStrings_ConCat (DynamicStrings_ConCat (DynamicStrings_Slice (s, i, k), DynamicStrings_Mark (p)), DynamicStrings_Mark (DynamicStrings_Slice (s, j+2, 0)));
         }
       else if (ch == 'd')

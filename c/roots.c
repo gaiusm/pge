@@ -356,6 +356,11 @@ static double complex cpower (double complex c, double r)
   double radius;
   double angle;
 
+  /* 
+    *  use Abraham de Moivre's formula which states that:
+    *
+    *  (cos(x) + i sin(x))^r = cos(rx) + i sin(rx)
+  */
   radius = rsqrt (((creal (c))*(creal (c)))+((cimag (c))*(cimag (c))));
   angle = libm_atan2 (cimag (c), creal (c));
   radiusr = libm_pow (radius, r);
@@ -482,8 +487,8 @@ static unsigned int findCubicRoots (double a, double b, double c, double d, doub
     n = roots_findQuadraticRoots (b, c, d, (double *) x, _x_high);
   else
     {
-      n = 1;
-      x[0] = ((-(b/(3.0*a)))-((1.0/(3.0*a))*(cubr ((((2.0*(cub (b)))-(((9.0*a)*b)*c))+((27.0*(sqr (a)))*d))+(rsqrt ((sqr (((2.0*(cub (b)))-(((9.0*a)*b)*c))+((27.0*(sqr (a)))*d)))-(4.0*(cub ((sqr (b))-((3.0*a)*c))))))))))-((1.0/(3.0*a))*(cubr ((((2.0*(cub (b)))-(((9.0*a)*b)*c))+((27.0*(sqr (a)))*d))-(rsqrt ((sqr (((2.0*(cub (b)))-(((9.0*a)*b)*c))+((27.0*(sqr (a)))*d)))-(4.0*(cub ((sqr (b))-((3.0*a)*c)))))))));
+      n = 1;  /* only one non imaginary root.  */
+      x[0] = ((-(b/(3.0*a)))-((1.0/(3.0*a))*(cubr ((((2.0*(cub (b)))-(((9.0*a)*b)*c))+((27.0*(sqr (a)))*d))+(rsqrt ((sqr (((2.0*(cub (b)))-(((9.0*a)*b)*c))+((27.0*(sqr (a)))*d)))-(4.0*(cub ((sqr (b))-((3.0*a)*c))))))))))-((1.0/(3.0*a))*(cubr ((((2.0*(cub (b)))-(((9.0*a)*b)*c))+((27.0*(sqr (a)))*d))-(rsqrt ((sqr (((2.0*(cub (b)))-(((9.0*a)*b)*c))+((27.0*(sqr (a)))*d)))-(4.0*(cub ((sqr (b))-((3.0*a)*c)))))))));  /* only one non imaginary root.  */
     }
   roundRoots ((double *) x, _x_high, n);
   if (tracing)
@@ -544,12 +549,15 @@ static unsigned int removeSort (double *a, unsigned int _a_high, unsigned int n)
         i += 1;
         l += 1;
       }
+  /* now we sort the list.  */
   if (l > 1)
     do {
       swapped = FALSE;
       for (i=1; i<=l-1; i++)
+        /* are the next pair out of order  */
         if (a[i-1] > a[i])
           {
+            /* swap these and record a change was made.  */
             swap (&a[i-1], &a[i]);
             swapped = TRUE;
           }
@@ -590,6 +598,7 @@ static void test (void)
   E = 1080.0;
   if (roots_findQuartic (A, B, C, D, E, &t))
     {
+      /* 5, 3, -4, -6  */
       T = ((((A*((sqr (t))*(sqr (t))))+(B*((sqr (t))*t)))+(C*(sqr (t))))+(D*t))+E;
       if (Debugging)
         libc_printf ((char *) "%gt^4 + %gt^3 +%gt^2 + %gt + %g = %g    (t=%g)\\n", 48, A, B, C, D, E, T, t);
@@ -604,6 +613,7 @@ static void test (void)
   E = 24.0;
   if (roots_findQuartic (A, B, C, D, E, &t))
     {
+      /* (x-3)(x+4)(x+1)(x-2)  */
       T = ((((A*((sqr (t))*(sqr (t))))+(B*((sqr (t))*t)))+(C*(sqr (t))))+(D*t))+E;
       if (Debugging)
         libc_printf ((char *) "%gt^4 + %gt^3 +%gt^2 + %gt + %g = %g    (t=%g)\\n", 48, A, B, C, D, E, T, t);
@@ -618,6 +628,7 @@ static void test (void)
   E = 4.0;
   if (roots_findQuartic (A, B, C, D, E, &t))
     {
+      /* (x-1)(x+1)(x-2)(x+2)  */
       T = ((((A*((sqr (t))*(sqr (t))))+(B*((sqr (t))*t)))+(C*(sqr (t))))+(D*t))+E;
       if (Debugging)
         libc_printf ((char *) "%gt^4 + %gt^3 +%gt^2 + %gt + %g = %g    (t=%g)\\n", 48, A, B, C, D, E, T, t);
@@ -692,6 +703,7 @@ unsigned int roots_findQuadratic (double a, double b, double c, double *x0, doub
               if (roots_nearSame ((*x1), 0.388415))
                 {}  /* empty.  */
             }
+          /* gdbif.sleepSpin  */
           return TRUE;
         }
       else if (roots_nearZero (discriminant))
@@ -910,6 +922,7 @@ unsigned int roots_findAllRootsQuartic (double a, double b, double c, double d, 
       p = (-((sqr (alpha))/12.0))-gamma;
       q = ((-((cub (alpha))/108.0))+((alpha*gamma)/3.0))-((sqr (beta))/8.0);
       f = ((sqr (q))/4.0)+((cub (p))/27.0);
+      /* as f can be negative we must use complex arithmetic  */
       r = (-( (q/2.0) + (0.0 * I)))+(csqrt_ ( (f) + (0.0 * I)));
       u = ccubr (r);
       if (cnearZero (u))

@@ -133,7 +133,7 @@ void delay_wait (void)
               if (sec > 0)
                 sec -= 1;
               else
-                M2RTS_HALT (-1);
+                M2RTS_HALT (-1);  /* algorithmic error..  */
             }
           else
             usec -= u;
@@ -144,6 +144,7 @@ void delay_wait (void)
           Selective_FdZero (r);
           if ((Selective_Select (0, r, w, e, delayT)) == 0)
             {}  /* empty.  */
+          /* do nothing  */
           r = Selective_KillSet (r);
           w = Selective_KillSet (w);
           e = Selective_KillSet (e);

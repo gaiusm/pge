@@ -898,6 +898,7 @@ static void checkFlags (ChanConsts_FlagSet f, IOLink_DeviceTablePtr d);
 
 static void checkValid (RTgen_ChanDev g, IOLink_DeviceTablePtr d)
 {
+  /* internal routine to check whether we have a valid channel  */
   if ((RTgenif_getDID (g->genif)) != d->did)
     IOLink_RAISEdevException (d->cid, d->did, (IOLink_DevExceptionRange) IOChan_wrongDevice, (char *) "operation attempted on an invalid channel", 41);
   if ((d->cid == (IOChan_InvalidChan ())) || (d->cid == NULL))
@@ -944,6 +945,7 @@ static void checkPreWrite (RTgen_ChanDev g, IOLink_DeviceTablePtr d)
 
 static void checkPostWrite (RTgen_ChanDev g, IOLink_DeviceTablePtr d)
 {
+  /* nothing to do  */
   RTgen_checkErrno (g, d);
 }
 
@@ -1120,6 +1122,7 @@ void RTgen_doReadText (RTgen_ChanDev g, IOLink_DeviceTablePtr d, void * to, unsi
         else
           {
             RTgen_checkErrno (g, d);
+            /* if our target system does not support errno then we  */
             IOLink_RAISEdevException (d->cid, d->did, (IOLink_DevExceptionRange) IOChan_notAvailable, (char *) "textread unrecoverable errno", 28);
           }
       } while (! ((maxChars == 0) || (RTgenif_isEOF (g->genif, d))));
@@ -1143,6 +1146,7 @@ void RTgen_doWriteText (RTgen_ChanDev g, IOLink_DeviceTablePtr d, void * from, u
   if (RTgenif_isError (g->genif, d))
     {
       RTgen_checkErrno (g, d);
+      /* if our target system does not support errno then we  */
       IOLink_RAISEdevException (d->cid, d->did, (IOLink_DevExceptionRange) IOChan_notAvailable, (char *) "textwrite unrecoverable errno", 29);
     }
   checkPostWrite (g, d);
@@ -1169,6 +1173,7 @@ void RTgen_doReadLocs (RTgen_ChanDev g, IOLink_DeviceTablePtr d, void * to, unsi
         else
           {
             RTgen_checkErrno (g, d);
+            /* if our target system does not support errno then we  */
             IOLink_RAISEdevException (d->cid, d->did, (IOLink_DevExceptionRange) IOChan_notAvailable, (char *) "rawread unrecoverable errno", 27);
           }
       } while (! ((maxLocs == 0) || (RTgenif_isEOF (g->genif, d))));
@@ -1192,6 +1197,7 @@ void RTgen_doWriteLocs (RTgen_ChanDev g, IOLink_DeviceTablePtr d, void * from, u
   if (RTgenif_isError (g->genif, d))
     {
       RTgen_checkErrno (g, d);
+      /* if our target system does not support errno then we  */
       IOLink_RAISEdevException (d->cid, d->did, (IOLink_DevExceptionRange) IOChan_notAvailable, (char *) "rawwrite unrecoverable errno", 28);
     }
   checkPostWrite (g, d);
@@ -1219,6 +1225,7 @@ void RTgen_checkErrno (RTgen_ChanDev g, IOLink_DeviceTablePtr d)
 
 void _M2_RTgen_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
+  /* seqfile, streamfile, programargs, stdchans, term , socket, rndfile  */
   raiseEofInLook = (deviceExceptions) ((1 << (FALSE)));
   raiseEofInSkip = (deviceExceptions) ((1 << (TRUE)));
 }

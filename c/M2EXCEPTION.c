@@ -20,6 +20,10 @@ unsigned int M2EXCEPTION_IsM2Exception (void);
 
 M2EXCEPTION_M2Exceptions M2EXCEPTION_M2Exception (void)
 {
+  /* If the current coroutine is in the exceptional execution state because of the raising
+     of a language exception, returns the corresponding enumeration value, and otherwise
+     raises an exception.
+  */
   if (M2EXCEPTION_IsM2Exception ())
     return (M2EXCEPTION_M2Exceptions) (RTExceptions_GetNumber (RTExceptions_GetExceptionBlock ()));
   else
@@ -29,6 +33,9 @@ M2EXCEPTION_M2Exceptions M2EXCEPTION_M2Exception (void)
 
 unsigned int M2EXCEPTION_IsM2Exception (void)
 {
+  /* If the current coroutine is in the exceptional execution state because of the raising
+     of a language exception, returns TRUE, and otherwise returns FALSE.
+  */
   return (RTExceptions_IsInExceptionState ()) && ((RTExceptions_GetBaseExceptionBlock ()) == (RTExceptions_GetExceptionBlock ()));
 }
 

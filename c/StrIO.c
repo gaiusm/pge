@@ -137,11 +137,11 @@ void StrIO_ReadString (char *a, unsigned int _a_high)
     else if (ch == ASCII_nak)
       while (n > 0)
         {
-          Erase ();
+          Erase ();  /* Ctrl U  */
           n -= 1;
         }
     else if (ch == ASCII_etb)
-      if (n == 0)
+      if (n == 0)  /* Ctrl W  */
         Echo (ASCII_bel);
       else if (AlphaNum (a[n-1]))
         do {
@@ -213,6 +213,7 @@ void StrIO_WriteString (char *a_, unsigned int _a_high)
 
 void _M2_StrIO_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
+  /* IsATTY := isatty()  */
   IsATTY = FALSE;
 }
 

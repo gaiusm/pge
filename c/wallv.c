@@ -73,6 +73,13 @@ static void placeWall (void)
   m = macroObjects_initMacro ();
   m = macroObjects_moveTo (m, Points_initPoint (Fractions_initFract (0, 1, 10), Fractions_initFract (0, 1, 10)));
   m = macroObjects_rectangle (m, TRUE, Fractions_zero (), (deviceIf_Colour) deviceGroff_red (), Fractions_initFract (0, 1, 10), Fractions_initFract (0, 8, 10));
+  /* 
+   m := moveTo(m, initPoint(initFract(0, 0, 0), initFract(0, 0, 0))) ;
+   m := rectangle(m, TRUE, zero(), red(), one(), initFract(0, 1, 10)) ;
+
+   m := moveTo(m, initPoint(initFract(0, 0, 0), initFract(0, 8, 10))) ;
+   m := rectangle(m, TRUE, zero(), red(), one(), initFract(0, 1, 10)) ;
+  */
   m = macroObjects_rootMacro (m);
   popWorld_populate (m, TRUE, TRUE);
 }
@@ -87,10 +94,14 @@ static void fireCue (void)
   macroObjects_Macro m;
 
   m = macroObjects_initMacro ();
+  /* fire against the wall  */
   m = macroObjects_moveTo (m, Points_initPoint (Fractions_initFract (0, 5, 10), Fractions_initFract (0, 5, 10)));
   m = macroObjects_circle (m, TRUE, Fractions_zero (), (deviceIf_Colour) deviceGroff_green (), size);
   m = macroObjects_rootMacro (m);
   popWorld_mass (Fractions_cardinal (3));
+  /* 
+   popWorld.velocity(initPoint(initFract(2, 0, 0), negate(initFract(1, 0, 0)))) ;
+  */
   popWorld_velocity (Points_initPoint (Fractions_negate (Fractions_initFract (2, 0, 0)), Fractions_zero ()));
   popWorld_populate (m, FALSE, TRUE);
   twoDsim_simulateFor (1.0);
@@ -106,10 +117,14 @@ static void fireBox (void)
   macroObjects_Macro m;
 
   m = macroObjects_initMacro ();
+  /* fire against the wall  */
   m = macroObjects_moveTo (m, Points_initPoint (Fractions_initFract (0, 5, 10), Fractions_initFract (0, 5, 10)));
   m = macroObjects_rectangle (m, TRUE, Fractions_zero (), (deviceIf_Colour) deviceGroff_green (), Fractions_initFract (0, 1, 20), Fractions_initFract (0, 1, 20));
   m = macroObjects_rootMacro (m);
   popWorld_mass (Fractions_cardinal (3));
+  /* 
+   popWorld.velocity(initPoint(initFract(2, 0, 0), negate(initFract(1, 0, 0)))) ;
+  */
   popWorld_velocity (Points_initPoint (Fractions_negate (Fractions_initFract (2, 0, 0)), Fractions_zero ()));
   popWorld_populate (m, FALSE, TRUE);
   twoDsim_simulateFor (1.0);

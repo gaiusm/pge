@@ -70,12 +70,16 @@ static void dropBall (deviceIf_Colour c);
 
 static void placeBoundary (macroObjects_Macro m)
 {
+  /* left edge  */
   m = macroObjects_moveTo (m, Points_initPoint (Fractions_zero (), Fractions_zero ()));
   m = macroObjects_rectangle (m, TRUE, Fractions_zero (), (deviceIf_Colour) deviceIf_red (), Fractions_initFract (0, 1, 100), Fractions_one ());
+  /* right edge  */
   m = macroObjects_moveTo (m, Points_initPoint (Fractions_initFract (0, 99, 100), Fractions_zero ()));
   m = macroObjects_rectangle (m, TRUE, Fractions_zero (), (deviceIf_Colour) deviceIf_red (), Fractions_initFract (0, 1, 100), Fractions_one ());
+  /* bot edge  */
   m = macroObjects_moveTo (m, Points_initPoint (Fractions_zero (), Fractions_zero ()));
   m = macroObjects_rectangle (m, TRUE, Fractions_zero (), (deviceIf_Colour) deviceIf_red (), Fractions_one (), Fractions_initFract (0, 1, 100));
+  /* top edge  */
   m = macroObjects_moveTo (m, Points_initPoint (Fractions_zero (), Fractions_initFract (0, 99, 100)));
   m = macroObjects_rectangle (m, TRUE, Fractions_zero (), (deviceIf_Colour) deviceIf_red (), Fractions_one (), Fractions_initFract (0, 1, 100));
 }
@@ -115,6 +119,7 @@ static void dropBall (deviceIf_Colour c)
   macroObjects_Macro m;
 
   m = macroObjects_initMacro ();
+  /* drop the ball at the top of stairs with a leftwards velocity  */
   m = macroObjects_moveTo (m, Points_initPoint (Fractions_initFract (0, 17, 20), Fractions_initFract (0, 15, 20)));
   m = macroObjects_circle (m, TRUE, Fractions_zero (), c, size);
   m = macroObjects_rootMacro (m);
@@ -137,6 +142,7 @@ void _M2_slope_init (__attribute__((unused)) int argc, __attribute__((unused)) c
   twoDsim_simulateFor (1.0);
   dropBall ((deviceIf_Colour) deviceIf_red ());
   twoDsim_simulateFor (1.0);
+  /* dropBall(purple()) ;  */
   twoDsim_simulateFor (4.0);
 }
 
