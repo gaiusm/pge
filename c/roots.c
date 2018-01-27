@@ -702,8 +702,8 @@ unsigned int roots_findQuadratic (double a, double b, double c, double *x0, doub
               libc_printf ((char *) "findQuadratic discriminant > 0.0, x0 = %g, x1 = %g  -> true\\n", 61, (*x0), (*x1));
               if (roots_nearSame ((*x1), 0.388415))
                 {}  /* empty.  */
+              /* gdbif.sleepSpin  */
             }
-          /* gdbif.sleepSpin  */
           return TRUE;
         }
       else if (roots_nearZero (discriminant))

@@ -695,8 +695,8 @@ static DynamicStrings_String doDecimalPlaces (DynamicStrings_String s, unsigned 
   i = 0;
   if (l > 0)
     {
+      /* skip over leading zeros  */
       while ((i < l) && ((DynamicStrings_char (s, i)) == '0'))
-        /* skip over leading zeros  */
         i += 1;
       /* was the string full of zeros?  */
       if ((i == l) && ((DynamicStrings_char (s, i-1)) == '0'))
@@ -794,8 +794,8 @@ static DynamicStrings_String doSigFig (DynamicStrings_String s, unsigned int n)
   i = 0;
   if (l > 0)
     {
+      /* skip over leading zeros  */
       while ((i < l) && ((DynamicStrings_char (s, i)) == '0'))
-        /* skip over leading zeros  */
         i += 1;
       /* was the string full of zeros?  */
       if ((i == l) && ((DynamicStrings_char (s, i-1)) == '0'))
@@ -1001,9 +1001,9 @@ int StringConvert_StringToInteger (DynamicStrings_String s, unsigned int base, u
   negative = FALSE;
   if (n < l)
     {
+      /* parse leading + and -  */
       while (((DynamicStrings_char (s, (int) n)) == '-') || ((DynamicStrings_char (s, (int) n)) == '+'))
         {
-          /* parse leading + and -  */
           if ((DynamicStrings_char (s, (int) n)) == '-')
             negative = ! negative;
           n += 1;
@@ -1042,8 +1042,8 @@ unsigned int StringConvert_StringToCardinal (DynamicStrings_String s, unsigned i
   n = 0;
   if (n < l)
     {
+      /* parse leading +  */
       while ((DynamicStrings_char (s, (int) n)) == '+')
-        /* parse leading +  */
         n += 1;
       while ((n < l) && ((IsDecimalDigitValid (DynamicStrings_char (s, (int) n), base, &c)) || (IsHexidecimalDigitValid (DynamicStrings_char (s, (int) n), base, &c))))
         {
@@ -1132,9 +1132,9 @@ long int StringConvert_StringToLongInteger (DynamicStrings_String s, unsigned in
   negative = FALSE;
   if (n < l)
     {
+      /* parse leading + and -  */
       while (((DynamicStrings_char (s, (int) n)) == '-') || ((DynamicStrings_char (s, (int) n)) == '+'))
         {
-          /* parse leading + and -  */
           if ((DynamicStrings_char (s, (int) n)) == '-')
             negative = ! negative;
           n += 1;
@@ -1205,8 +1205,8 @@ long unsigned int StringConvert_StringToLongCardinal (DynamicStrings_String s, u
   n = 0;
   if (n < l)
     {
+      /* parse leading +  */
       while ((DynamicStrings_char (s, (int) n)) == '+')
-        /* parse leading +  */
         n += 1;
       while ((n < l) && ((IsDecimalDigitValidLong (DynamicStrings_char (s, (int) n), base, &c)) || (IsHexidecimalDigitValidLong (DynamicStrings_char (s, (int) n), base, &c))))
         {
@@ -1271,8 +1271,8 @@ short unsigned int StringConvert_StringToShortCardinal (DynamicStrings_String s,
   n = 0;
   if (n < l)
     {
+      /* parse leading +  */
       while ((DynamicStrings_char (s, (int) n)) == '+')
-        /* parse leading +  */
         n += 1;
       while ((n < l) && ((IsDecimalDigitValidShort (DynamicStrings_char (s, (int) n), base, &c)) || (IsHexidecimalDigitValidShort (DynamicStrings_char (s, (int) n), base, &c))))
         {

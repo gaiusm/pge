@@ -1,3 +1,17 @@
+2018-01-27      Gaius Mulley <gaius@gnu.org>
+
+	* c/FIO.c:  regenerated with extra comments.
+	* c/Fractions.c:  regenerated with extra comments.
+	* c/GC.c:  regenerated with extra comments.
+	* c/IOChan.c:  regenerated with extra comments.
+	* c/MemStream.c:  regenerated with extra comments.
+	* c/StrIO.c:  regenerated with extra comments.
+	* c/StringConvert.c:  regenerated with extra comments.
+	* c/deviceGroff.c:  regenerated with extra comments.
+	* c/history.c:  regenerated with extra comments.
+	* c/roots.c:  regenerated with extra comments.
+	* c/twoDsim.c:  regenerated with extra comments.
+
 2018-01-26      Gaius Mulley <gaius@gnu.org>
 
 	* c/COROUTINES.c:  regenerated with extra comments.

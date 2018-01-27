@@ -1440,6 +1440,11 @@ static void produceAVI (unsigned int fps, unsigned int width, unsigned int heigh
       debugSystem (s);
       s = DynamicStrings_KillString (s);
     }
+  /* 
+       s := InitString('rm -f *.pnm *.png f*.ms') ;
+       debugSystem(s) ;
+       s := KillString(s)
+  */
 }
 
 

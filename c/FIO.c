@@ -680,7 +680,9 @@ static int ReadFromBuffer (FIO_File f, void * a, unsigned int nBytes)
                 total += n;
                 return total;  /* much cleaner to return now,  */
               }
+             /* difficult to record an error if  */
           }
+         /* the read below returns -1  */
       if (nBytes > 0)
         {
           /* still more to read  */
@@ -940,8 +942,8 @@ static void StringFormat1 (char *dest, unsigned int _dest_high, char *src_, unsi
           j += 1;
         }
     }
+  /* and finish off copying src into dest  */
   while (((i < HighSrc) && (src[i] != ASCII_nul)) && (j < HighDest))
-    /* and finish off copying src into dest  */
     if (src[i] == '\\')
       HandleEscape ((char *) dest, _dest_high, (char *) src, _src_high, &i, &j, HighSrc, HighDest);
     else
@@ -1115,8 +1117,8 @@ static int BufferedWrite (FIO_File f, unsigned int nBytes, void * a)
           total = 0;  /* how many bytes have we read  */
           if (fd->buffer != NULL)  /* how many bytes have we read  */
             {
+              /* place into the buffer first  */
               while (nBytes > 0)
-                /* place into the buffer first  */
                 if (fd->buffer->left > 0)
                   if (nBytes == 1)
                     {

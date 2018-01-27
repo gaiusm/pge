@@ -225,7 +225,7 @@ static void RunCallBacks (GC_garbage g)
   callBack c;
 
   c = g->callbacks;
-  while (c != NULL)
+  while (c != NULL)  /* calls the call back  */
     {
       (*c->callp.proc) ();  /* calls the call back  */
       c = c->next;  /* calls the call back  */
@@ -346,8 +346,8 @@ static void tidyUpEntities (GC_garbage g)
           if (PoisonOn)
             if ((libc_memset (e->data, GGCPOISON, (size_t) g->bytes)) == NULL)
               {}  /* empty.  */
+            /* ignore return code from memset  */
         }
-      /* ignore return code from memset  */
       i += 1;
     }
   if (StatsOn)

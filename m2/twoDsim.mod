@@ -3495,7 +3495,7 @@ BEGIN
                      HALT
                   ELSIF pPtr^.fixed
                   THEN
-                                         (* moving circle hits fixed polygon corner *)
+                     (* moving circle hits fixed polygon corner *)
                      collideAgainstFixedCircle (cPtr, e^.ePtr^.cp.cPoint)
                   ELSE
                      (* both moving, to do later --fixme-- *)

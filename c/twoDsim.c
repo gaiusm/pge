@@ -2871,6 +2871,7 @@ static void checkInterpenCircle (void)
           }
         i += 1;
       }
+    /* keep going until no interpentration was found or there is a cycle found.  */
   } while (! ((c >= n) || (c == 0)));
 }
 
@@ -2909,6 +2910,7 @@ static void checkInterpenPolygon (void)
           }
         i += 1;
       }
+    /* keep going until no interpentration was found or there is a cycle found.  */
   } while (! ((c >= n) || (c == 0)));
 }
 
@@ -3301,6 +3303,7 @@ static void doApplyForce (unsigned int i, Object iptr)
             libc_printf ((char *) "object %d has normal acceleration of (%g, %g)\\n", 47, i, iptr->ax, iptr->ay);
             libc_printf ((char *) "              total acceleration of (%g, %g)\\n", 46, i, iptr->ax+iptr->saccel.x, iptr->ay+iptr->saccel.y);
           }
+        /* iptr^.stationary := NOT (nearZero (iptr^.saccel.x) AND nearZero (iptr^.saccel.y))  */
       }
   else if (isSpringObject (i))
     {
@@ -4105,9 +4108,9 @@ static void doUpdatePhysics (double dt)
 
   n = Indexing_HighIndice (objects);
   i = 1;
+  /* springs are dependant on circles and polygons, so these are moved first.  */
   while (i <= n)
     {
-      /* springs are dependant on circles and polygons, so these are moved first.  */
       optr = Indexing_GetIndice (objects, i);
       if (! (isSpringObject (i)))
         updateOb (optr, dt);
@@ -6778,9 +6781,9 @@ static unsigned int earlierSpringLength (eventDesc edesc, unsigned int id, doubl
   /* now solve for values of t which satisfy   array[4]*t^4 + array[3]*t^3 + array[2]*t^2 + array[1]*t^1 + array[0]*t^0 = 0  */
   n = roots_findQuarticRoots (array.array[4], array.array[3], array.array[2], array.array[1], array.array[0], (double *) &roots.array[0], 3);
   j = 0;
+  /* we try each root in turn, selecting the smallest positive which has not been seen before.  */
   while (j < n)
     {
-      /* we try each root in turn, selecting the smallest positive which has not been seen before.  */
       (*t) = roots.array[j];
       T = ((((array.array[4]*((sqr ((*t)))*(sqr ((*t)))))+(array.array[3]*((sqr ((*t)))*(*t))))+(array.array[2]*(sqr ((*t)))))+(array.array[1]*(*t)))+array.array[0];
       if (Debugging)
@@ -7075,6 +7078,9 @@ static void calcSpringEventTime (unsigned int i)
   calcSpringEndEvents (i);
   if (DebugTrace)
     printQueue ();
+  /* 
+   calcSpringEndEventsKE (ts, i, edesc) ;
+  */
 }
 
 
@@ -7315,8 +7321,8 @@ static void doSpring (eventQueue e)
       /* gdbif.sleepSpin  */
       if (e->ePtr->sp.type == history_endPoint)
         {}  /* empty.  */
+      /* gdbif.sleepSpin  */
     }
-  /* gdbif.sleepSpin  */
   updatePhysics ((e->ePtr->sp.type == history_endPoint) || FrameSprings);
   springOccurred (e->ePtr);
   switch (e->ePtr->sp.type)

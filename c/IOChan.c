@@ -163,8 +163,8 @@ void IOChan_WriteLn (IOChan_ChanId cid)
   else
     if (dtp->cid == (StdChans_NullChan ()))
       {}  /* empty.  */
+    /* do nothing  */
     else if (((((1 << (ChanConsts_writeFlag-ChanConsts_readFlag)) & (dtp->flags)) != 0)) && ((((1 << (ChanConsts_textFlag-ChanConsts_readFlag)) & (dtp->flags)) != 0)))
-      /* do nothing  */
       (*dtp->doLnWrite.proc) (dtp);
     else
       EXCEPTIONS_RAISE (iochan, (EXCEPTIONS_ExceptionNumber) (unsigned int) (IOChan_notAvailable), (char *) "IOChan.WriteLn: attempting to write to a channel which is not configured as write and text", 90);
@@ -216,8 +216,8 @@ void IOChan_TextWrite (IOChan_ChanId cid, void * from, unsigned int charsToWrite
   else
     if (dtp->cid == (StdChans_NullChan ()))
       {}  /* empty.  */
+    /* do nothing  */
     else if (((((1 << (ChanConsts_writeFlag-ChanConsts_readFlag)) & (dtp->flags)) != 0)) && ((((1 << (ChanConsts_textFlag-ChanConsts_readFlag)) & (dtp->flags)) != 0)))
-      /* do nothing  */
       (*dtp->doTextWrite.proc) (dtp, from, charsToWrite);
     else
       EXCEPTIONS_RAISE (iochan, (EXCEPTIONS_ExceptionNumber) (unsigned int) (IOChan_notAvailable), (char *) "IOChan.TextWrite: attempt to write data to a channel which is not configured as write and text", 94);

@@ -1540,9 +1540,9 @@ static unsigned int walkExpr (Fractions_Fract f, doProcedure p)
 
 static Fractions_Fract simplifys (Fractions_Fract f)
 {
+  /* pf(f)  */
   while (doRules (f))
     {}  /* empty.  */
-  /* pf(f)  */
   return f;
 }
 

@@ -462,7 +462,8 @@ static char dounreadchar (RTgenif_GenDevIF g, IOLink_DeviceTablePtr d, char ch)
     }
   else
     Assertion_Assert (FALSE);  /* expecting to be pushing characters in exactly the reverse order  */
-  return ch;  /* expecting to be pushing characters in exactly the reverse order  */
+   /* expecting to be pushing characters in exactly the reverse order  */
+  return ch;
 }
 
 
@@ -537,8 +538,8 @@ static unsigned int dowbytes (RTgenif_GenDevIF g, IOLink_DeviceTablePtr d, void 
   m = RTdata_GetData (d, mid);
   if ((m->index+nBytes) > m->length)
     {
+      /* buffer needs to grow  */
       while ((m->index+nBytes) > m->length)
-        /* buffer needs to grow  */
         m->length = m->length*2;
       Storage_REALLOCATE (&m->buffer, m->length);
       AssignLength (m, m->length);

@@ -134,14 +134,16 @@ void StrIO_ReadString (char *a, unsigned int _a_high)
           Erase ();
           n -= 1;
         }
+       /* Ctrl U  */
     else if (ch == ASCII_nak)
       while (n > 0)
         {
-          Erase ();  /* Ctrl U  */
+          Erase ();
           n -= 1;
         }
+       /* Ctrl W  */
     else if (ch == ASCII_etb)
-      if (n == 0)  /* Ctrl W  */
+      if (n == 0)
         Echo (ASCII_bel);
       else if (AlphaNum (a[n-1]))
         do {

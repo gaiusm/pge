@@ -649,9 +649,9 @@ static unsigned int isDuplicateFuture (hList n)
   hList h;
 
   h = futureQ;
+  /* in the futureQ time is increasing.  */
   while (h != NULL)
     {
-      /* in the futureQ time is increasing.  */
       if (isSame (n, h))
         {
           if (Debugging)
@@ -679,9 +679,9 @@ static unsigned int isDuplicatePast (hList n)
   hList h;
 
   h = pastQ;
+  /* in the pastQ time is decreasing.  */
   while (h != NULL)
     {
-      /* in the pastQ time is decreasing.  */
       if (isSame (n, h))
         {
           if (Debugging)
