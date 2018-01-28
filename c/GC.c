@@ -225,7 +225,7 @@ static void RunCallBacks (GC_garbage g)
   callBack c;
 
   c = g->callbacks;
-  while (c != NULL)  /* calls the call back  */
+  while (c != NULL)
     {
       (*c->callp.proc) ();  /* calls the call back  */
       c = c->next;  /* calls the call back  */

@@ -1059,7 +1059,6 @@ static void moveTo (Points_Point p)
   /* y position  */
   TextIO_WriteString ((IOChan_ChanId) file, (char *) ".sp |", 5);
   writeUnit (p1.y);
-  /* x position  */
   TextIO_WriteLn ((IOChan_ChanId) file);
   /* x position  */
   TextIO_WriteString ((IOChan_ChanId) file, (char *) ".nop \\h'", 8);
@@ -1201,7 +1200,6 @@ static void drawCircle (glyphDesc g)
   if (g->gCircle.filled)
     {
       TextIO_WriteString ((IOChan_ChanId) file, (char *) "\\M[", 3);
-      /* WriteString(file, "\h'") ; writeUnit(scaleX(sub(center.x, radius))) ; WriteString(file, "'") ;  */
       writeColour (g->gCircle.colour);
       TextIO_WriteString ((IOChan_ChanId) file, (char *) "]", 1);
       /* WriteString(file, "\h'") ; writeUnit(scaleX(sub(center.x, radius))) ; WriteString(file, "'") ;  */
@@ -1219,7 +1217,6 @@ static void drawCircle (glyphDesc g)
       TextIO_WriteString ((IOChan_ChanId) file, (char *) "'\\c", 3);
       TextIO_WriteLn ((IOChan_ChanId) file);
       TextIO_WriteString ((IOChan_ChanId) file, (char *) ".nop \\m[", 8);
-      /* WriteString(file, "\h'") ; writeUnit(scaleX(sub(center.x, radius))) ; WriteString(file, "'") ;  */
       writeColour (g->gCircle.colour);
       TextIO_WriteString ((IOChan_ChanId) file, (char *) "]", 1);
       /* WriteString(file, "\h'") ; writeUnit(scaleX(sub(center.x, radius))) ; WriteString(file, "'") ;  */

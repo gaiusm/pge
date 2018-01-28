@@ -1,3 +1,9 @@
+2018-01-28      Gaius Mulley <gaius@gnu.org>
+
+	* c/GC.c:  regenerated.
+	* c/StrIO.c:  regenerated.
+	* c/deviceGroff.c:  regenerated.
+
 2018-01-27      Gaius Mulley <gaius@gnu.org>
 
 	* c/FIO.c:  regenerated with extra comments.
