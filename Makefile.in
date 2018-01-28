@@ -995,6 +995,7 @@ force:
 @MAINTAINER_TRUE@	   $(MC) --extended-opaque -I$(PIMLIBS) -I$(ISOLIBS) -I$(srcdir)/m2 -o=$(srcdir)/c/`basename $$i .mod`.c $(srcdir)/m2/$$i ; \
 @MAINTAINER_TRUE@        done
 @MAINTAINER_TRUE@	cp $(srcdir)/m2/*.c $(srcdir)/c/
+@MAINTAINER_TRUE@	cp $(srcdir)/src-c/Gwrapsock.c $(srcdir)/c/
 @MAINTAINER_TRUE@	cp $(MCLIBS)/* $(srcdir)/c/
 @MAINTAINER_TRUE@	cat $(srcdir)/c/Gpgeif.h | sed -e 's/pgeif_//g' > t ; mv t $(srcdir)/c/Gpgeif.h
 @MAINTAINER_TRUE@	cat $(srcdir)/c/pgeif.c | sed -e 's/_pgeif/_ABCDEF/g' | sed -e 's/pgeif_//g'  | sed -e 's/_ABCDEF/_pgeif/g' > t ; mv t $(srcdir)/c/pgeif.c

@@ -3,6 +3,7 @@
 	* c/GC.c:  regenerated.
 	* c/StrIO.c:  regenerated.
 	* c/deviceGroff.c:  regenerated.
+	* Makefile.am:  copy src-c/Gwrapsoc.c into c under maintainer.
 
 2018-01-27      Gaius Mulley <gaius@gnu.org>
 

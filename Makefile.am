@@ -227,6 +227,7 @@ pge-c-build: force
 	   $(MC) --extended-opaque -I$(PIMLIBS) -I$(ISOLIBS) -I$(srcdir)/m2 -o=$(srcdir)/c/`basename $$i .mod`.c $(srcdir)/m2/$$i ; \
         done
 	cp $(srcdir)/m2/*.c $(srcdir)/c/
+	cp $(srcdir)/src-c/Gwrapsock.c $(srcdir)/c/
 	cp $(MCLIBS)/* $(srcdir)/c/
 	cat $(srcdir)/c/Gpgeif.h | sed -e 's/pgeif_//g' > t ; mv t $(srcdir)/c/Gpgeif.h
 	cat $(srcdir)/c/pgeif.c | sed -e 's/_pgeif/_ABCDEF/g' | sed -e 's/pgeif_//g'  | sed -e 's/_ABCDEF/_pgeif/g' > t ; mv t $(srcdir)/c/pgeif.c
