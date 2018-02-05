@@ -1,5 +1,5 @@
 (* Copyright (C) 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016,
-                 2017
+                 2017, 2018
                  Free Software Foundation, Inc.  *)
 (* This file is part of GNU Modula-2.
 
@@ -653,9 +653,10 @@ VAR
    dt    : REAL ;
    optr  : Object ;
 BEGIN
-   updatePhysics (TRUE) ;
+   down ;
    optr := GetIndice (objects, id) ;
    checkDeleted (optr) ;
+   up ;
    WITH optr^ DO
       CASE object OF
 
@@ -679,9 +680,10 @@ VAR
    dt    : REAL ;
    optr  : Object ;
 BEGIN
-   updatePhysics (TRUE) ;
+   down ;
    optr := GetIndice (objects, id) ;
    checkDeleted (optr) ;
+   up ;
    WITH optr^ DO
       CASE object OF
 
@@ -730,7 +732,6 @@ BEGIN
       printf ("get_yvel for object %d\n", id)
    END ;
    down ;
-   updatePhysics (TRUE) ;
    optr := GetIndice (objects, id) ;
    checkDeleted (optr) ;
    checkStationary (optr) ;
@@ -747,9 +748,10 @@ PROCEDURE get_xaccel (id: CARDINAL) : REAL ;
 VAR
    optr: Object ;
 BEGIN
-   updatePhysics (TRUE) ;
+   down ;
    optr := GetIndice (objects, id) ;
    checkDeleted (optr) ;
+   up ;
    RETURN optr^.ax
 END get_xaccel ;
 
@@ -762,9 +764,10 @@ PROCEDURE get_yaccel (id: CARDINAL) : REAL ;
 VAR
    optr: Object ;
 BEGIN
-   updatePhysics (TRUE) ;
+   down ;
    optr := GetIndice (objects, id) ;
    checkDeleted (optr) ;
+   up ;
    RETURN optr^.ay
 END get_yaccel ;
 
@@ -778,7 +781,6 @@ VAR
    optr: Object ;
 BEGIN
    down ;
-   updatePhysics (TRUE) ;
    optr := GetIndice (objects, id) ;
    checkDeleted (optr) ;
    optr^.vx := r ;
@@ -796,7 +798,6 @@ VAR
    optr: Object ;
 BEGIN
    down ;
-   updatePhysics (TRUE) ;
    optr := GetIndice (objects, id) ;
    checkDeleted (optr) ;
    optr^.vy := r ;
@@ -1600,7 +1601,8 @@ BEGIN
 
    circleOb :  RETURN idp^.c.mass |
    polygonOb:  RETURN idp^.p.mass |
-   springOb :  RETURN 0.0
+   springOb :  printf ("should not be trying to use the mass of a spring\n") ;
+               RETURN 0.0
 
    END
 END get_mass ;
@@ -1834,18 +1836,27 @@ END zeroForceEnergy ;
 
 
 (*
-   applyDrag -
+   applyDrag - apply drag to object, id, which has a spring
+               generated acceleration, a.  We only apply the
+               drag if the is an acceleration (or force).
+               No drag is imposed if the spring is at rest.
 *)
 
-PROCEDURE applyDrag (id: CARDINAL) ;
+PROCEDURE applyDrag (id: CARDINAL; a: Coord) ;
 VAR
    o: Object ;
 BEGIN
    IF NOT isFixed (id)
    THEN
       o := GetIndice (objects, id) ;
-      inElastic (o^.vx) ;
-      inElastic (o^.vy)
+      IF NOT nearZero (a.x)
+      THEN
+         inElastic (o^.vx)
+      END ;
+      IF NOT nearZero (a.y)
+      THEN
+         inElastic (o^.vy)
+      END
    END
 END applyDrag ;
 
@@ -1869,7 +1880,7 @@ BEGIN
       ELSE
          a := scaleCoord (force, 1.0/get_mass (id)) ;
          a := scaleCoord (a, ElasticitySpring) ;
-         applyDrag (id) ;
+         applyDrag (id, a) ;
 	 RETURN a
       END
    END
@@ -7289,7 +7300,18 @@ BEGIN
       printf ("before doNextEvent\n");
       printQueue
    END ;
+(*
+   gdbif.sleepSpin ;
+   printf ("(1)  dumpWorld\n") ;
+   dumpWorld ;
+   printQueue ;
+*)
    dt := doNextEvent () ;
+(*
+   printf ("(2)  dumpWorld\n") ;
+   dumpWorld ;
+   exit (0) ;
+*)
    IF DebugTrace
    THEN
       printf ("finished doNextEvent\n")

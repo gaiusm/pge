@@ -4,7 +4,7 @@ import pge, sys
 from pygame.locals import *
 
 
-print "starting exampleBoxes"
+print "starting catapult"
 # pge.batch ()
 pge.interactive ()
 
@@ -49,6 +49,8 @@ def placeBall (kind, x, y, r):
     return pge.circle (x, y, r, kind)
 
 def snap_it (e, o):
+    global connection
+    connection.rm ()
     o.rm ()
 
 def update_fps (e, o):
@@ -69,31 +71,26 @@ def drop_gb (e, o):
 def local_fps ():
     f = pge.at_time (1.0, update_fps)
 
-def main ():
-    global gb, sides, springs
+def mouse_clicked (e):
+    global connection
+    mouse = pge.pyg_to_unit_coord (e.pos)
+    if e.button == 1:
+        # left mouse button clicked
+        spring_power = 1000.0
+        damping = 10.0
+        snap_length = 0.1
+        projectile = placeBall (wood_dark, mouse[0], mouse[1], 0.03).mass (0.9)
+        bungee = pge.spring (connection, projectile, spring_power, damping, snap_length).draw (yellow, 0.002)
+        bungee.when (snap_length, snap_it)
 
-    spring_power = 1000.0
-    damping = 10.0
-    snap_length = 0.16
+
+def main ():
+    global gb, sides, connection
 
     placeBoarders (0.01, wood_dark)
 
-    left = placeBall (wood_light, 0.25, 0.45, 0.03).fix ()
-    right = placeBall (wood_light, 0.75, 0.45, 0.03).fix ()
+    connection = placeBall (wood_light, 0.75, 0.45, 0.01).fix ()
 
-    prev = left
-    springs = []
-    for x in range (35, 75, 10):
-        step = placeBall (wood_dark, float (x) / 100.0, 0.33, 0.03).mass (0.9)
-        s = pge.spring (prev, step, spring_power, damping, 0.1).draw (yellow, 0.002)
-        s.when (snap_length, snap_it)
-        springs += [s]
-        prev = step
-
-    s = pge.spring (right, prev, spring_power, damping, 0.1).draw (yellow, 0.002)
-    s.when (snap_length, snap_it)
-    pge.at_time (0.6, drop_gb)
-    drop_gb (None, None)
     print "before run"
     pge.record ()
     pge.draw_collision (True, False)
@@ -103,6 +100,7 @@ def main ():
     pge.slow_down (6.0)  # slows down real time by a factor of
     pge.register_handler (myquit, [QUIT])
     pge.register_handler (key_pressed, [KEYDOWN])
+    pge.register_handler (mouse_clicked, [MOUSEBUTTONDOWN])
     pge.display_set_mode ([1000, 1000])
     local_fps ()
     pge.run (10.0)

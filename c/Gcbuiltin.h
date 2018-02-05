@@ -24,6 +24,12 @@ extern "C" {
 
 EXTERN void * cbuiltin_alloca (unsigned int i);
 EXTERN void * cbuiltin_memcpy (void * dest, void * src, unsigned int n);
+EXTERN unsigned int cbuiltin_isfinite (double x);
+EXTERN unsigned int cbuiltin_isfinitel (long double x);
+EXTERN unsigned int cbuiltin_isfinitef (float x);
+EXTERN unsigned int cbuiltin_isinf_sign (double x);
+EXTERN unsigned int cbuiltin_isinf_signl (long double x);
+EXTERN unsigned int cbuiltin_isinf_signf (float x);
 EXTERN float cbuiltin_sinf (float x);
 EXTERN double cbuiltin_sin (double x);
 EXTERN long double cbuiltin_sinl (long double x);

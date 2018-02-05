@@ -399,6 +399,8 @@ void M2RTS_WholeNonPosDivException (void * filename, unsigned int line, unsigned
 void M2RTS_WholeNonPosModException (void * filename, unsigned int line, unsigned int column, void * scope);
 void M2RTS_WholeZeroDivException (void * filename, unsigned int line, unsigned int column, void * scope);
 void M2RTS_WholeZeroRemException (void * filename, unsigned int line, unsigned int column, void * scope);
+void M2RTS_WholeValueException (void * filename, unsigned int line, unsigned int column, void * scope);
+void M2RTS_RealValueException (void * filename, unsigned int line, unsigned int column, void * scope);
 void M2RTS_NoException (void * filename, unsigned int line, unsigned int column, void * scope);
 
 /*
