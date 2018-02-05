@@ -24,6 +24,7 @@ IMPORT ClientSocket ;
 IMPORT SeqFile ;
 IMPORT RawIO ;
 IMPORT Fractions ;
+IMPORT gdbif ;
 
 FROM IOChan IMPORT ChanId ;
 FROM ChanConsts IMPORT read, write, raw, text, OpenResults ;
@@ -287,7 +288,13 @@ BEGIN
    THEN
       useBuffer
    END ;
-   RawIO.Write (ffile, "fb")
+   RawIO.Write (ffile, "fb") ;
+   (*
+   IF nextFrame = 87
+   THEN
+      gdbif.sleepSpin
+   END
+   *)
 END flipBuffer ;
 
 
@@ -301,7 +308,7 @@ BEGIN
    IF device=groff
    THEN
       RawIO.Write (ffile, "fn") ;
-      writeCard (ffile, nextFrame) ;
+      writeCard (ffile, nextFrame)
    END ;
    INC(nextFrame)
 END frameNote ;

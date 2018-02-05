@@ -2763,6 +2763,10 @@ BEGIN
       END ;
       INC (i)
    END ;
+   IF FrameSprings
+   THEN
+      addNextObjectEvent
+   END ;
    (* printf ("end drawFrame\n"); *)
 END drawFrame ;
 
