@@ -26,6 +26,7 @@
 #   include "GSeqFile.h"
 #   include "GRawIO.h"
 #   include "GFractions.h"
+#   include "Ggdbif.h"
 #   include "GIOChan.h"
 #   include "GChanConsts.h"
 #   include "GSYSTEM.h"

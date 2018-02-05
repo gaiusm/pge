@@ -12,7 +12,8 @@
 	* m2/Makefile.am:  remove -O2.
 	* m2/Makefile.in:  regenerated.
 	* m2/twoDsim.mod:  call addNextObjectEvent at the
-	  end of drawFrame.
+          end of drawFrame.
+	* m2/twoDsim.mod:  undo above fix for now.
 
 2018-01-28      Gaius Mulley <gaius@gnu.org>
 
