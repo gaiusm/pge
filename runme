@@ -3,12 +3,12 @@
 PROMPT=no
 VERSION=2.0
 PGE=pge-${VERSION}
-PGE=pge
+PGE=git-pge-frozen
 
 function compile () {
    cd $HOME/Sandpit/${PGE}
    # automake  --add-missing
-   # autoreconf
+   autoreconf
 
    cd $HOME/Sandpit
    rm -rf build-pge

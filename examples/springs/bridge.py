@@ -96,7 +96,7 @@ def main ():
     drop_gb (None, None)
     print "before run"
     pge.record ()
-    pge.draw_collision (True, False)
+    pge.draw_collision (False, False)
     pge.collision_colour (red)
     pge.gravity ()
     pge.dump_world ()

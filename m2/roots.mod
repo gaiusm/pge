@@ -500,7 +500,7 @@ PROCEDURE findQuarticRoots (a, b, c, d, e: REAL; VAR x: ARRAY OF REAL) : CARDINA
 VAR
    i, n: CARDINAL ;
 BEGIN
-   IF a = 0.0
+   IF nearZero (a)
    THEN
       RETURN findCubicRoots (b, c, d, e, x)
    ELSE

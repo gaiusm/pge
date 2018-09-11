@@ -1,4 +1,4 @@
-/* automatically created by mc from ../git-pge/m2/twoDsim.def.  */
+/* automatically created by mc from ../git-pge-frozen/m2/twoDsim.def.  */
 
 
 #if !defined (_twoDsim_H)
@@ -185,6 +185,12 @@ EXTERN unsigned int twoDsim_mass (unsigned int id, double m);
 EXTERN unsigned int twoDsim_fix (unsigned int id);
 
 /*
+   unfix - unfix the object from the world.
+*/
+
+EXTERN unsigned int twoDsim_unfix (unsigned int id);
+
+/*
    spring - join object, id1, and, id2, with a string of defined
             by hooks constant, k, the spring is at rest if it has
             length, l.  If l < 0 then the game engine considers
@@ -319,6 +325,12 @@ EXTERN unsigned int twoDsim_isFunction (void);
 */
 
 EXTERN unsigned int twoDsim_isSpring (void);
+
+/*
+   isFixed - returns TRUE if object, id, is fixed.
+*/
+
+EXTERN unsigned int twoDsim_isFixed (unsigned int id);
 
 /*
    createFunctionEvent - creates a function event at time, t,

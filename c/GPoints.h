@@ -1,4 +1,4 @@
-/* automatically created by mc from ../git-pge/m2/Points.def.  */
+/* automatically created by mc from ../git-pge-frozen/m2/Points.def.  */
 
 
 #if !defined (_Points_H)

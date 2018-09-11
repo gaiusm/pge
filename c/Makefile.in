@@ -312,7 +312,7 @@ PYTHON_VERSION = $(strip $(shell python -V 2>&1 | cut -b8- | cut -f1-2 -d'.'))
 GM2 = /opt/bin/gm2
 TARGET_SUBDIR = /opt/gm2/lib64
 ACLOCAL_AMFLAGS = -I m4
-GM2GCCBASE = 6.4.0
+GM2GCCBASE = 8.2.0
 noinst_LTLIBRARIES = libpgeif.la
 libpgeif_la_SOURCES = macroObjects.c Points.c Fractions.c PolyMatrix3D.c \
                       Transform3D.c delay.c GC.c popWorld.c \

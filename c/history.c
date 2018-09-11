@@ -1,4 +1,4 @@
-/* automatically created by mc from ../git-pge/m2/history.mod.  */
+/* automatically created by mc from ../git-pge-frozen/m2/history.mod.  */
 
 #   if !defined (PROC_D)
 #      define PROC_D
@@ -284,13 +284,13 @@ static void dumpHlist (hList l)
 
 
             default:
-              CaseException ("../git-pge/m2/history.def", 1, 15);
+              CaseException ("../git-pge-frozen/m2/history.def", 1, 15);
           }
         break;
 
 
       default:
-        CaseException ("../git-pge/m2/history.def", 1, 15);
+        CaseException ("../git-pge-frozen/m2/history.def", 1, 15);
     }
   libc_printf ((char *) "`n", 2);
 }
@@ -362,7 +362,7 @@ static void assert (unsigned int b, unsigned int line)
 {
   if (! b)
     {
-      libc_printf ((char *) "../git-pge/m2/history.mod", 25);
+      libc_printf ((char *) "../git-pge-frozen/m2/history.mod", 32);
       libc_printf ((char *) ":%d:error assert failed\\n", 25, line);
       M2RTS_HALT (-1);
     }

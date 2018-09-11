@@ -1,4 +1,4 @@
-/* automatically created by mc from ../git-pge/m2/roots.mod.  */
+/* automatically created by mc from ../git-pge-frozen/m2/roots.mod.  */
 
 #   if !defined (PROC_D)
 #      define PROC_D
@@ -857,7 +857,7 @@ unsigned int roots_findQuarticRoots (double a, double b, double c, double d, dou
   unsigned int i;
   unsigned int n;
 
-  if (a == 0.0)
+  if (roots_nearZero (a))
     return findCubicRoots (b, c, d, e, (double *) x, _x_high);
   else
     {

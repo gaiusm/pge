@@ -1,4 +1,4 @@
-/* automatically created by mc from ../git-pge/m2/deviceGroff.mod.  */
+/* automatically created by mc from ../git-pge-frozen/m2/deviceGroff.mod.  */
 
 #   if !defined (PROC_D)
 #      define PROC_D
@@ -606,7 +606,7 @@ static void killGlyph (glyphDesc *g)
 
 
       default:
-        CaseException ("../git-pge/m2/deviceGroff.def", 1, 15);
+        CaseException ("../git-pge-frozen/m2/deviceGroff.def", 1, 15);
     }
   disposeGlyph (g);
 }
@@ -799,7 +799,7 @@ static void setColourUsed (glyphDesc g)
 
 
       default:
-        CaseException ("../git-pge/m2/deviceGroff.def", 1, 15);
+        CaseException ("../git-pge-frozen/m2/deviceGroff.def", 1, 15);
     }
 }
 
@@ -889,7 +889,7 @@ static void drawGlyph (glyphDesc g)
 
 
       default:
-        CaseException ("../git-pge/m2/deviceGroff.def", 1, 15);
+        CaseException ("../git-pge-frozen/m2/deviceGroff.def", 1, 15);
     }
 }
 
@@ -1184,7 +1184,7 @@ static void dumpg (glyphDesc g)
 
 
       default:
-        CaseException ("../git-pge/m2/deviceGroff.def", 1, 15);
+        CaseException ("../git-pge-frozen/m2/deviceGroff.def", 1, 15);
     }
 }
 
@@ -1350,7 +1350,7 @@ static unsigned int clipLine (Points_Point p1, Points_Point p2, Points_Point *o1
         c2 = clipped (Points_initPoint (x, y));
       }
   }
-  ReturnException ("../git-pge/m2/deviceGroff.def", 1, 15);
+  ReturnException ("../git-pge-frozen/m2/deviceGroff.def", 1, 15);
 }
 
 static void stop (void)

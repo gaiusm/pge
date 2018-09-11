@@ -1,4 +1,4 @@
-/* automatically created by mc from ../git-pge/m2/macroObjects.def.  */
+/* automatically created by mc from ../git-pge-frozen/m2/macroObjects.def.  */
 
 
 #if !defined (_macroObjects_H)

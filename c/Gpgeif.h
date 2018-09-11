@@ -1,4 +1,4 @@
-/* automatically created by mc from ../git-pge/m2/pgeif.def.  */
+/* automatically created by mc from ../git-pge-frozen/m2/pgeif.def.  */
 
 
 #if !defined (_H)
@@ -143,6 +143,18 @@ EXTERN void set_gravity (unsigned int id, double g);
 */
 
 EXTERN unsigned int fix (unsigned int id);
+
+/*
+   unfix - unfix the object from the world.
+*/
+
+EXTERN unsigned int unfix (unsigned int id);
+
+/*
+   is_fixed - returns TRUE if the object, id, is fixed.
+*/
+
+EXTERN unsigned int is_fixed (unsigned int id);
 
 /*
    spring - join object, id1, and, id2, with a string of defined

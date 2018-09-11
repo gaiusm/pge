@@ -1,3 +1,89 @@
+2018-09-11      Gaius Mulley <gaius@gnu.org>
+
+	* c/Fractions.c:  regenerated.
+	* c/GC.c:  regenerated.
+	* c/GFractions.h:  regenerated.
+	* c/GGC.h:  regenerated.
+	* c/GM2RTS.h:  regenerated.
+	* c/GNetworkOrder.h:  regenerated.
+	* c/GPoints.h:  regenerated.
+	* c/GPolyMatrix3D.h:  regenerated.
+	* c/GTransform3D.h:  regenerated.
+	* c/Gcbuiltin.h:  regenerated.
+	* c/Gcoord.h:  regenerated.
+	* c/Gdelay.h:  regenerated.
+	* c/GdeviceGroff.h:  regenerated.
+	* c/GdeviceIf.h:  regenerated.
+	* c/GdevicePy.h:  regenerated.
+	* c/Ghistory.h:  regenerated.
+	* c/GmacroObjects.h:  regenerated.
+	* c/Gpgeif.h:  regenerated.
+	* c/Gpolar.h:  regenerated.
+	* c/GpopWorld.h:  regenerated.
+	* c/Groots.h:  regenerated.
+	* c/Grpc.h:  regenerated.
+	* c/GtwoDsim.h:  regenerated.
+	* c/Indexing.c:  regenerated.
+	* c/M2RTS.c:  regenerated.
+	* c/Makefile.am:  regenerated.
+	* c/Makefile.in:  regenerated.
+	* c/MemStream.c:  regenerated.
+	* c/NetworkOrder.c:  regenerated.
+	* c/Points.c:  regenerated.
+	* c/PolyMatrix3D.c:  regenerated.
+	* c/RTExceptions.c:  regenerated.
+	* c/RTgen.c:  regenerated.
+	* c/RawIO.c:  regenerated.
+	* c/Storage.c:  regenerated.
+	* c/Transform3D.c:  regenerated.
+	* c/bagatelle.c:  regenerated.
+	* c/bounce.c:  regenerated.
+	* c/bounce2.c:  regenerated.
+	* c/bounce3.c:  regenerated.
+	* c/bounce4.c:  regenerated.
+	* c/bounce5.c:  regenerated.
+	* c/boxes.c:  regenerated.
+	* c/circle.c:  regenerated.
+	* c/coord.c:  regenerated.
+	* c/delay.c:  regenerated.
+	* c/deviceGroff.c:  regenerated.
+	* c/deviceIf.c:  regenerated.
+	* c/elc.c:  regenerated.
+	* c/elc2.c:  regenerated.
+	* c/foo.c:  regenerated.
+	* c/history.c:  regenerated.
+	* c/line.c:  regenerated.
+	* c/macroObjects.c:  regenerated.
+	* c/npn.c:  regenerated.
+	* c/para.c:  regenerated.
+	* c/pgeif.c:  regenerated.
+	* c/polar.c:  regenerated.
+	* c/popWorld.c:  regenerated.
+	* c/ramps.c:  regenerated.
+	* c/ramps2.c:  regenerated.
+	* c/rboxes.c:  regenerated.
+	* c/roots.c:  regenerated.
+	* c/rpc.c:  regenerated.
+	* c/slope.c:  regenerated.
+	* c/snooker.c:  regenerated.
+	* c/stairs.c:  regenerated.
+	* c/test.c:  regenerated.
+	* c/testpy.c:  regenerated.
+	* c/twoDsim.c:  regenerated.
+	* c/wall.c:  regenerated.
+	* c/wallh.c:  regenerated.
+	* c/wallv.c:  regenerated.
+	* c/world.c:  regenerated.
+	* examples/springs/bridge.py:  updated example.
+	* i/pgeif.i:  extended interface to include unfix and is_fixed.
+	* m2/Makefile.am:  changed for gm2-1.8.2. (gcc-8.2.0).
+	* m2/Makefile.in:  regenerated.
+	* m2/pgeif.def:  export unfix and is_fixed.
+	* m2/pgeif.mod:  implement unfix and is_fixed.
+	* m2/roots.mod:  avoid comparision between a and 0.0.
+	* m2/twoDsim.def:  export unfix and is_fixed.
+	* m2/twoDsim.mod:  many bug fixes and tidying up of the spring code.
+
 2018-01-28      Gaius Mulley <gaius@gnu.org>
 
 	* c/GC.c:  regenerated.

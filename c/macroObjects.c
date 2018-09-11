@@ -1,4 +1,4 @@
-/* automatically created by mc from ../git-pge/m2/macroObjects.mod.  */
+/* automatically created by mc from ../git-pge-frozen/m2/macroObjects.mod.  */
 
 #   if !defined (PROC_D)
 #      define PROC_D
@@ -523,7 +523,7 @@ static void dumpObject (Object o)
 
 
       default:
-        CaseException ("../git-pge/m2/macroObjects.def", 1, 15);
+        CaseException ("../git-pge-frozen/m2/macroObjects.def", 1, 15);
     }
 }
 
@@ -649,7 +649,7 @@ static Object dupObject (Object o, Points_Point p)
 
 
       default:
-        CaseException ("../git-pge/m2/macroObjects.def", 1, 15);
+        CaseException ("../git-pge-frozen/m2/macroObjects.def", 1, 15);
     }
 }
 
@@ -858,7 +858,7 @@ static macroObjects_Macro foreachObject (macroObjects_Macro n, macroObjects_Macr
 
 
           default:
-            CaseException ("../git-pge/m2/macroObjects.def", 1, 15);
+            CaseException ("../git-pge-frozen/m2/macroObjects.def", 1, 15);
         }
       o = o->next;
     }
@@ -957,7 +957,7 @@ static void markObject (Object o)
 
 
       default:
-        CaseException ("../git-pge/m2/macroObjects.def", 1, 15);
+        CaseException ("../git-pge-frozen/m2/macroObjects.def", 1, 15);
     }
 }
 
@@ -1097,7 +1097,7 @@ macroObjects_Macro macroObjects_rectangle (macroObjects_Macro m, unsigned int fi
 
 
       default:
-        CaseException ("../git-pge/m2/macroObjects.def", 1, 15);
+        CaseException ("../git-pge-frozen/m2/macroObjects.def", 1, 15);
     }
   return addTo (m, o);
 }
@@ -1126,7 +1126,7 @@ macroObjects_Macro macroObjects_circle (macroObjects_Macro m, unsigned int fill,
 
 
       default:
-        CaseException ("../git-pge/m2/macroObjects.def", 1, 15);
+        CaseException ("../git-pge-frozen/m2/macroObjects.def", 1, 15);
     }
   return addTo (m, o);
 }
@@ -1158,7 +1158,7 @@ macroObjects_Macro macroObjects_angledRect (macroObjects_Macro m, unsigned int f
 
 
       default:
-        CaseException ("../git-pge/m2/macroObjects.def", 1, 15);
+        CaseException ("../git-pge-frozen/m2/macroObjects.def", 1, 15);
     }
   return addTo (m, o);
 }
@@ -1188,7 +1188,7 @@ macroObjects_Macro macroObjects_triangle (macroObjects_Macro m, unsigned int fil
 
 
       default:
-        CaseException ("../git-pge/m2/macroObjects.def", 1, 15);
+        CaseException ("../git-pge-frozen/m2/macroObjects.def", 1, 15);
     }
   return addTo (m, o);
 }
@@ -1316,7 +1316,7 @@ void macroObjects_runCallBacks (macroObjects_Macro m, macroObjects_pProc p, macr
 
 
           default:
-            CaseException ("../git-pge/m2/macroObjects.def", 1, 15);
+            CaseException ("../git-pge-frozen/m2/macroObjects.def", 1, 15);
         }
       o = o->next;
     }

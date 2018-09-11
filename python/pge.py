@@ -252,7 +252,7 @@ class object:
     #
     def velocity (self, vx, vy):
         self._check_type ([box_t, circle_t], "assign a velocity to a")
-        self._check_not_fixed ("assign a velocity")
+        # self._check_not_fixed ("assign a velocity")
         self._check_not_deleted ("a velocity")
         # print "velocity for object", self.o, vx, vy
         self.o = self._check_same (pgeif.velocity (self.o, vx, vy))
@@ -266,7 +266,7 @@ class object:
     #
     def accel (self, ax, ay):
         self._check_type ([box_t, circle_t], "assign an acceleration to a")
-        self._check_not_fixed ("assign an acceleration")
+        # self._check_not_fixed ("assign an acceleration")
         self._check_not_deleted ("an acceleration")
         self.o = self._check_same (pgeif.accel (self.o, ax, ay))
         return self
@@ -280,11 +280,39 @@ class object:
     def fix (self):
         self._check_type ([box_t, circle_t], "fix a")
         self._check_not_deleted (" a fixed position")
-        self._check_no_mass ("cannot fix " + self._name () + " as it has a mass")
+        # self._check_no_mass ("cannot fix " + self._name () + " as it has a mass")
         self.fixed = True
         self.o = self._check_same (pgeif.fix (self.o))
         # print "fix", self.o
+        # print "returning from fix"
         return self
+
+    #
+    #  unfix - Pre-condition:  the object is either a circle or polygon
+    #          which exists in level 0.
+    #          Post-condition:   mark this object as unfixed.
+    #
+    def unfix (self):
+        self._check_type ([box_t, circle_t], "unfix a")
+        self._check_not_deleted (" a fixed position")
+        self.fixed = False
+        self.o = self._check_same (pgeif.unfix (self.o))
+        print "returning from unfix"
+        return self
+
+    #
+    #  is_fixed - returns True if the object is fixed in the world.
+    #
+
+    def is_fixed (self):
+        self._check_type ([box_t, circle_t], "an is_fixed test")
+        self._check_not_deleted (" an is_fixed test")
+        if pgeif.is_fixed (self.o):
+            self._assert (self.fixed, "python api cached a different result from the game engine")
+            return True
+        else:
+            self._assert (not self.fixed, "python api cached a different result from the game engine")
+            return False
 
     #
     #  mass - Pre-condition:  the object is either a circle or polygon
@@ -293,7 +321,7 @@ class object:
     #
     def mass (self, m):
         self._check_type ([box_t, circle_t], "assign a mass to a")
-        self._check_not_fixed ("assign a mass")
+        # self._check_not_fixed ("assign a mass")
         self._check_not_deleted (" a mass")
         if m is None:
             _errorf ("cannot give value None as the mass\n")
@@ -312,7 +340,7 @@ class object:
     #
     def apply_impulse (self, unit_vec, magnitude):
         self._check_type ([box_t, circle_t], "assign an impulse to a")
-        self._check_not_fixed ("assign an impulse")
+        # self._check_not_fixed ("assign an impulse")
         self._check_not_deleted (" an impulse")
         if (magnitude is None) or (unit_vec is None):
             return
@@ -362,6 +390,10 @@ class object:
 
     def _param_colour (self, message):
         if self.type != colour_t:
+            _errorf (message)
+
+    def _assert (self, b, message):
+        if not b:
             _errorf (message)
 
     #

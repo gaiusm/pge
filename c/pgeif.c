@@ -1,4 +1,4 @@
-/* automatically created by mc from ../git-pge/m2/pgeif.mod.  */
+/* automatically created by mc from ../git-pge-frozen/m2/pgeif.mod.  */
 
 #   if !defined (PROC_D)
 #      define PROC_D
@@ -162,6 +162,18 @@ void set_gravity (unsigned int id, double g);
 */
 
 unsigned int fix (unsigned int id);
+
+/*
+   unfix - unfix the object from the world.
+*/
+
+unsigned int unfix (unsigned int id);
+
+/*
+   is_fixed - returns TRUE if the object, id, is fixed.
+*/
+
+unsigned int is_fixed (unsigned int id);
 
 /*
    spring - join object, id1, and, id2, with a string of defined
@@ -605,7 +617,7 @@ static unsigned int lookupDef (TypeOfDef t, unsigned int d)
         libc_printf ((char *) "throwing an exception in lookupDef (2)\\n", 40);
       throw ((unsigned int) (IdOutOfBounds));
     }
-  ReturnException ("../git-pge/m2/pgeif.def", 1, 15);
+  ReturnException ("../git-pge-frozen/m2/pgeif.def", 1, 15);
 }
 
 
@@ -904,6 +916,29 @@ unsigned int fix (unsigned int id)
 
   ti = trace (twoDsim_fix (lookupDef ((TypeOfDef) object, id)), (char *) "fix", 3);
   return id;
+}
+
+
+/*
+   unfix - unfix the object from the world.
+*/
+
+unsigned int unfix (unsigned int id)
+{
+  unsigned int ti;
+
+  ti = trace (twoDsim_unfix (lookupDef ((TypeOfDef) object, id)), (char *) "unfix", 5);
+  return id;
+}
+
+
+/*
+   is_fixed - returns TRUE if the object, id, is fixed.
+*/
+
+unsigned int is_fixed (unsigned int id)
+{
+  return twoDsim_isFixed (lookupDef ((TypeOfDef) object, id));
 }
 
 

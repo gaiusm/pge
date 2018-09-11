@@ -33,7 +33,7 @@ FROM SYSTEM IMPORT BYTE ;
 
 EXPORT UNQUALIFIED ExceptionKind,
                    rgb, white, black, red, green, blue, purple, gravity,
-                   box, poly3, poly4, poly5, poly6, mass, fix,
+                   box, poly3, poly4, poly5, poly6, mass, fix, unfix, is_fixed,
 		   get_mass, set_gravity, get_gravity,
 		   circle, spring,
                    velocity, accel, rotate, process_event,
@@ -195,6 +195,20 @@ PROCEDURE set_gravity (id: CARDINAL; g: REAL) ;
 *)
 
 PROCEDURE fix (id: CARDINAL) : CARDINAL ;
+
+
+(*
+   unfix - unfix the object from the world.
+*)
+
+PROCEDURE unfix (id: CARDINAL) : CARDINAL ;
+
+
+(*
+   is_fixed - returns TRUE if the object, id, is fixed.
+*)
+
+PROCEDURE is_fixed (id: CARDINAL) : BOOLEAN ;
 
 
 (*

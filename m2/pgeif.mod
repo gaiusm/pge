@@ -646,6 +646,29 @@ END fix ;
 
 
 (*
+   unfix - unfix the object from the world.
+*)
+
+PROCEDURE unfix (id: CARDINAL) : CARDINAL ;
+VAR
+   ti: CARDINAL ;
+BEGIN
+   ti := trace (twoDsim.unfix (lookupDef (object, id)), "unfix") ;
+   RETURN id
+END unfix ;
+
+
+(*
+   is_fixed - returns TRUE if the object, id, is fixed.
+*)
+
+PROCEDURE is_fixed (id: CARDINAL) : BOOLEAN ;
+BEGIN
+   RETURN twoDsim.isFixed (lookupDef (object, id))
+END is_fixed ;
+
+
+(*
    spring - join object, id1, and, id2, with a string of defined
             by hooks constant, k, the spring is at rest if it has
             length, l.  If l < 0 then the game engine considers

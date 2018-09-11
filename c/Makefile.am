@@ -21,7 +21,7 @@ TARGET_SUBDIR=/opt/gm2/lib64
 
 ACLOCAL_AMFLAGS=-I m4
 
-GM2GCCBASE=6.4.0
+GM2GCCBASE=8.2.0
 
 help:  force
 	@echo "knows about:  all, build, clean"

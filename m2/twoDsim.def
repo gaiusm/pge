@@ -218,6 +218,13 @@ PROCEDURE fix (id: CARDINAL) : CARDINAL ;
 
 
 (*
+   unfix - unfix the object from the world.
+*)
+
+PROCEDURE unfix (id: CARDINAL) : CARDINAL ;
+
+
+(*
    spring - join object, id1, and, id2, with a string of defined
             by hooks constant, k, the spring is at rest if it has
             length, l.  If l < 0 then the game engine considers
@@ -372,6 +379,13 @@ PROCEDURE isFunction () : BOOLEAN ;
 *)
 
 PROCEDURE isSpring () : BOOLEAN ;
+
+
+(*
+   isFixed - returns TRUE if object, id, is fixed.
+*)
+
+PROCEDURE isFixed (id: CARDINAL) : BOOLEAN ;
 
 
 (*

@@ -1,5 +1,5 @@
 (* Copyright (C) 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016,
-                 2017
+                 2017, 2018
                  Free Software Foundation, Inc.  *)
 (* This file is part of GNU Modula-2.
 
@@ -183,30 +183,32 @@ TYPE
 
 
 VAR
-   objects            : Index ;
-   maxId              : CARDINAL ;
+   objects             : Index ;
+   maxId               : CARDINAL ;
    lastDrawTime,
    lastUpdateTime,
    currentTime,
    replayPerSecond,
-   framesPerSecond    : REAL ;
-   simulatedGravity   : REAL ;
+   framesPerSecond     : REAL ;
+   simulatedGravity    : REAL ;
    eventQ,
-   freeEvents         : eventQueue ;
-   freeDesc           : eventDesc ;
+   freeEvents          : eventQueue ;
+   freeDesc            : eventDesc ;
    trace,
    writeTimeDelay,
    drawPrediction,
-   drawCollisionFrame : BOOLEAN ;
+   drawCollisionFrame  : BOOLEAN ;
    haveSpringColour,
-   haveCollisionColour: BOOLEAN ;
+   haveCollisionColour : BOOLEAN ;
    springColour,
-   collisionColour    : Colour ;
-   bufferStart        : ADDRESS ;
-   bufferLength       : CARDINAL ;
-   bufferUsed         : CARDINAL ;
-   fileOpened         : BOOLEAN ;
-   file               : ChanId ;
+   collisionColour     : Colour ;
+   bufferStart         : ADDRESS ;
+   bufferLength        : CARDINAL ;
+   bufferUsed          : CARDINAL ;
+   fileOpened          : BOOLEAN ;
+   file                : ChanId ;
+   noOfCulledCollisions: CARDINAL ;
+   startedRunning      : BOOLEAN ;
 
 
 (*
@@ -613,12 +615,36 @@ PROCEDURE fix (id: CARDINAL) : CARDINAL ;
 VAR
    optr: Object ;
 BEGIN
+   down ;
    optr := GetIndice (objects, id) ;
    WITH optr^ DO
       fixed := TRUE
    END ;
+   up ;
    RETURN id
 END fix ;
+
+
+(*
+   unfix - unfix the object from the world.
+*)
+
+PROCEDURE unfix (id: CARDINAL) : CARDINAL ;
+VAR
+   optr: Object ;
+BEGIN
+   down ;
+   optr := GetIndice (objects, id) ;
+   WITH optr^ DO
+      fixed := FALSE ;
+      stationary := FALSE
+   END ;
+   checkInterpen ;
+   Assert (NOT optr^.stationary, __LINE__) ;
+   up ;
+   Assert (NOT optr^.stationary, __LINE__) ;
+   RETURN id
+END unfix ;
 
 
 (*
@@ -653,9 +679,10 @@ VAR
    dt    : REAL ;
    optr  : Object ;
 BEGIN
-   updatePhysics (TRUE) ;
+   down ;
    optr := GetIndice (objects, id) ;
    checkDeleted (optr) ;
+   up ;
    WITH optr^ DO
       CASE object OF
 
@@ -679,9 +706,10 @@ VAR
    dt    : REAL ;
    optr  : Object ;
 BEGIN
-   updatePhysics (TRUE) ;
+   down ;
    optr := GetIndice (objects, id) ;
    checkDeleted (optr) ;
+   up ;
    WITH optr^ DO
       CASE object OF
 
@@ -730,7 +758,6 @@ BEGIN
       printf ("get_yvel for object %d\n", id)
    END ;
    down ;
-   updatePhysics (TRUE) ;
    optr := GetIndice (objects, id) ;
    checkDeleted (optr) ;
    checkStationary (optr) ;
@@ -747,9 +774,10 @@ PROCEDURE get_xaccel (id: CARDINAL) : REAL ;
 VAR
    optr: Object ;
 BEGIN
-   updatePhysics (TRUE) ;
+   down ;
    optr := GetIndice (objects, id) ;
    checkDeleted (optr) ;
+   up ;
    RETURN optr^.ax
 END get_xaccel ;
 
@@ -762,9 +790,10 @@ PROCEDURE get_yaccel (id: CARDINAL) : REAL ;
 VAR
    optr: Object ;
 BEGIN
-   updatePhysics (TRUE) ;
+   down ;
    optr := GetIndice (objects, id) ;
    checkDeleted (optr) ;
+   up ;
    RETURN optr^.ay
 END get_yaccel ;
 
@@ -778,7 +807,6 @@ VAR
    optr: Object ;
 BEGIN
    down ;
-   updatePhysics (TRUE) ;
    optr := GetIndice (objects, id) ;
    checkDeleted (optr) ;
    optr^.vx := r ;
@@ -796,7 +824,6 @@ VAR
    optr: Object ;
 BEGIN
    down ;
-   updatePhysics (TRUE) ;
    optr := GetIndice (objects, id) ;
    checkDeleted (optr) ;
    optr^.vy := r ;
@@ -849,6 +876,7 @@ VAR
 BEGIN
    down ;
    optr := GetIndice (objects, id) ;
+   res := FALSE ;
    WITH optr^ DO
       IF NOT fixed
       THEN
@@ -857,7 +885,6 @@ BEGIN
          circleOb:  res := circle_moving_towards (optr, x, y)
 
          ELSE
-            res := FALSE
          END
       END
    END ;
@@ -1051,6 +1078,7 @@ BEGIN
       (* checkStationary (movable) ; *)
       movable^.vx := movable^.vx + v.x * (h0-h1)/h0 ;
       movable^.vy := movable^.vy + v.y * (h0-h1)/h0 ;  (* give it a little push as well.  *)
+      movable^.stationary := FALSE ;
 
       INC (movable^.interpen) ;
       RETURN movable^.interpen
@@ -1083,6 +1111,8 @@ BEGIN
       c2^.c.pos := addCoord (c1^.c.pos, v) ;
       c2^.vx := c2^.vx + v.x * (h0-h1)/h0 ;
       c2^.vy := c2^.vy + v.y * (h0-h1)/h0 ;  (* give it a little push as well.  *)
+      c2^.stationary := FALSE ;
+      c1^.stationary := FALSE ;
 
       (* checkStationary (c2) ; *)
       (* checkStationary (c1) ; *)
@@ -1233,7 +1263,7 @@ BEGIN
                printf ("v = %g, %g   p3 = %g, %g\n", v.x, v.y, p3.x, p3.y) ;
                *)
                iptr^.c.pos := checkZeroCoord (addCoord (p3, v)) ;
-               checkStationary (iptr) ;
+               (* checkStationary (iptr) ; *)
 	       (*
                IF iptr^.stationary
                THEN
@@ -1536,7 +1566,7 @@ END getCofG ;
 
 
 (*
-   isFixed - returns TRUE if object, id, fixed.
+   isFixed - returns TRUE if object, id, is fixed.
 *)
 
 PROCEDURE isFixed (id: CARDINAL) : BOOLEAN ;
@@ -1600,7 +1630,8 @@ BEGIN
 
    circleOb :  RETURN idp^.c.mass |
    polygonOb:  RETURN idp^.p.mass |
-   springOb :  RETURN 0.0
+   springOb :  printf ("should not be trying to use the mass of a spring\n") ;
+               RETURN 0.0
 
    END
 END get_mass ;
@@ -1612,6 +1643,20 @@ END get_mass ;
 *)
 
 PROCEDURE calcSpringFixed (k, d, l0, l1: REAL; spr, fixed, moving: CARDINAL) ;
+BEGIN
+   IF l1 > l0
+   THEN
+      doCalcSpringFixed (k, d, l0, l1, spr, fixed, moving)
+   END
+END calcSpringFixed ;
+
+
+(*
+   doCalcSpringFixed - calculate the forces on, moving object which is attached to, fixed.
+                     Given spring properties of, k, and, l0.
+*)
+
+PROCEDURE doCalcSpringFixed (k, d, l0, l1: REAL; spr, fixed, moving: CARDINAL) ;
 VAR
    sprp,
    fixedp,
@@ -1674,7 +1719,7 @@ BEGIN
          printf ("sprung object %d under damped (increase damping or reduce spring strength of spring %d)\n", movingp^.id, spr)
       END
    END
-END calcSpringFixed ;
+END doCalcSpringFixed ;
 
 
 (*
@@ -1684,6 +1729,21 @@ END calcSpringFixed ;
 *)
 
 PROCEDURE calcSpringMoving (k, d, l0, l1: REAL; spr, o1, o2: CARDINAL) ;
+BEGIN
+   IF l1 > l0
+   THEN
+      doCalcSpringMoving (k, d, l0, l1, spr, o1, o2)
+   END
+END calcSpringMoving ;
+
+
+(*
+   doCalcSpringMoving - calculate the forces on, moving objects o1 and o2 attached to
+                        spring, spr.
+                        The spring has properties of, k, d, l0 and l1.
+*)
+
+PROCEDURE doCalcSpringMoving (k, d, l0, l1: REAL; spr, o1, o2: CARDINAL) ;
 VAR
    sprp,
    o1p,
@@ -1728,36 +1788,7 @@ BEGIN
    o2p^.forceVec := subCoord (o2p^.forceVec, f1) ;
    sprp^.s.f1 := f1 ;
    sprp^.s.f2 := negateCoord (f1)
-END calcSpringMoving ;
-
-
-(*
-(*
-   calcSpringMoving - calculate the forces on, moving objects, o1, o2,
-                      which are attached by a spring.
-                      The spring has properties of, k, and, l0.
-*)
-
-PROCEDURE calcSpringMoving (k, l0, l1: REAL; o1, o2: CARDINAL) ;
-VAR
-   o1p, o2p: Object ;
-   fvec,
-   d, n    : Coord ;
-   f       : REAL ;
-BEGIN
-   d := subCoord (getCofG (o1), getCofG (o2)) ;
-   f := k * (l1 - l0) ;   (* force the spring exacts upon o2.  *)
-   n := normaliseCoord (d) ;
-   fvec := scaleCoord (n, f) ;  (* compute the force as a vector.  *)
-   o2p := GetIndice (objects, o2) ;
-   (* add force vector to moving o2.  *)
-   o2p^.forceVec := addCoord (o2p^.forceVec, fvec) ;
-   o1p := GetIndice (objects, o1) ;
-   (* and the opposite force is applied to o1.  *)
-   (* sub force vector from o1.  *)
-   o1p^.forceVec := subCoord (o1p^.forceVec, fvec)
-END calcSpringMoving ;
-*)
+END doCalcSpringMoving ;
 
 
 (*
@@ -1834,18 +1865,27 @@ END zeroForceEnergy ;
 
 
 (*
-   applyDrag -
+   applyDrag - apply drag to object, id, which has a spring
+               generated acceleration, a.  We only apply the
+               drag if the is an acceleration (or force).
+               No drag is imposed if the spring is at rest.
 *)
 
-PROCEDURE applyDrag (id: CARDINAL) ;
+PROCEDURE applyDrag (id: CARDINAL; a: Coord) ;
 VAR
    o: Object ;
 BEGIN
    IF NOT isFixed (id)
    THEN
       o := GetIndice (objects, id) ;
-      inElastic (o^.vx) ;
-      inElastic (o^.vy)
+      IF NOT nearZero (a.x)
+      THEN
+         inElastic (o^.vx)
+      END ;
+      IF NOT nearZero (a.y)
+      THEN
+         inElastic (o^.vy)
+      END
    END
 END applyDrag ;
 
@@ -1869,7 +1909,7 @@ BEGIN
       ELSE
          a := scaleCoord (force, 1.0/get_mass (id)) ;
          a := scaleCoord (a, ElasticitySpring) ;
-         applyDrag (id) ;
+         applyDrag (id, a) ;
 	 RETURN a
       END
    END
@@ -1886,7 +1926,11 @@ BEGIN
    THEN
       IF nearZero (get_mass (i))
       THEN
-         printf ("moving object %d needs a mass before a force can be applied\n", i)
+         (* suppress warning if not running.  *)
+         IF startedRunning
+         THEN
+            printf ("moving object %d needs a mass before a force can be applied\n", i)
+         END
       ELSE
          IF trace
          THEN
@@ -2094,9 +2138,15 @@ BEGIN
    END ;
    (* and stop the current position from being the next endPoint.  *)
    anticipateSpring (currentTime, makeSpringDesc (NIL, id, endPoint)) ;
-   printf ("in spring about to recalculate forces\n") ;
+   IF trace
+   THEN
+      printf ("in spring about to recalculate forces\n")
+   END ;
    recalculateForceEnergy ;
-   printf ("return from spring\n") ;
+   IF trace
+   THEN
+      printf ("return from spring\n")
+   END ;
    RETURN id
 END spring ;
 
@@ -2752,6 +2802,14 @@ BEGIN
       END ;
       INC (i)
    END ;
+   (*
+   IF FrameSprings
+   THEN
+      down ;
+      up ;
+      addNextObjectEvent
+   END ;
+   *)
    (* printf ("end drawFrame\n"); *)
 END drawFrame ;
 
@@ -2942,12 +3000,20 @@ END doUpdatePhysics ;
 
 PROCEDURE updatePhysics (recalculateForce: BOOLEAN) ;
 BEGIN
+   IF trace
+   THEN
+      printf ("enter updatePhysics\n")
+   END ;
    doUpdatePhysics (currentTime-lastUpdateTime) ;
    IF recalculateForce
    THEN
       recalculateForceEnergy
    END ;
-   lastUpdateTime := currentTime
+   lastUpdateTime := currentTime ;
+   IF trace
+   THEN
+      printf ("exit updatePhysics\n")
+   END
 END updatePhysics ;
 
 
@@ -3248,16 +3314,21 @@ BEGIN
          THEN
             inElastic (vx) ;
             inElastic (vy) ;
-            stationary := nearZeroVelocity (vx) AND nearZeroVelocity (vy) ;
+	    (*
+            stationary := nearZeroVelocity (vx) AND nearZeroVelocity (vy) AND
+                          nearZero (ax) AND nearZero (ay) ;
             IF stationary
             THEN
+               (*
                vx := 0.0 ;
                vy := 0.0 ;
+               *)
                IF Debugging
                THEN
                   dumpObject (o)
                END
             END
+	    *)
          END
       END
    END
@@ -4214,18 +4285,12 @@ END earlierCircleCollisionOrbiting ;
 PROCEDURE maximaCircleCollision (VAR array: ARRAY OF REAL;
                                  a, b, c, d, e, f, g, h, k, l, m, n, o, p: REAL) ;
 BEGIN
-(*
-#  include "circles.m"
+(* #  include "circles.m"
 *)
 END maximaCircleCollision ;
 
 
 (*
-   earlierCircleCollision - let the following abreviations be assigned.
-                            Note i is one circle, j is another circle.
-                                 v is velocity, a, acceleration, x, y axis.
-                                 r is radius.
-
                             Single letter variables are used since wxmaxima
                             only operates with these.  Thus the output from wxmaxima
                             can be cut and pasted into the program.
@@ -4252,6 +4317,66 @@ END maximaCircleCollision ;
 PROCEDURE earlierCircleCollision (edesc: eventDesc; id1, id2: CARDINAL;
                                   VAR t: REAL; bestTimeOfCollision: REAL; VAR cp: Coord;
                                   a, b, c, d, e, f, g, h, k, l, m, n, o, p: REAL) : BOOLEAN ;
+VAR
+   T, S, W, gap: REAL ;
+BEGIN
+(*
+   IF (bestTimeOfCollision >= 0.0) AND (t >= 0.0)
+   THEN
+      gap := 0.5 ;
+      T := 1.0 / framesPerSecond ;
+      S := sqr ((d - c) * T + 0.5 * (e - f) * sqr (T)) +
+           sqr ((k - l) * T + 0.5 * (m - n) * sqr (T)) ;   (* estimated distance travelled in next time frame.  *)
+      W := sqr (a - b) + sqr (g - h) - sqr (o + p) ;  (* current distance between the two circles.  *)
+      IF S + gap < W
+      THEN
+         INC (noOfCulledCollisions) ;
+         IF noOfCulledCollisions MOD 100 = 0
+         THEN
+            printf ("have culled %d collisions\n", noOfCulledCollisions)
+         END ;
+
+         RETURN FALSE
+      END
+   END ;
+*)
+   RETURN doEarlierCircleCollision (edesc, id1, id2, t, bestTimeOfCollision, cp,
+                                    a, b, c, d, e, f, g, h, k, l, m, n, o, p)
+END earlierCircleCollision ;
+
+
+(*
+   doEarlierCircleCollision - let the following abreviations be assigned.
+                              Note i is one circle, j is another circle.
+                                 v is velocity, a, acceleration, x, y axis.
+                                 r is radius.
+
+                            Single letter variables are used since wxmaxima
+                            only operates with these.  Thus the output from wxmaxima
+                            can be cut and pasted into the program.
+
+                            a = xi
+                            b = xj
+                            c = vxi
+                            d = vxj
+                            e = aix
+                            f = ajx
+                            g = yi
+                            h = yj
+                            k = vyi
+                            l = vyj
+                            m = aiy
+                            n = ajy
+                            o = ri
+                            p = rj
+
+                            t                       is the time of this collision (if any)
+                            bestTimeOfCollision     is earlier known collision so far.
+*)
+
+PROCEDURE doEarlierCircleCollision (edesc: eventDesc; id1, id2: CARDINAL;
+                                    VAR t: REAL; bestTimeOfCollision: REAL; VAR cp: Coord;
+                                    a, b, c, d, e, f, g, h, k, l, m, n, o, p: REAL) : BOOLEAN ;
 VAR
    A, B, C, D, E, T: REAL ;
    array           : ARRAY [0..4] OF REAL ;
@@ -4340,7 +4465,7 @@ BEGIN
       END
    END ;
    RETURN FALSE
-END earlierCircleCollision ;
+END doEarlierCircleCollision ;
 
 
 (*
@@ -5819,15 +5944,27 @@ PROCEDURE removeCollisionEvent ;
 VAR
    e: eventQueue ;
 BEGIN
+   IF trace
+   THEN
+      printf ("removeCollisionEvent\n")
+   END ;
    e := eventQ ;
    WHILE e#NIL DO
       IF e^.kind = collisionKind
       THEN
          subEvent (e) ;
+         IF trace
+         THEN
+            printf ("return removeCollisionEvent\n")
+         END ;
          RETURN
       ELSE
          e := e^.next ;
       END
+   END ;
+   IF trace
+   THEN
+      printf ("exit removeCollisionEvent\n")
    END
 END removeCollisionEvent ;
 
@@ -6819,6 +6956,7 @@ BEGIN
    (*
    gdbif.sleepSpin ;
    *)
+   startedRunning := TRUE ;
    s := 0.0 ;
    IF checkObjects ()
    THEN
@@ -7006,6 +7144,47 @@ END addEvent ;
 
 
 (*
+   assertMovement -
+*)
+
+PROCEDURE assertMovement (id1, id2: CARDINAL; message: ARRAY OF CHAR) ;
+BEGIN
+   IF isFixed (id1) AND isFixed (id2)
+   THEN
+      printf ("assert failed, ") ;
+      printf (message) ;
+      printf (", pge should not be detecting a collision event between two fixed objects %d and %d\n", id1, id2)
+   END
+END assertMovement ;
+
+
+
+(*
+   assertCollisionEvent - assert that the collision event consists of two non fixed objects.
+*)
+
+PROCEDURE assertCollisionEvent (edesc: eventDesc) ;
+BEGIN
+   IF edesc#NIL
+   THEN
+      WITH edesc^ DO
+         CASE etype OF
+
+         frameEvent         : |
+         circlesEvent       :  assertMovement (cc.cid1, cc.cid2, "circles") |
+         circlePolygonEvent :  assertMovement (cp.cid , cp.pid , "circle polygon") |
+         polygonPolygonEvent:  assertMovement (pp.pid1, pp.pid2, "polygon polygon") |
+         functionEvent,
+         springEvent        : |
+
+         END
+      END
+   END
+END assertCollisionEvent ;
+
+
+
+(*
    addCollisionEvent - adds a collision event, the edesc is attached to the,
                        eventQueue, which is placed onto the eventQ.
 *)
@@ -7037,7 +7216,8 @@ BEGIN
    THEN
       printf("collision has been added to this queue at %g in the future\n", t) ;
       printQueue
-   END
+   END ;
+   assertCollisionEvent (edesc)
 END addCollisionEvent ;
 
 
@@ -7289,7 +7469,18 @@ BEGIN
       printf ("before doNextEvent\n");
       printQueue
    END ;
+(*
+   gdbif.sleepSpin ;
+   printf ("(1)  dumpWorld\n") ;
+   dumpWorld ;
+   printQueue ;
+*)
    dt := doNextEvent () ;
+(*
+   printf ("(2)  dumpWorld\n") ;
+   dumpWorld ;
+   exit (0) ;
+*)
    IF DebugTrace
    THEN
       printf ("finished doNextEvent\n")
@@ -7707,6 +7898,8 @@ BEGIN
    writeTimeDelay := TRUE ;
    haveSpringColour := FALSE ;
    haveCollisionColour := FALSE ;
+   noOfCulledCollisions := 0 ;
+   startedRunning := FALSE ;
    (* gdbif.sleepSpin *)
 END Init ;
 
