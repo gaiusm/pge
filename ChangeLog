@@ -84,6 +84,23 @@
 	* m2/twoDsim.def:  export unfix and is_fixed.
 	* m2/twoDsim.mod:  many bug fixes and tidying up of the spring code.
 
+2018-02-05      Gaius Mulley <gaius@gnu.org>
+
+	* examples/springs/bridge.py:  added second circle.
+	* c/GM2RTS.h:  regenerated.
+        * c/Gcbuiltin.h:  regenerated.
+	* c/M2RTS.c:  regenerated.
+	* c/RTgen.c:  regenerated.
+	* c/coord.c:  regenerated.
+	* c/twoDsim.c:  regenerated.
+	* m2/twoDsim.mod:  do not apply drag to a sprung object if
+          the spring based acceleration is 0.
+	* m2/Makefile.am:  remove -O2.
+	* m2/Makefile.in:  regenerated.
+	* m2/twoDsim.mod:  call addNextObjectEvent at the
+          end of drawFrame.
+	* m2/twoDsim.mod:  undo above fix for now.
+
 2018-01-28      Gaius Mulley <gaius@gnu.org>
 
 	* c/GC.c:  regenerated.
