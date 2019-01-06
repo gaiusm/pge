@@ -1,4 +1,4 @@
-/* automatically created by mc from /home/gaius/GM2/graft-6.4.0/gcc-6.4.0/gcc/gm2/gm2-libs/M2RTS.mod.  */
+/* automatically created by mc from /home/gaius/GM2/graft-8.2.0/gcc-8.2.0/gcc/gm2/gm2-libs/M2RTS.mod.  */
 
 #   if !defined (PROC_D)
 #      define PROC_D
@@ -120,6 +120,7 @@ void M2RTS_ErrorMessage (char *message_, unsigned int _message_high, char *file_
 
 unsigned int M2RTS_Length (char *a_, unsigned int _a_high);
 void M2RTS_AssignmentException (void * filename, unsigned int line, unsigned int column, void * scope);
+void M2RTS_ReturnException (void * filename, unsigned int line, unsigned int column, void * scope);
 void M2RTS_IncException (void * filename, unsigned int line, unsigned int column, void * scope);
 void M2RTS_DecException (void * filename, unsigned int line, unsigned int column, void * scope);
 void M2RTS_InclException (void * filename, unsigned int line, unsigned int column, void * scope);
@@ -384,6 +385,11 @@ void M2RTS_AssignmentException (void * filename, unsigned int line, unsigned int
    The following are the runtime exception handler routines.
   */
   RTExceptions_Raise ((unsigned int) (M2EXCEPTION_rangeException), filename, line, column, scope, "variable exceeds range during assignment");
+}
+
+void M2RTS_ReturnException (void * filename, unsigned int line, unsigned int column, void * scope)
+{
+  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_rangeException), filename, line, column, scope, "return value from procedure function exceeds range");
 }
 
 void M2RTS_IncException (void * filename, unsigned int line, unsigned int column, void * scope)

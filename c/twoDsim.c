@@ -835,7 +835,7 @@ static void calcSpringFixed (double k, double d, double l0, double l1, unsigned 
 
 /*
    doCalcSpringFixed - calculate the forces on, moving object which is attached to, fixed.
-                     Given spring properties of, k, and, l0.
+                       Given spring properties of, k, and, l0.
 */
 
 static void doCalcSpringFixed (double k, double d, double l0, double l1, unsigned int spr, unsigned int fixed, unsigned int moving);
@@ -2732,8 +2732,8 @@ static unsigned int doCheckInterpenCirclePolygon (Object iptr, Object jptr)
   coord_Coord p2;
   coord_Coord p3;
 
-  Assert (iptr->object == circleOb, 1212);
-  Assert (jptr->object == polygonOb, 1213);
+  Assert (iptr->object == circleOb, 1203);
+  Assert (jptr->object == polygonOb, 1204);
   c = checkZeroCoord (iptr->c.pos);
   r = iptr->c.r;
   n = jptr->p.nPoints;
@@ -3076,7 +3076,7 @@ static void calcSpringFixed (double k, double d, double l0, double l1, unsigned 
 
 /*
    doCalcSpringFixed - calculate the forces on, moving object which is attached to, fixed.
-                     Given spring properties of, k, and, l0.
+                       Given spring properties of, k, and, l0.
 */
 
 static void doCalcSpringFixed (double k, double d, double l0, double l1, unsigned int spr, unsigned int fixed, unsigned int moving)
@@ -3411,7 +3411,7 @@ static void calcSpringEnergy (unsigned int i)
   Object id2ptr;
   Object iptr;
 
-  Assert (isSpringObject (i), 1996);
+  Assert (isSpringObject (i), 1987);
   iptr = Indexing_GetIndice (objects, i);
   iptr->ke = 0.0;  /* no kinetic energy as a spring has no mass.  */
   iptr->pe = (iptr->s.k*(sqr (iptr->s.l0-iptr->s.l1)))/2.0;  /* no kinetic energy as a spring has no mass.  */
@@ -3807,7 +3807,7 @@ static void doSpringFrame (Object optr, double dt, unsigned int col)
   coord_Coord ac;
   double w2;
 
-  Assert (optr->object == springOb, 2599);
+  Assert (optr->object == springOb, 2590);
   if (optr->s.draw)
     {
       w2 = optr->s.width/2.0;
@@ -4000,7 +4000,7 @@ static void drawFrame (eventQueue e)
   if (FrameSprings)
     /* are we using frame based simulation to solve spring motion.  */
     updatePhysics (TRUE);
-  Assert (((e == NULL) || (e->kind == collisionKind)) || (e->kind == springKind), 2769);
+  Assert (((e == NULL) || (e->kind == collisionKind)) || (e->kind == springKind), 2760);
   if (DebugTrace)
     libc_printf ((char *) "start drawFrame\\n", 17);
   if (writeTimeDelay)
@@ -4383,7 +4383,7 @@ static double doNextEvent (void)
       dt = e->time;
       p = e->p;
       currentTime = currentTime+dt;
-      Assert (((((p.proc == drawFrameEvent) || (p.proc == doCollision)) || (p.proc == debugFrame)) || (p.proc == doFunctionEvent)) || (p.proc == doSpring), 3182);
+      Assert (((((p.proc == drawFrameEvent) || (p.proc == doCollision)) || (p.proc == debugFrame)) || (p.proc == doFunctionEvent)) || (p.proc == doSpring), 3173);
       (*p.proc) (e);
       disposeDesc (&e->ePtr);
       disposeEvent (e);
@@ -4869,9 +4869,9 @@ static void collidePolygonAgainstFixedPolygon (eventQueue e, Object id1, Object 
   coord_Coord p;
   coord_Coord v;
 
-  Assert (! id1->fixed, 3760);  /* point of collision  */
-  Assert (id2->fixed, 3761);
-  Assert (e->ePtr->etype == polygonPolygonEvent, 3762);
+  Assert (! id1->fixed, 3751);  /* point of collision  */
+  Assert (id2->fixed, 3752);
+  Assert (e->ePtr->etype == polygonPolygonEvent, 3753);
   if (Debugging)
     libc_printf ((char *) "collidePolygonAgainstFixedPolygon\\n", 35);
   drawFrame (e);  /* ******************  */
@@ -4935,7 +4935,7 @@ static void collidePolygonAgainstMovingPolygon (eventQueue e, Object id1, Object
       dumpObject (id1);
       dumpObject (id2);
     }
-  Assert (e->ePtr->etype == polygonPolygonEvent, 3826);
+  Assert (e->ePtr->etype == polygonPolygonEvent, 3817);
   p = e->ePtr->pp.cPoint;
   deviceIf_frameNote ();  /* ******************  */
   drawFrame (e);  /* ******************  */
@@ -4955,7 +4955,7 @@ static void collidePolygonAgainstMovingPolygon (eventQueue e, Object id1, Object
       /* corner collision.  */
       if (Debugging)
         libc_printf ((char *) "the edge of polygon collides with corner of polygon\\n", 53);
-      Assert (e->ePtr->pp.wpid2 == history_corner, 3851);
+      Assert (e->ePtr->pp.wpid2 == history_corner, 3842);
       getPolygonLine (e->ePtr->pp.lineCorner2, (Object) Indexing_GetIndice (objects, e->ePtr->pp.pid2), &p1, &p2);
       v1 = coord_subCoord (p2, p1);  /* v1 is the vector p1 -> p2  */
       coord_perpendiculars (v1, &n, &n2);  /* n and n2 are normal vectors to the vector v1  */
@@ -4966,7 +4966,7 @@ static void collidePolygonAgainstMovingPolygon (eventQueue e, Object id1, Object
     {
       if (Debugging)
         libc_printf ((char *) "the edge of polygon collides with corner of polygon\\n", 53);
-      Assert (e->ePtr->pp.wpid1 == history_corner, 3864);
+      Assert (e->ePtr->pp.wpid1 == history_corner, 3855);
       getPolygonLine (e->ePtr->pp.lineCorner1, (Object) Indexing_GetIndice (objects, e->ePtr->pp.pid1), &p1, &p2);
       v1 = coord_subCoord (p2, p1);  /* v1 is the vector p1 -> p2  */
       coord_perpendiculars (v1, &n, &n2);  /* n and n2 are normal vectors to the vector v1  */
@@ -5448,14 +5448,14 @@ static unsigned int doEarlierCircleCollision (eventDesc edesc, unsigned int id1,
           libc_printf ((char *) "%gt^4 + %gt^3 +%gt^2 + %gt + %g = %g    (t=%g)\\n", 48, A, B, C, D, E, T, (*t));
           libc_printf ((char *) "found collision at %g\\n", 23, (*t));
         }
-      Assert ((*t) >= 0.0, 4415);
+      Assert ((*t) >= 0.0, 4406);
       /* remember edesc = NIL if bestTimeOfCollision is unassigned.  */
       if ((edesc == NULL) || ((*t) < bestTimeOfCollision))
         {
           c1 = newPositionCoord (coord_initCoord (a, g), coord_initCoord (c, k), coord_initCoord (e, m), (*t));
           c2 = newPositionCoord (coord_initCoord (b, h), coord_initCoord (d, l), coord_initCoord (f, n), (*t));
           v12 = coord_subCoord (c1, c2);
-          Assert (roots_nearCoord (c1, coord_addCoord (c2, v12)), 4426);
+          Assert (roots_nearCoord (c1, coord_addCoord (c2, v12)), 4417);
           cp2 = coord_addCoord (c2, coord_scaleCoord (v12, o/(o+p)));
           cp1 = coord_subCoord (c1, coord_scaleCoord (v12, p/(o+p)));
           (*cp) = cp2;
@@ -5479,7 +5479,7 @@ static unsigned int doEarlierCircleCollision (eventDesc edesc, unsigned int id1,
             printf ("cp1 = c2 + r12 = %g, %g
               ", cp1.x, cp1.y) ;
   */
-              Assert (roots_nearCoord (cp1, cp2), 4443);
+              Assert (roots_nearCoord (cp1, cp2), 4434);
               /* found a value of t which is better than bestTimeOfCollision, but it might be a duplicate collision.  */
               if (! (history_isDuplicateC (currentTime, (*t), id1, id2, (history_whereHit) history_edge, (history_whereHit) history_edge, (*cp))))
                 /* ok, this has not been seen before.  */
@@ -5643,7 +5643,7 @@ static void stop (void)
 
 static eventDesc makeCirclesPolygonDesc (eventDesc edesc, unsigned int cid, unsigned int pid, unsigned int lineNo, unsigned int pointNo, history_whereHit wpid1, history_whereHit wpid2, coord_Coord collisionPoint)
 {
-  Assert (wpid1 == history_corner, 4618);  /* circle must always be treated as corner.  */
+  Assert (wpid1 == history_corner, 4609);  /* circle must always be treated as corner.  */
   if (edesc == NULL)  /* circle must always be treated as corner.  */
     edesc = newDesc ();
   edesc->etype = circlePolygonEvent;
@@ -6334,8 +6334,8 @@ static void findCollisionCirclePolygon (Object cPtr, Object pPtr, eventDesc *ede
 {
   unsigned int i;
 
-  Assert (cPtr->object == circleOb, 5439);
-  Assert (pPtr->object == polygonOb, 5440);
+  Assert (cPtr->object == circleOb, 5430);
+  Assert (pPtr->object == polygonOb, 5431);
   if (isOrbiting (pPtr))
     for (i=1; i<=pPtr->p.nPoints; i++)
       findCollisionCircleLineOrbiting (cPtr, pPtr, i, 0, cPtr->c.pos, cPtr->c.r, edesc, tc, (descP) {(descP_t) makeCirclesPolygonDesc});
@@ -6572,7 +6572,7 @@ static void findCollisionPolygonPolygon (Object iPtr, Object jPtr, eventDesc *ed
   unsigned int i;
   unsigned int j;
 
-  Assert (iPtr != jPtr, 5754);
+  Assert (iPtr != jPtr, 5745);
   i = 1;
   while (i <= iPtr->p.nPoints)
     {
@@ -6736,11 +6736,11 @@ static void subEvent (eventQueue e)
     }
   if (f != NULL)
     {
-      Assert (f == e, 5917);
+      Assert (f == e, 5908);
       if (before == NULL)
         {
-          Assert (eventQ == f, 5920);
-          Assert (eventQ == e, 5921);
+          Assert (eventQ == f, 5911);
+          Assert (eventQ == e, 5912);
           eventQ = eventQ->next;
           if (eventQ != NULL)
             eventQ->time = eventQ->time+e->time;
@@ -6902,7 +6902,7 @@ static unsigned int earlierSpringLength (eventDesc edesc, unsigned int id, doubl
           libc_printf ((char *) "%gt^4 + %gt^3 +%gt^2 + %gt + %g = %g    (t=%g)\\n", 48, array.array[4], array.array[3], array.array[2], array.array[1], array.array[0], T, (*t));
           libc_printf ((char *) "found spring reaches length %g at %g\\n", 38, l, (*t));
         }
-      Assert ((*t) >= 0.0, 6094);
+      Assert ((*t) >= 0.0, 6085);
       /* remember edesc = NIL if bestTime is unassigned.  */
       if ((edesc == NULL) || ((*t) < bestTime))
         if (! (history_isDuplicateS (currentTime, (*t), id, sp)))
@@ -6966,7 +6966,7 @@ static void calcSpringLengthEvents (unsigned int i)
   Object id1ptr;
   Object id2ptr;
 
-  Assert (isSpringObject (i), 6144);
+  Assert (isSpringObject (i), 6135);
   iptr = Indexing_GetIndice (objects, i);
   id1 = iptr->s.id1;
   id2 = iptr->s.id2;
@@ -7132,7 +7132,7 @@ static void calcSpringEndEvents (unsigned int i)
   Object id1ptr;
   Object id2ptr;
 
-  Assert (isSpringObject (i), 6306);
+  Assert (isSpringObject (i), 6297);
   iptr = Indexing_GetIndice (objects, i);
   id1 = iptr->s.id1;
   id2 = iptr->s.id2;
@@ -7205,7 +7205,7 @@ static void addSpringEvent (double t, eventProc dop, eventDesc edesc)
 
   if (Debugging)
     libc_printf ((char *) "spring event will occur in %g simulated seconds\\n", 49, t);
-  Assert (t >= 0.0, 6411);
+  Assert (t >= 0.0, 6402);
   e = newEvent ();
   e->kind = springKind;
   e->time = t;
@@ -7235,7 +7235,7 @@ static void reverseSpringAccel (Object o)
   Object id1p;
   Object id2p;
 
-  Assert (isSpringObject (o->id), 6442);
+  Assert (isSpringObject (o->id), 6433);
   if (! o->deleted && ! o->fixed)
     {
       id1p = Indexing_GetIndice (objects, o->s.id1);
@@ -7405,10 +7405,10 @@ static void doSpringCallPoint (eventQueue e)
   fcDesc fc;
 
   /* gdbif.sleepSpin ;  */
-  Assert (e->ePtr->etype == springEvent, 6646);
-  Assert (e->ePtr->sp.type == history_callPoint, 6647);
+  Assert (e->ePtr->etype == springEvent, 6637);
+  Assert (e->ePtr->sp.type == history_callPoint, 6638);
   o = Indexing_GetIndice (objects, e->ePtr->sp.id);
-  Assert (isSpringObject (e->ePtr->sp.id), 6649);
+  Assert (isSpringObject (e->ePtr->sp.id), 6640);
   o->s.hasCallBackLength = FALSE;  /* turn this off.  */
   /* now invoke the call.  */
   twoDsim_createFunctionEvent (0.0, o->s.func, o->id);
@@ -7780,7 +7780,7 @@ static void addEvent (eventKind k, double t, eventProc dop)
 
   if (Debugging)
     libc_printf ((char *) "new event will occur at time %g in the future\\n", 47, t);
-  Assert (t >= 0.0, 7133);
+  Assert (t >= 0.0, 7124);
   e = newEvent ();
   e->kind = k;
   e->time = t;
@@ -7857,7 +7857,7 @@ static void addCollisionEvent (double t, eventProc dop, eventDesc edesc)
 
   if (Debugging)
     libc_printf ((char *) "collision will occur in %g simulated seconds\\n", 46, t);
-  Assert (t >= 0.0, 7200);
+  Assert (t >= 0.0, 7191);
   e = newEvent ();
   e->kind = collisionKind;
   e->time = t;
@@ -8795,14 +8795,7 @@ unsigned int twoDsim_unfix (unsigned int id)
 {
   Object optr;
 
-  down ();
-  optr = Indexing_GetIndice (objects, id);
-  optr->fixed = FALSE;
-  optr->stationary = FALSE;
-  checkInterpen ();
-  Assert (! optr->stationary, 643);
-  up ();
-  Assert (! optr->stationary, 645);
+  /* your code goes here...  */
   return id;
 }
 

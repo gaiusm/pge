@@ -33,7 +33,7 @@ libpgeif_la_SOURCES = macroObjects.c Points.c Fractions.c PolyMatrix3D.c \
                       twoDsim.c roots.c coord.c polar.c history.c \
                       deviceIf.c rpc.c pgeif.c NetworkOrder.c \
                       RTExceptions.c \
-                      buffers.c \
+                      buffers.c interpen.c segment.c \
                       GFIO.c NumberIO.c RTint.c StrLib.c DynamicStrings.c \
                       StringConvert.c StrIO.c StdIO.c IO.c \
                       MathLib0.c Assertion.c Indexing.c ASCII.c \
@@ -51,7 +51,7 @@ MY_DEPS = macroObjects.lo Points.lo Fractions.lo PolyMatrix3D.lo \
           history.lo deviceIf.lo rpc.lo \
           pgeif.lo NetworkOrder.lo \
           RTExceptions.lo \
-          buffers.lo \
+          buffers.lo interpen.lo segment.lo \
           FIO.lo NumberIO.lo RTint.lo StrLib.lo DynamicStrings.lo \
           StringConvert.lo StrIO.lo StdIO.lo IO.lo \
           Assertion.lo MathLib0.lo Indexing.lo ASCII.lo \

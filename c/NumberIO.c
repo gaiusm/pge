@@ -1,4 +1,4 @@
-/* automatically created by mc from /home/gaius/GM2/graft-6.4.0/gcc-6.4.0/gcc/gm2/gm2-libs/NumberIO.mod.  */
+/* automatically created by mc from /home/gaius/GM2/graft-8.2.0/gcc-8.2.0/gcc/gm2/gm2-libs/NumberIO.mod.  */
 
 #   if !defined (PROC_D)
 #      define PROC_D
@@ -130,28 +130,21 @@ void NumberIO_CardToStr (unsigned int x, unsigned int n, char *a, unsigned int _
   unsigned int Higha;
   _T7 buf;
 
-  /* %%%FORWARD%%%
-PROCEDURE CardToStr (x, n: CARDINAL ; VAR a: ARRAY OF CHAR) ; FORWARD ;
-PROCEDURE StrToCard (a: ARRAY OF CHAR ; VAR x: CARDINAL) ; FORWARD ;
-PROCEDURE IntToStr (x: INTEGER; n: CARDINAL ; VAR a: ARRAY OF CHAR) ; FORWARD ;
-PROCEDURE StrToInt (a: ARRAY OF CHAR ; VAR x: INTEGER) ; FORWARD ;
-PROCEDURE HexToStr (x, n: CARDINAL ; VAR a: ARRAY OF CHAR) ; FORWARD ;
-PROCEDURE StrToHex (a: ARRAY OF CHAR ; VAR x: CARDINAL) ; FORWARD ;
-PROCEDURE OctToStr (x, n: CARDINAL ; VAR a: ARRAY OF CHAR) ; FORWARD ;
-PROCEDURE StrToOct (a: ARRAY OF CHAR ; VAR x: CARDINAL) ; FORWARD ;
-PROCEDURE BinToStr (x, n: CARDINAL ; VAR a: ARRAY OF CHAR) ; FORWARD ;
-PROCEDURE StrToBin (a: ARRAY OF CHAR ; VAR x: CARDINAL) ; FORWARD ;
-PROCEDURE ReadOct (VAR x: CARDINAL) ; FORWARD ;
-PROCEDURE WriteOct (x, n: CARDINAL) ; FORWARD ;
-PROCEDURE ReadBin (VAR x: CARDINAL) ; FORWARD ;
-PROCEDURE WriteBin (x, n: CARDINAL) ; FORWARD ;
-PROCEDURE ReadCard (VAR x: CARDINAL) ; FORWARD ;
-PROCEDURE WriteCard (x, n: CARDINAL) ; FORWARD ;
-PROCEDURE ReadInt (VAR x: INTEGER) ; FORWARD ;
-PROCEDURE WriteInt (x: INTEGER; n: CARDINAL) ; FORWARD ;
-PROCEDURE ReadHex (VAR x: CARDINAL) ; FORWARD ;
-PROCEDURE WriteHex (x, n: CARDINAL) ; FORWARD ;
-   %%%FORWARD%%%  */
+  /* This file is part of GNU Modula-2.
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA  */
   i = 0;
   do {
     i += 1;

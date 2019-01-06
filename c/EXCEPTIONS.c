@@ -1,4 +1,4 @@
-/* automatically created by mc from /home/gaius/GM2/graft-6.4.0/gcc-6.4.0/gcc/gm2/gm2-libs-iso/EXCEPTIONS.mod.  */
+/* automatically created by mc from /home/gaius/GM2/graft-8.2.0/gcc-8.2.0/gcc/gm2/gm2-libs-iso/EXCEPTIONS.mod.  */
 
 #   if !defined (PROC_D)
 #      define PROC_D
@@ -57,9 +57,9 @@ void EXCEPTIONS_RAISE (EXCEPTIONS_ExceptionSource source, EXCEPTIONS_ExceptionNu
   */
   RTExceptions_SetExceptionSource ((void *) source);
   RTExceptions_SetExceptionBlock (source->eh);
-  RTExceptions_Raise ((unsigned int) number, "/home/gaius/GM2/graft-6.4.0/gcc-6.4.0/gcc/gm2/gm2-libs-iso/EXCEPTIONS.mod", 57, 3, "RAISE", &message);
+  RTExceptions_Raise ((unsigned int) number, "/home/gaius/GM2/graft-8.2.0/gcc-8.2.0/gcc/gm2/gm2-libs-iso/EXCEPTIONS.mod", 57, 3, "RAISE", &message);
   /* we should never reach here as Raise should jump to the exception handler  */
-  M2RTS_Halt ((char *) "/home/gaius/GM2/graft-6.4.0/gcc-6.4.0/gcc/gm2/gm2-libs-iso/EXCEPTIONS.mod", 73, 59, (char *) "RAISE", 5, (char *) "should never return from RTException.Raise", 42);
+  M2RTS_Halt ((char *) "/home/gaius/GM2/graft-8.2.0/gcc-8.2.0/gcc/gm2/gm2-libs-iso/EXCEPTIONS.mod", 73, 59, (char *) "RAISE", 5, (char *) "should never return from RTException.Raise", 42);
 }
 
 EXCEPTIONS_ExceptionNumber EXCEPTIONS_CurrentNumber (EXCEPTIONS_ExceptionSource source)
@@ -71,8 +71,8 @@ EXCEPTIONS_ExceptionNumber EXCEPTIONS_CurrentNumber (EXCEPTIONS_ExceptionSource 
   if (RTExceptions_IsInExceptionState ())
     return RTExceptions_GetNumber (source->eh);
   else
-    RTExceptions_Raise ((unsigned int) (M2EXCEPTION_coException), "/home/gaius/GM2/graft-6.4.0/gcc-6.4.0/gcc/gm2/gm2-libs-iso/EXCEPTIONS.mod", 74, 25, "CurrentNumber", "current coroutine is not in the exceptional execution state");
-  ReturnException ("/home/gaius/GM2/graft-6.4.0/gcc-6.4.0/gcc/gm2/gm2-libs-iso/EXCEPTIONS.def", 8, 1);
+    RTExceptions_Raise ((unsigned int) (M2EXCEPTION_coException), "/home/gaius/GM2/graft-8.2.0/gcc-8.2.0/gcc/gm2/gm2-libs-iso/EXCEPTIONS.mod", 74, 25, "CurrentNumber", "current coroutine is not in the exceptional execution state");
+  ReturnException ("/home/gaius/GM2/graft-8.2.0/gcc-8.2.0/gcc/gm2/gm2-libs-iso/EXCEPTIONS.def", 8, 1);
 }
 
 void EXCEPTIONS_GetMessage (char *text, unsigned int _text_high)

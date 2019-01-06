@@ -1,4 +1,4 @@
-/* automatically created by mc from /home/gaius/GM2/graft-6.4.0/gcc-6.4.0/gcc/gm2/gm2-libs/StringConvert.mod.  */
+/* automatically created by mc from /home/gaius/GM2/graft-8.2.0/gcc-8.2.0/gcc/gm2/gm2-libs/StringConvert.mod.  */
 
 #   if !defined (PROC_D)
 #      define PROC_D
@@ -295,13 +295,13 @@ DynamicStrings_String StringConvert_ToDecimalPlaces (DynamicStrings_String s, un
 static void Assert (unsigned int b, char *file_, unsigned int _file_high, unsigned int line, char *func_, unsigned int _func_high);
 
 /*
-   Max - 
+   Max -
 */
 
 static unsigned int Max (unsigned int a, unsigned int b);
 
 /*
-   Min - 
+   Min -
 */
 
 static unsigned int Min (unsigned int a, unsigned int b);
@@ -376,13 +376,13 @@ static long double ToThePower10 (long double v, int power);
 static unsigned int DetermineSafeTruncation (void);
 
 /*
-   rtos - 
+   rtos -
 */
 
 static DynamicStrings_String rtos (double r, unsigned int TotalWidth, unsigned int FractionWidth);
 
 /*
-   lrtos - 
+   lrtos -
 */
 
 static DynamicStrings_String lrtos (long double r, unsigned int TotalWidth, unsigned int FractionWidth);
@@ -429,7 +429,7 @@ static void Assert (unsigned int b, char *file_, unsigned int _file_high, unsign
 
 
 /*
-   Max - 
+   Max -
 */
 
 static unsigned int Max (unsigned int a, unsigned int b)
@@ -442,7 +442,7 @@ static unsigned int Max (unsigned int a, unsigned int b)
 
 
 /*
-   Min - 
+   Min -
 */
 
 static unsigned int Min (unsigned int a, unsigned int b)
@@ -643,7 +643,7 @@ static unsigned int DetermineSafeTruncation (void)
 
 
 /*
-   rtos - 
+   rtos -
 */
 
 static DynamicStrings_String rtos (double r, unsigned int TotalWidth, unsigned int FractionWidth)
@@ -654,7 +654,7 @@ static DynamicStrings_String rtos (double r, unsigned int TotalWidth, unsigned i
 
 
 /*
-   lrtos - 
+   lrtos -
 */
 
 static DynamicStrings_String lrtos (long double r, unsigned int TotalWidth, unsigned int FractionWidth)
@@ -1566,7 +1566,7 @@ DynamicStrings_String StringConvert_ToSigFig (DynamicStrings_String s, unsigned 
   int point;
   unsigned int poTen;
 
-  Assert ((IsDigit (DynamicStrings_char (s, 0))) || ((DynamicStrings_char (s, 0)) == '.'), (char *) "/home/gaius/GM2/graft-6.4.0/gcc-6.4.0/gcc/gm2/gm2-libs/StringConvert.mod", 72, 1220, (char *) "ToSigFig", 8);
+  Assert ((IsDigit (DynamicStrings_char (s, 0))) || ((DynamicStrings_char (s, 0)) == '.'), (char *) "/home/gaius/GM2/graft-8.2.0/gcc-8.2.0/gcc/gm2/gm2-libs/StringConvert.mod", 72, 1215, (char *) "ToSigFig", 8);
   point = DynamicStrings_Index (s, '.', 0);
   if (point < 0)
     poTen = DynamicStrings_Length (s);
@@ -1608,7 +1608,7 @@ DynamicStrings_String StringConvert_ToDecimalPlaces (DynamicStrings_String s, un
 {
   int point;
 
-  Assert ((IsDigit (DynamicStrings_char (s, 0))) || ((DynamicStrings_char (s, 0)) == '.'), (char *) "/home/gaius/GM2/graft-6.4.0/gcc-6.4.0/gcc/gm2/gm2-libs/StringConvert.mod", 72, 1067, (char *) "ToDecimalPlaces", 15);
+  Assert ((IsDigit (DynamicStrings_char (s, 0))) || ((DynamicStrings_char (s, 0)) == '.'), (char *) "/home/gaius/GM2/graft-8.2.0/gcc-8.2.0/gcc/gm2/gm2-libs/StringConvert.mod", 72, 1062, (char *) "ToDecimalPlaces", 15);
   point = DynamicStrings_Index (s, '.', 0);
   if (point < 0)
     {

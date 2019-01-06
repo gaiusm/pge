@@ -32,6 +32,7 @@ void M2RTS_ExitOnHalt (int e);
 void M2RTS_ErrorMessage (char *message_, unsigned int _message_high, char *file_, unsigned int _file_high, unsigned int line, char *function_, unsigned int _function_high);
 unsigned int M2RTS_Length (char *a_, unsigned int _a_high);
 void M2RTS_AssignmentException (void * filename, unsigned int line, unsigned int column, void * scope);
+void M2RTS_ReturnException (void * filename, unsigned int line, unsigned int column, void * scope);
 void M2RTS_IncException (void * filename, unsigned int line, unsigned int column, void * scope);
 void M2RTS_DecException (void * filename, unsigned int line, unsigned int column, void * scope);
 void M2RTS_InclException (void * filename, unsigned int line, unsigned int column, void * scope);

@@ -143,14 +143,15 @@ clear: force
 force:
 
 if MAINTAINER
+GCCVERSION=8.2.0
 MC=$(HOME)/GM2/graft-svn-trunc/build-svn-trunc/gcc/gm2/boot-bin/mc --h-file-prefix=G
-PIMLIBS=$(HOME)/GM2/graft-6.4.0/gcc-6.4.0/gcc/gm2/gm2-libs
-ISOLIBS=$(HOME)/GM2/graft-6.4.0/gcc-6.4.0/gcc/gm2/gm2-libs-iso
-MCLIBS=$(HOME)/GM2/graft-6.4.0/gcc-6.4.0/gcc/gm2/mc-boot-ch
+PIMLIBS=$(HOME)/GM2/graft-$(GCCVERSION)/gcc-$(GCCVERSION)/gcc/gm2/gm2-libs
+ISOLIBS=$(HOME)/GM2/graft-$(GCCVERSION)/gcc-$(GCCVERSION)/gcc/gm2/gm2-libs-iso
+MCLIBS=$(HOME)/GM2/graft-$(GCCVERSION)/gcc-$(GCCVERSION)/gcc/gm2/mc-boot-ch
 
 M2DEFS = coord.def delay.def deviceGroff.def \
          deviceIf.def devicePy.def Fractions.def GC.def \
-         history.def macroObjects.def network.def \
+         history.def interpen.def segment.def macroObjects.def network.def \
          NetworkOrder.def pgeif.def Points.def polar.def \
          popWorld.def roots.def rpc.def \
          Transform3D.def twoDsim.def PolyMatrix3D.def network.def
@@ -159,7 +160,7 @@ M2MODS = bagatelle.mod bounce2.mod bounce3.mod bounce4.mod \
          bounce5.mod bounce.mod boxes.mod circle.mod \
          delay.mod deviceGroff.mod deviceIf.mod \
          devicePy.mod elc2.mod elc.mod foo.mod Fractions.mod GC.mod \
-         history.mod Indexing.mod line.mod macroObjects.mod MemStream.mod \
+         history.mod interpen.mod segment.mod Indexing.mod line.mod macroObjects.mod MemStream.mod \
          NetworkOrder.mod npn.mod para.mod pgeif.mod Points.mod \
          polar.mod popWorld.mod \
          ramps2.mod ramps.mod RawIO.mod rboxes.mod roots.mod \

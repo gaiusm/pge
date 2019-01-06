@@ -1,0 +1,62 @@
+DEFINITION MODULE interpen ;  (*!m2pim+gm2*)
+
+(*
+    Title      : interpen
+    Author     : Gaius Mulley
+    System     : GNU Modula-2
+    Date       : Tue Dec 18 21:08:38 2018
+    Revision   : $Version$
+    Description: provides a module to perform fundamental interpen tests.
+*)
+
+FROM coord IMPORT Coord ;
+FROM segment IMPORT Segment ;
+
+
+TYPE
+   interCircle = RECORD
+                    radius: REAL ;
+                    center: Coord ;
+                 END ;
+
+
+(*
+   segmentsCollide - returns TRUE if segment, a, overlaps with, b.
+                     If true is returned then collisionPoint will be set to the intersection
+                     point.
+
+; VAR collisionPoint: Coord
+*)
+
+PROCEDURE segmentsCollide (a, b: Segment) : BOOLEAN ;
+
+
+(*
+   circleCollide - return TRUE if circles, a, b, collide.
+*)
+
+PROCEDURE circleCollide (a, b: interCircle) : BOOLEAN ;
+
+
+(*
+   circleSegmentCollide - return TRUE if circle, c, collides with segment, s.
+*)
+
+PROCEDURE circleSegmentCollide (c: interCircle; s: Segment) : BOOLEAN ;
+
+
+(*
+   initCircle -
+*)
+
+PROCEDURE initCircle (radius: REAL; point: Coord) : interCircle ;
+
+
+(*
+   unitTest -
+*)
+
+PROCEDURE unitTest ;
+
+
+END interpen.

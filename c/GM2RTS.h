@@ -1,4 +1,4 @@
-/* automatically created by mc from /home/gaius/GM2/graft-6.4.0/gcc-6.4.0/gcc/gm2/gm2-libs/M2RTS.def.  */
+/* automatically created by mc from /home/gaius/GM2/graft-8.2.0/gcc-8.2.0/gcc/gm2/gm2-libs/M2RTS.def.  */
 
 
 #if !defined (_M2RTS_H)
@@ -102,6 +102,7 @@ EXTERN void M2RTS_ErrorMessage (char *message_, unsigned int _message_high, char
 
 EXTERN unsigned int M2RTS_Length (char *a_, unsigned int _a_high);
 EXTERN void M2RTS_AssignmentException (void * filename, unsigned int line, unsigned int column, void * scope);
+EXTERN void M2RTS_ReturnException (void * filename, unsigned int line, unsigned int column, void * scope);
 EXTERN void M2RTS_IncException (void * filename, unsigned int line, unsigned int column, void * scope);
 EXTERN void M2RTS_DecException (void * filename, unsigned int line, unsigned int column, void * scope);
 EXTERN void M2RTS_InclException (void * filename, unsigned int line, unsigned int column, void * scope);

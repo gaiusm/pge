@@ -337,13 +337,14 @@ DISTFILES = Makefile.in configure.ac configure \
 
 @LANGC_TRUE@SUBDIRS = c
 @LANGM2_TRUE@SUBDIRS = m2
+@MAINTAINER_TRUE@GCCVERSION = 8.2.0
 @MAINTAINER_TRUE@MC = $(HOME)/GM2/graft-svn-trunc/build-svn-trunc/gcc/gm2/boot-bin/mc --h-file-prefix=G
-@MAINTAINER_TRUE@PIMLIBS = $(HOME)/GM2/graft-6.4.0/gcc-6.4.0/gcc/gm2/gm2-libs
-@MAINTAINER_TRUE@ISOLIBS = $(HOME)/GM2/graft-6.4.0/gcc-6.4.0/gcc/gm2/gm2-libs-iso
-@MAINTAINER_TRUE@MCLIBS = $(HOME)/GM2/graft-6.4.0/gcc-6.4.0/gcc/gm2/mc-boot-ch
+@MAINTAINER_TRUE@PIMLIBS = $(HOME)/GM2/graft-$(GCCVERSION)/gcc-$(GCCVERSION)/gcc/gm2/gm2-libs
+@MAINTAINER_TRUE@ISOLIBS = $(HOME)/GM2/graft-$(GCCVERSION)/gcc-$(GCCVERSION)/gcc/gm2/gm2-libs-iso
+@MAINTAINER_TRUE@MCLIBS = $(HOME)/GM2/graft-$(GCCVERSION)/gcc-$(GCCVERSION)/gcc/gm2/mc-boot-ch
 @MAINTAINER_TRUE@M2DEFS = coord.def delay.def deviceGroff.def \
 @MAINTAINER_TRUE@         deviceIf.def devicePy.def Fractions.def GC.def \
-@MAINTAINER_TRUE@         history.def macroObjects.def network.def \
+@MAINTAINER_TRUE@         history.def interpen.def segment.def macroObjects.def network.def \
 @MAINTAINER_TRUE@         NetworkOrder.def pgeif.def Points.def polar.def \
 @MAINTAINER_TRUE@         popWorld.def roots.def rpc.def \
 @MAINTAINER_TRUE@         Transform3D.def twoDsim.def PolyMatrix3D.def network.def
@@ -352,7 +353,7 @@ DISTFILES = Makefile.in configure.ac configure \
 @MAINTAINER_TRUE@         bounce5.mod bounce.mod boxes.mod circle.mod \
 @MAINTAINER_TRUE@         delay.mod deviceGroff.mod deviceIf.mod \
 @MAINTAINER_TRUE@         devicePy.mod elc2.mod elc.mod foo.mod Fractions.mod GC.mod \
-@MAINTAINER_TRUE@         history.mod Indexing.mod line.mod macroObjects.mod MemStream.mod \
+@MAINTAINER_TRUE@         history.mod interpen.mod segment.mod Indexing.mod line.mod macroObjects.mod MemStream.mod \
 @MAINTAINER_TRUE@         NetworkOrder.mod npn.mod para.mod pgeif.mod Points.mod \
 @MAINTAINER_TRUE@         polar.mod popWorld.mod \
 @MAINTAINER_TRUE@         ramps2.mod ramps.mod RawIO.mod rboxes.mod roots.mod \

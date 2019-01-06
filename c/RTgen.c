@@ -140,11 +140,11 @@ typedef struct libc_timeb_r libc_timeb;
 
 typedef struct RTExceptions_ProcedureHandler_p RTExceptions_ProcedureHandler;
 
-typedef struct ehblock_r ehblock;
+typedef struct _T7_r _T7;
 
-typedef struct _T7_a _T7;
+typedef struct _T8_a _T8;
 
-typedef ehblock *RTExceptions_EHBlock;
+typedef _T7 *RTExceptions_EHBlock;
 
 typedef struct SysExceptions_PROCEXCEPTION_p SysExceptions_PROCEXCEPTION;
 
@@ -242,7 +242,7 @@ struct libc_timeb_r {
 typedef void (*RTExceptions_ProcedureHandler_t) (void);
 struct RTExceptions_ProcedureHandler_p { RTExceptions_ProcedureHandler_t proc; };
 
-struct _T7_a { char array[MaxBuffer+1]; };
+struct _T8_a { char array[MaxBuffer+1]; };
 typedef void (*SysExceptions_PROCEXCEPTION_t) (void *);
 struct SysExceptions_PROCEXCEPTION_p { SysExceptions_PROCEXCEPTION_t proc; };
 
@@ -255,9 +255,9 @@ typedef struct _T4_r _T4;
 
 typedef _T2 *IOLink_DeviceId;
 
-typedef struct handler_r handler;
+typedef struct _T9_r _T9;
 
-typedef handler *Handler;
+typedef _T9 *Handler;
 
 typedef _T3 *RTentity_Group;
 
@@ -328,20 +328,20 @@ struct RTgenif_iseoln_p { RTgenif_iseoln_t proc; };
 typedef unsigned int (*RTgenif_iserror_t) (RTgenif_GenDevIF, IOLink_DeviceTablePtr);
 struct RTgenif_iserror_p { RTgenif_iserror_t proc; };
 
-struct handler_r {
-                   RTExceptions_ProcedureHandler p;
-                   unsigned int n;
-                   Handler right;
-                   Handler left;
-                   Handler stack;
-                 };
+struct _T9_r {
+               RTExceptions_ProcedureHandler p;
+               unsigned int n;
+               Handler right;
+               Handler left;
+               Handler stack;
+             };
 
-struct ehblock_r {
-                   _T7 buffer;
-                   unsigned int number;
-                   Handler handlers;
-                   RTExceptions_EHBlock right;
-                 };
+struct _T7_r {
+               _T8 buffer;
+               unsigned int number;
+               Handler handlers;
+               RTExceptions_EHBlock right;
+             };
 
 struct _T1_r {
                RTgen_DeviceType type;
@@ -381,6 +381,7 @@ void M2RTS_ExitOnHalt (int e);
 void M2RTS_ErrorMessage (char *message_, unsigned int _message_high, char *file_, unsigned int _file_high, unsigned int line, char *function_, unsigned int _function_high);
 unsigned int M2RTS_Length (char *a_, unsigned int _a_high);
 void M2RTS_AssignmentException (void * filename, unsigned int line, unsigned int column, void * scope);
+void M2RTS_ReturnException (void * filename, unsigned int line, unsigned int column, void * scope);
 void M2RTS_IncException (void * filename, unsigned int line, unsigned int column, void * scope);
 void M2RTS_DecException (void * filename, unsigned int line, unsigned int column, void * scope);
 void M2RTS_InclException (void * filename, unsigned int line, unsigned int column, void * scope);

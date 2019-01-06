@@ -1088,7 +1088,7 @@ RTExceptions_EHBlock RTExceptions_GetBaseExceptionBlock (void)
     M2RTS_Halt ((char *) "../git-pge-frozen/m2/RTExceptions.mod", 37, 591, (char *) "GetBaseExceptionBlock", 21, (char *) "currentEHB has not been initialized yet", 39);
   else
     return currentEHB;
-  ReturnException ("/home/gaius/GM2/graft-6.4.0/gcc-6.4.0/gcc/gm2/gm2-libs/RTExceptions.def", 2, 1);
+  ReturnException ("/home/gaius/GM2/graft-8.2.0/gcc-8.2.0/gcc/gm2/gm2-libs/RTExceptions.def", 2, 1);
 }
 
 

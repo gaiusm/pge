@@ -32,7 +32,7 @@ libpgeif_la_SOURCES = macroObjects.mod Points.mod Fractions.mod PolyMatrix3D.mod
                       Transform3D.mod delay.mod GC.mod popWorld.mod \
                       twoDsim.mod roots.mod coord.mod polar.mod history.mod \
                       deviceIf.mod rpc.mod pgeif.mod NetworkOrder.mod \
-                      RTExceptions.mod \
+                      RTExceptions.mod interpen.mod segment.mod \
                       buffers.c
 
 MY_DEPS = macroObjects.lo Points.lo Fractions.lo PolyMatrix3D.lo \
@@ -40,7 +40,7 @@ MY_DEPS = macroObjects.lo Points.lo Fractions.lo PolyMatrix3D.lo \
           twoDsim.lo roots.lo coord.lo polar.lo \
           history.lo deviceIf.lo rpc.lo \
           pgeif.lo NetworkOrder.lo \
-          RTExceptions.lo \
+          RTExceptions.lo interpen.lo segment.lo \
           buffers.lo
 
 BUILT_SOURCES = springs.m circles.m rotating-line.m rotating-circles.m

@@ -1,0 +1,32 @@
+DEFINITION MODULE segment ;  (*!m2pim+gm2*)
+
+(*
+    Title      : segment
+    Author     : Gaius Mulley
+    System     : GNU Modula-2
+    Date       : Thu Dec 20 17:39:37 2018
+    Revision   : $Version$
+    Description: provides access to segment data structures.
+*)
+
+FROM coord IMPORT Coord ;
+
+TYPE
+   Segment = RECORD
+                point1,
+                point2: Coord ;
+             END ;
+
+   Line = RECORD
+             base     :  Coord ;
+             direction:  Coord ;
+          END ;
+
+(*
+   initSegment -
+*)
+
+PROCEDURE initSegment (p1, p2: Coord) : Segment ;
+
+
+END segment.

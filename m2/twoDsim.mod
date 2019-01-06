@@ -633,16 +633,7 @@ PROCEDURE unfix (id: CARDINAL) : CARDINAL ;
 VAR
    optr: Object ;
 BEGIN
-   down ;
-   optr := GetIndice (objects, id) ;
-   WITH optr^ DO
-      fixed := FALSE ;
-      stationary := FALSE
-   END ;
-   checkInterpen ;
-   Assert (NOT optr^.stationary, __LINE__) ;
-   up ;
-   Assert (NOT optr^.stationary, __LINE__) ;
+   (* your code goes here... *)
    RETURN id
 END unfix ;
 
@@ -1653,7 +1644,7 @@ END calcSpringFixed ;
 
 (*
    doCalcSpringFixed - calculate the forces on, moving object which is attached to, fixed.
-                     Given spring properties of, k, and, l0.
+                       Given spring properties of, k, and, l0.
 *)
 
 PROCEDURE doCalcSpringFixed (k, d, l0, l1: REAL; spr, fixed, moving: CARDINAL) ;

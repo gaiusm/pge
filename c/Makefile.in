@@ -106,14 +106,14 @@ am_libpgeif_la_OBJECTS = macroObjects.lo Points.lo Fractions.lo \
 	PolyMatrix3D.lo Transform3D.lo delay.lo GC.lo popWorld.lo \
 	twoDsim.lo roots.lo coord.lo polar.lo history.lo deviceIf.lo \
 	rpc.lo pgeif.lo NetworkOrder.lo RTExceptions.lo buffers.lo \
-	GFIO.lo NumberIO.lo RTint.lo StrLib.lo DynamicStrings.lo \
-	StringConvert.lo StrIO.lo StdIO.lo IO.lo MathLib0.lo \
-	Assertion.lo Indexing.lo ASCII.lo RTentity.lo EXCEPTIONS.lo \
-	COROUTINES.lo RTgenif.lo Strings.lo CharClass.lo RawIO.lo \
-	Gmcrts.lo Glibc.lo Gdtoa.lo Gerrno.lo Gldtoa.lo GSelective.lo \
-	GSysExceptions.lo GSYSTEM.lo Gtermios.lo GUnixArgs.lo \
-	Gwrapc.lo gdbif.lo network.lo Glibm.lo Gpth.lo Gcbuiltin.lo \
-	GBuiltins.lo Gwrapsock.lo
+	interpen.lo segment.lo GFIO.lo NumberIO.lo RTint.lo StrLib.lo \
+	DynamicStrings.lo StringConvert.lo StrIO.lo StdIO.lo IO.lo \
+	MathLib0.lo Assertion.lo Indexing.lo ASCII.lo RTentity.lo \
+	EXCEPTIONS.lo COROUTINES.lo RTgenif.lo Strings.lo CharClass.lo \
+	RawIO.lo Gmcrts.lo Glibc.lo Gdtoa.lo Gerrno.lo Gldtoa.lo \
+	GSelective.lo GSysExceptions.lo GSYSTEM.lo Gtermios.lo \
+	GUnixArgs.lo Gwrapc.lo gdbif.lo network.lo Glibm.lo Gpth.lo \
+	Gcbuiltin.lo GBuiltins.lo Gwrapsock.lo
 libpgeif_la_OBJECTS = $(am_libpgeif_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
@@ -319,7 +319,7 @@ libpgeif_la_SOURCES = macroObjects.c Points.c Fractions.c PolyMatrix3D.c \
                       twoDsim.c roots.c coord.c polar.c history.c \
                       deviceIf.c rpc.c pgeif.c NetworkOrder.c \
                       RTExceptions.c \
-                      buffers.c \
+                      buffers.c interpen.c segment.c \
                       GFIO.c NumberIO.c RTint.c StrLib.c DynamicStrings.c \
                       StringConvert.c StrIO.c StdIO.c IO.c \
                       MathLib0.c Assertion.c Indexing.c ASCII.c \
@@ -336,7 +336,7 @@ MY_DEPS = macroObjects.lo Points.lo Fractions.lo PolyMatrix3D.lo \
           history.lo deviceIf.lo rpc.lo \
           pgeif.lo NetworkOrder.lo \
           RTExceptions.lo \
-          buffers.lo \
+          buffers.lo interpen.lo segment.lo \
           FIO.lo NumberIO.lo RTint.lo StrLib.lo DynamicStrings.lo \
           StringConvert.lo StrIO.lo StdIO.lo IO.lo \
           Assertion.lo MathLib0.lo Indexing.lo ASCII.lo \
@@ -461,6 +461,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/deviceIf.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdbif.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/history.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/interpen.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/macroObjects.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/network.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pgeif.Plo@am__quote@
@@ -468,6 +469,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/popWorld.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/roots.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rpc.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/segment.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/twoDsim.Plo@am__quote@
 
 .c.o:
