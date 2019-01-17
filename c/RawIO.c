@@ -1,4 +1,4 @@
-/* automatically created by mc from ../git-pge-frozen/m2/RawIO.mod.  */
+/* automatically created by mc from ../git-pge/m2/RawIO.mod.  */
 
 #   if !defined (PROC_D)
 #      define PROC_D

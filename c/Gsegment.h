@@ -1,4 +1,4 @@
-/* automatically created by mc from ../git-pge-frozen/m2/segment.def.  */
+/* automatically created by mc from ../git-pge/m2/segment.def.  */
 
 
 #if !defined (_segment_H)

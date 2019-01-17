@@ -1,4 +1,4 @@
-/* automatically created by mc from ../git-pge-frozen/m2/roots.def.  */
+/* automatically created by mc from ../git-pge/m2/roots.def.  */
 
 
 #if !defined (_roots_H)

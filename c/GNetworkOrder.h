@@ -1,4 +1,4 @@
-/* automatically created by mc from ../git-pge-frozen/m2/NetworkOrder.def.  */
+/* automatically created by mc from ../git-pge/m2/NetworkOrder.def.  */
 
 
 #if !defined (_NetworkOrder_H)

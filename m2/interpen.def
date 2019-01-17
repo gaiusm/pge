@@ -11,7 +11,7 @@ DEFINITION MODULE interpen ;  (*!m2pim+gm2*)
 
 FROM coord IMPORT Coord ;
 FROM segment IMPORT Segment ;
-
+FROM history IMPORT whereHit ;
 
 TYPE
    interCircle = RECORD
@@ -21,14 +21,13 @@ TYPE
 
 
 (*
-   segmentsCollide - returns TRUE if segment, a, overlaps with, b.
-                     If true is returned then collisionPoint will be set to the intersection
-                     point.
-
-; VAR collisionPoint: Coord
+   segmentCollide - returns TRUE if segment, a, overlaps with, b.
+                    If true is returned then collisionPoint will be set to the intersection
+                    point.
 *)
 
-PROCEDURE segmentsCollide (a, b: Segment) : BOOLEAN ;
+PROCEDURE segmentsCollide (a, b: Segment;
+                           VAR p: Coord; VAR at0, at1: whereHit; VAR ptn0, ptn1: CARDINAL) : BOOLEAN ;
 
 
 (*
@@ -39,10 +38,16 @@ PROCEDURE circleCollide (a, b: interCircle) : BOOLEAN ;
 
 
 (*
-   circleSegmentCollide - return TRUE if circle, c, collides with segment, s.
+   circleSegmentCollide - Pre-condition:  interCirle, c, and Segment, s, are well formed.
+                          Post-condition:  return TRUE if circle, c, collides with segment, s.
+                          If true is returned then the, point, on the line in deepest collision
+                          with the circle is filled in and likewise, at, is set to corner or edge.
+                          Indicating which part of the segment collides with the circle.
+                          ptn will be set to 0 if point1 of the segment collides with the circle.
+                          ptn will be set to 1 if point2 of the segment collides with the circle.
 *)
 
-PROCEDURE circleSegmentCollide (c: interCircle; s: Segment) : BOOLEAN ;
+PROCEDURE circleSegmentCollide (c: interCircle; s: Segment; VAR point: Coord; VAR at: whereHit; VAR ptn: CARDINAL) : BOOLEAN ;
 
 
 (*

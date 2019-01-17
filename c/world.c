@@ -1,4 +1,4 @@
-/* automatically created by mc from ../git-pge-frozen/m2/world.mod.  */
+/* automatically created by mc from ../git-pge/m2/world.mod.  */
 
 #   if !defined (PROC_D)
 #      define PROC_D

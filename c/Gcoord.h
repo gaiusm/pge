@@ -1,4 +1,4 @@
-/* automatically created by mc from ../git-pge-frozen/m2/coord.def.  */
+/* automatically created by mc from ../git-pge/m2/coord.def.  */
 
 
 #if !defined (_coord_H)
@@ -103,6 +103,19 @@ EXTERN double coord_dotProd (coord_Coord a, coord_Coord b);
 */
 
 EXTERN unsigned int coord_nearZeroCoord (coord_Coord a);
+
+/*
+   equalCoord - return true if a == b.  (very closely equal).
+*/
+
+EXTERN unsigned int coord_equalCoord (coord_Coord a, coord_Coord b);
+
+/*
+   projectVector - returns the vector, onto, after it has been
+                   projected by, project.
+*/
+
+EXTERN coord_Coord coord_projectVector (coord_Coord project, coord_Coord onto);
 #   ifdef __cplusplus
 }
 #   endif

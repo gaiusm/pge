@@ -1,4 +1,4 @@
-/* automatically created by mc from ../git-pge-frozen/m2/pgeif.def.  */
+/* automatically created by mc from ../git-pge/m2/pgeif.def.  */
 
 
 #if !defined (_H)

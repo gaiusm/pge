@@ -1,4 +1,4 @@
-/* automatically created by mc from ../git-pge-frozen/m2/interpen.mod.  */
+/* automatically created by mc from ../git-pge/m2/interpen.mod.  */
 
 #   if !defined (PROC_D)
 #      define PROC_D
@@ -26,6 +26,8 @@ typedef struct interpen_interCircle_r interpen_interCircle;
 
 typedef struct Range_r Range;
 
+typedef enum {history_corner, history_edge} history_whereHit;
+
 struct interpen_interCircle_r {
                                 double radius;
                                 coord_Coord center;
@@ -36,7 +38,7 @@ struct Range_r {
                  double minimum;
                };
 
-unsigned int interpen_segmentsCollide (segment_Segment a, segment_Segment b);
+unsigned int interpen_segmentsCollide (segment_Segment a, segment_Segment b, coord_Coord *p, history_whereHit *at0, history_whereHit *at1, unsigned int *ptn0, unsigned int *ptn1);
 
 /*
    circleCollide - return TRUE if circles, a, b, collide.
@@ -45,10 +47,16 @@ unsigned int interpen_segmentsCollide (segment_Segment a, segment_Segment b);
 unsigned int interpen_circleCollide (interpen_interCircle a, interpen_interCircle b);
 
 /*
-   circleSegmentCollide -
+   circleSegmentCollide - Pre-condition:  interCirle, c, and Segment, s, are well formed.
+                          Post-condition:  return TRUE if circle, c, collides with segment, s.
+                          If true is returned then the, point, on the line in deepest collision
+                          with the circle is filled in and likewise, at, is set to corner or edge.
+                          Indicating which part of the segment collides with the circle.
+                          ptn will be set to 0 if point1 of the segment collides with the circle.
+                          ptn will be set to 1 if point2 of the segment collides with the circle.
 */
 
-unsigned int interpen_circleSegmentCollide (interpen_interCircle c, segment_Segment s);
+unsigned int interpen_circleSegmentCollide (interpen_interCircle c, segment_Segment s, coord_Coord *point, history_whereHit *at, unsigned int *ptn);
 
 /*
    initCircle -
@@ -67,6 +75,55 @@ void interpen_unitTest (void);
 */
 
 static void assert (unsigned int condition, unsigned int line);
+
+/*
+   doSegmentsCollide -
+*/
+
+static unsigned int doSegmentsCollide (segment_Segment a, segment_Segment b);
+
+/*
+   pointSegmentCollide - return true if point, p, lies on the segment, s.
+*/
+
+static unsigned int pointSegmentCollide (coord_Coord p, segment_Segment s);
+
+/*
+   doSegmentCollide2 -
+
+
+
+// Returns 1 if the lines intersect, otherwise 0. In addition, if the lines
+// intersect the intersection point may be stored in the floats i_x and i_y.
+char get_line_intersection(float p0_x, float p0_y, float p1_x, float p1_y,
+    float p2_x, float p2_y, float p3_x, float p3_y, float *i_x, float *i_y)
+{
+    float s1_x, s1_y, s2_x, s2_y;
+    s1_x = p1_x - p0_x;     s1_y = p1_y - p0_y;
+    s2_x = p3_x - p2_x;     s2_y = p3_y - p2_y;
+
+    float s, t;
+    s = (-s1_y * (p0_x - p2_x) + s1_x * (p0_y - p2_y)) / (-s2_x * s1_y + s1_x * s2_y);
+    t = ( s2_x * (p0_y - p2_y) - s2_y * (p0_x - p2_x)) / (-s2_x * s1_y + s1_x * s2_y);
+
+    if (s >= 0 && s <= 1 && t >= 0 && t <= 1)
+    {
+        // Collision detected
+        if (i_x != NULL)
+            *i_x = p0_x + (t * s1_x);
+        if (i_y != NULL)
+            *i_y = p0_y + (t * s1_y);
+        return 1;
+    }
+
+    return 0; // No collision
+}
+
+Andre LeMothe
+
+*/
+
+static unsigned int doSegmentCollide2 (segment_Segment a, segment_Segment b, coord_Coord *p);
 
 /*
    rotateVector90 -
@@ -142,7 +199,116 @@ static void testCircleSegment (void);
 static void assert (unsigned int condition, unsigned int line)
 {
   if (! condition)
-    libc_printf ((char *) "%s:%d: assert failed\\n", 22, "../git-pge-frozen/m2/interpen.mod", line);
+    libc_printf ((char *) "%s:%d: assert failed\\n", 22, "../git-pge/m2/interpen.mod", line);
+}
+
+
+/*
+   doSegmentsCollide -
+*/
+
+static unsigned int doSegmentsCollide (segment_Segment a, segment_Segment b)
+{
+  segment_Line axisA;
+  segment_Line axisB;
+  Range rangeA;
+  Range rangeB;
+
+  axisA.base = a.point1;
+  axisA.direction = coord_subCoord (a.point2, a.point1);
+  if (onOneSide (axisA, b))
+    return FALSE;
+  axisB.base = b.point1;
+  axisB.direction = coord_subCoord (b.point2, b.point1);
+  if (onOneSide (axisB, a))
+    return FALSE;
+  if (parallelVectors (axisA.direction, axisB.direction))
+    {
+      rangeA = projectSegment (a, axisA.direction);
+      rangeB = projectSegment (b, axisB.direction);
+      return overlappingRange (rangeA, rangeB);
+    }
+  else
+    return TRUE;
+}
+
+
+/*
+   pointSegmentCollide - return true if point, p, lies on the segment, s.
+*/
+
+static unsigned int pointSegmentCollide (coord_Coord p, segment_Segment s)
+{
+  coord_Coord d;
+  coord_Coord lp;
+  coord_Coord pr;
+
+  d = coord_subCoord (s.point2, s.point1);
+  lp = coord_subCoord (p, s.point1);
+  pr = coord_projectVector (lp, d);
+  return ((coord_equalCoord (lp, pr)) && ((coord_lengthCoord (pr)) <= (coord_lengthCoord (d)))) && (0.0 <= (coord_dotProd (pr, d)));
+}
+
+
+/*
+   doSegmentCollide2 -
+
+
+
+// Returns 1 if the lines intersect, otherwise 0. In addition, if the lines
+// intersect the intersection point may be stored in the floats i_x and i_y.
+char get_line_intersection(float p0_x, float p0_y, float p1_x, float p1_y,
+    float p2_x, float p2_y, float p3_x, float p3_y, float *i_x, float *i_y)
+{
+    float s1_x, s1_y, s2_x, s2_y;
+    s1_x = p1_x - p0_x;     s1_y = p1_y - p0_y;
+    s2_x = p3_x - p2_x;     s2_y = p3_y - p2_y;
+
+    float s, t;
+    s = (-s1_y * (p0_x - p2_x) + s1_x * (p0_y - p2_y)) / (-s2_x * s1_y + s1_x * s2_y);
+    t = ( s2_x * (p0_y - p2_y) - s2_y * (p0_x - p2_x)) / (-s2_x * s1_y + s1_x * s2_y);
+
+    if (s >= 0 && s <= 1 && t >= 0 && t <= 1)
+    {
+        // Collision detected
+        if (i_x != NULL)
+            *i_x = p0_x + (t * s1_x);
+        if (i_y != NULL)
+            *i_y = p0_y + (t * s1_y);
+        return 1;
+    }
+
+    return 0; // No collision
+}
+
+Andre LeMothe
+
+*/
+
+static unsigned int doSegmentCollide2 (segment_Segment a, segment_Segment b, coord_Coord *p)
+{
+  coord_Coord aVec;
+  coord_Coord bVec;
+  double d;
+  double s;
+  double t;
+
+  aVec = coord_initCoord (a.point2.x-a.point1.x, a.point2.y-a.point1.y);
+  bVec = coord_initCoord (b.point2.x-b.point1.x, b.point2.y-b.point1.y);
+  d = (-(bVec.x*aVec.y))+(aVec.x*bVec.y);
+  if (roots_nearZero (d))
+    return FALSE;
+  s = ((-(aVec.y*(a.point1.x-b.point1.x)))+(aVec.x*(a.point1.y-b.point1.y)))/d;
+  t = ((bVec.x*(a.point1.y-b.point1.y))-(bVec.y*(a.point1.x-b.point1.x)))/d;
+  if ((((s >= 0.0) && (s <= 1.0)) && (t >= 0.0)) && (t <= 1.0))
+    {
+      /* collision detected.  */
+      (*p).x = a.point1.x+(t*aVec.x);
+      (*p).y = a.point1.y+(t*aVec.y);
+      return TRUE;
+    }
+  /* no collision.  */
+  return FALSE;
 }
 
 
@@ -278,7 +444,7 @@ static void testSegmentSegment (void)
   d = coord_initCoord (11.0, 7.0);
   s1 = segment_initSegment (a, b);
   s2 = segment_initSegment (c, d);
-  assert (! (interpen_segmentsCollide (s1, s2)), 227);
+  assert (! (doSegmentsCollide (s1, s2)), 382);
 }
 
 
@@ -295,8 +461,8 @@ static void testCirclePoint (void)
   c = interpen_initCircle (3.0, coord_initCoord (6.0, 4.0));
   p1 = coord_initCoord (8.0, 3.0);
   p2 = coord_initCoord (11.0, 7.0);
-  assert (circlePointCollide (c, p1), 258);
-  assert (! (circlePointCollide (c, p2)), 259);
+  assert (circlePointCollide (c, p1), 413);
+  assert (! (circlePointCollide (c, p2)), 414);
 }
 
 
@@ -308,39 +474,71 @@ static void testCircleSegment (void)
 {
   interpen_interCircle c;
   segment_Segment s;
+  coord_Coord p;
+  history_whereHit at;
+  unsigned int ptn;
 
   c = interpen_initCircle (3.0, coord_initCoord (4.0, 4.0));
   s = segment_initSegment (coord_initCoord (8.0, 6.0), coord_initCoord (13.0, 6.0));
+  assert (! (interpen_circleSegmentCollide (c, s, &p, &at, &ptn)), 432);
 }
 
-unsigned int interpen_segmentsCollide (segment_Segment a, segment_Segment b)
+unsigned int interpen_segmentsCollide (segment_Segment a, segment_Segment b, coord_Coord *p, history_whereHit *at0, history_whereHit *at1, unsigned int *ptn0, unsigned int *ptn1)
 {
-  segment_Line axisA;
-  segment_Line axisB;
-  Range rangeA;
-  Range rangeB;
-
   /* 
    segmentCollide - returns TRUE if segment, a, overlaps with, b.
-                    If true is returned then collisionPoint will be set to the intersection
-                    point.
+                    If true is returned then, p, will be set to
+                    the intersection point.  ata, atb determine where segment, a,
+                    and segment, b, hit (corner or edge).  If ata = corner then
+                    ptna is either 0 or 1 representing the point which collided.
+                    Likewise if atb = corner then
+                    ptna is either 0 or 1 representing the point which collided.
   */
-  axisA.base = a.point1;
-  axisA.direction = coord_subCoord (a.point2, a.point1);
-  if (onOneSide (axisA, b))
-    return FALSE;
-  axisB.base = b.point1;
-  axisB.direction = coord_subCoord (b.point2, b.point1);
-  if (onOneSide (axisB, a))
-    return FALSE;
-  if (parallelVectors (axisA.direction, axisB.direction))
+  if (pointSegmentCollide (a.point1, b))
     {
-      rangeA = projectSegment (a, axisA.direction);
-      rangeB = projectSegment (b, axisB.direction);
-      return overlappingRange (rangeA, rangeB);
+      (*ptna) = 0;
+      (*ata) = history_corner;
+      (*p) = a.point1;
+      (*atb) = history_edge;
+      (*ptnb) = 0;
+      return TRUE;
     }
-  else
-    return TRUE;
+  else if (pointSegmentCollide (a.point2, b))
+    {
+      (*ptna) = 1;
+      (*ata) = history_corner;
+      (*p) = a.point2;
+      (*atb) = history_edge;
+      (*ptnb) = 0;
+      return TRUE;
+    }
+  else if (pointSegmentCollide (b.point1, a))
+    {
+      (*ptna) = 0;
+      (*ata) = history_corner;
+      (*p) = b.point1;
+      (*atb) = history_edge;
+      (*ptnb) = 0;
+      return TRUE;
+    }
+  else if (pointSegmentCollide (b.point2, a))
+    {
+      (*ptna) = 1;
+      (*ata) = history_corner;
+      (*p) = b.point2;
+      (*atb) = history_edge;
+      (*ptnb) = 0;
+      return TRUE;
+    }
+  else if (doSegmentCollide2 (a, b, p))
+    {
+      (*ptna) = 0;
+      (*ata) = history_edge;
+      (*atb) = history_edge;
+      (*ptnb) = 0;
+      return TRUE;
+    }
+  return FALSE;
 }
 
 
@@ -360,26 +558,51 @@ unsigned int interpen_circleCollide (interpen_interCircle a, interpen_interCircl
 
 
 /*
-   circleSegmentCollide -
+   circleSegmentCollide - Pre-condition:  interCirle, c, and Segment, s, are well formed.
+                          Post-condition:  return TRUE if circle, c, collides with segment, s.
+                          If true is returned then the, point, on the line in deepest collision
+                          with the circle is filled in and likewise, at, is set to corner or edge.
+                          Indicating which part of the segment collides with the circle.
+                          ptn will be set to 0 if point1 of the segment collides with the circle.
+                          ptn will be set to 1 if point2 of the segment collides with the circle.
 */
 
-unsigned int interpen_circleSegmentCollide (interpen_interCircle c, segment_Segment s)
+unsigned int interpen_circleSegmentCollide (interpen_interCircle c, segment_Segment s, coord_Coord *point, history_whereHit *at, unsigned int *ptn)
 {
-  coord_Coord d;
+  coord_Coord segmentVector;
   coord_Coord lc;
   coord_Coord p;
   coord_Coord nearest;
 
-  if ((circlePointCollide (c, s.point1)) || (circlePointCollide (c, s.point2)))
-    return TRUE;
+  if (circlePointCollide (c, s.point1))
+    {
+      (*point) = s.point1;
+      (*at) = history_corner;
+      (*ptn) = 0;
+      return TRUE;
+    }
+  else if (circlePointCollide (c, s.point2))
+    {
+      (*point) = s.point2;
+      (*at) = history_corner;
+      (*ptn) = 1;
+      return TRUE;
+    }
   else
     {
-      d = coord_subCoord (s.point2, s.point1);
+      segmentVector = coord_subCoord (s.point2, s.point1);
       lc = coord_subCoord (c.center, s.point1);
-      p = coord_subCoord (lc, d);
+      p = coord_projectVector (lc, segmentVector);
       nearest = coord_addCoord (s.point1, p);
-      return ((circlePointCollide (c, nearest)) && ((coord_lengthCoord (p)) <= (coord_lengthCoord (d)))) && (0.0 <= (coord_dotProd (p, d)));
+      if (((circlePointCollide (c, nearest)) && ((coord_lengthCoord (p)) <= (coord_lengthCoord (segmentVector)))) && (0.0 <= (coord_dotProd (p, segmentVector))))
+        {
+          (*ptn) = 0;
+          (*point) = nearest;
+          (*at) = history_edge;
+          return TRUE;
+        }
     }
+  return FALSE;
 }
 
 

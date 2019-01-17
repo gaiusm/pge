@@ -1,4 +1,4 @@
-/* automatically created by mc from ../git-pge-frozen/m2/coord.mod.  */
+/* automatically created by mc from ../git-pge/m2/coord.mod.  */
 
 #   if !defined (PROC_D)
 #      define PROC_D
@@ -128,6 +128,19 @@ double coord_dotProd (coord_Coord a, coord_Coord b);
 */
 
 unsigned int coord_nearZeroCoord (coord_Coord a);
+
+/*
+   equalCoord - return true if a == b.  (very closely equal).
+*/
+
+unsigned int coord_equalCoord (coord_Coord a, coord_Coord b);
+
+/*
+   projectVector - returns the vector, onto, after it has been
+                   projected by, project.
+*/
+
+coord_Coord coord_projectVector (coord_Coord project, coord_Coord onto);
 double libm_sin (double x);
 long double libm_sinl (long double x);
 float libm_sinf (float x);
@@ -315,6 +328,37 @@ double coord_dotProd (coord_Coord a, coord_Coord b)
 unsigned int coord_nearZeroCoord (coord_Coord a)
 {
   return (roots_nearZero (a.x)) && (roots_nearZero (a.y));
+}
+
+
+/*
+   equalCoord - return true if a == b.  (very closely equal).
+*/
+
+unsigned int coord_equalCoord (coord_Coord a, coord_Coord b)
+{
+  return coord_nearZeroCoord (coord_subCoord (a, b));
+}
+
+
+/*
+   projectVector - returns the vector, onto, after it has been
+                   projected by, project.
+*/
+
+coord_Coord coord_projectVector (coord_Coord project, coord_Coord onto)
+{
+  double dp;
+  double d;
+
+  d = coord_dotProd (onto, onto);
+  /* if angle of onto is < 90 degrees.  */
+  if (d > 0.0)
+    {
+      dp = coord_dotProd (project, onto);
+      return coord_scaleCoord (onto, dp/d);
+    }
+  return onto;
 }
 
 void _M2_coord_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])

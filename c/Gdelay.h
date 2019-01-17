@@ -1,4 +1,4 @@
-/* automatically created by mc from ../git-pge-frozen/m2/delay.def.  */
+/* automatically created by mc from ../git-pge/m2/delay.def.  */
 
 
 #if !defined (_delay_H)

@@ -1,4 +1,4 @@
-/* automatically created by mc from ../git-pge-frozen/m2/twoDsim.mod.  */
+/* automatically created by mc from ../git-pge/m2/twoDsim.mod.  */
 
 #   if !defined (PROC_D)
 #      define PROC_D
@@ -3018,7 +3018,7 @@ static coord_Coord getCofG (unsigned int id)
 
 
       default:
-        CaseException ("../git-pge-frozen/m2/twoDsim.def", 2, 1);
+        CaseException ("../git-pge/m2/twoDsim.def", 2, 1);
     }
 }
 
@@ -3333,7 +3333,7 @@ static coord_Coord doApplySpringForce (unsigned int id, coord_Coord force)
         applyDrag (id, a);
         return a;
       }
-  ReturnException ("../git-pge-frozen/m2/twoDsim.def", 2, 1);
+  ReturnException ("../git-pge/m2/twoDsim.def", 2, 1);
 }
 
 
@@ -3853,7 +3853,7 @@ static void doDrawFrame (Object optr, double dt, deviceIf_Colour col)
 
 
       default:
-        CaseException ("../git-pge-frozen/m2/twoDsim.def", 2, 1);
+        CaseException ("../git-pge/m2/twoDsim.def", 2, 1);
     }
 }
 
@@ -3894,7 +3894,7 @@ static void getEventObjects (Object *id1, Object *id2, eventQueue e)
 
 
         default:
-          CaseException ("../git-pge-frozen/m2/twoDsim.def", 2, 1);
+          CaseException ("../git-pge/m2/twoDsim.def", 2, 1);
       }
 }
 
@@ -3921,7 +3921,7 @@ static deviceIf_Colour getColour (Object optr)
 
 
       default:
-        CaseException ("../git-pge-frozen/m2/twoDsim.def", 2, 1);
+        CaseException ("../git-pge/m2/twoDsim.def", 2, 1);
     }
 }
 
@@ -3977,7 +3977,7 @@ static deviceIf_Colour getEventObjectColour (eventQueue e, Object optr)
 
 
         default:
-          CaseException ("../git-pge-frozen/m2/twoDsim.def", 2, 1);
+          CaseException ("../git-pge/m2/twoDsim.def", 2, 1);
       }
 }
 
@@ -4153,7 +4153,7 @@ static void updateOb (Object optr, double dt)
 
 
         default:
-          CaseException ("../git-pge-frozen/m2/twoDsim.def", 2, 1);
+          CaseException ("../git-pge/m2/twoDsim.def", 2, 1);
       }
 }
 
@@ -4281,14 +4281,14 @@ static void displayEvent (eventQueue e)
 
 
               default:
-                CaseException ("../git-pge-frozen/m2/twoDsim.def", 2, 1);
+                CaseException ("../git-pge/m2/twoDsim.def", 2, 1);
             }
           libc_printf ((char *) "\\n", 2);
           break;
 
 
         default:
-          CaseException ("../git-pge-frozen/m2/twoDsim.def", 2, 1);
+          CaseException ("../git-pge/m2/twoDsim.def", 2, 1);
       }
 }
 
@@ -4701,7 +4701,7 @@ static void circlePolygonCollision (eventQueue e, Object cPtr, Object pPtr)
 
 
         default:
-          CaseException ("../git-pge-frozen/m2/twoDsim.def", 2, 1);
+          CaseException ("../git-pge/m2/twoDsim.def", 2, 1);
       }
   else
     M2RTS_HALT (-1);  /* should be circlePolygonEvent  */
@@ -5074,7 +5074,7 @@ static void physicsCollision (eventQueue e)
 
 
       default:
-        CaseException ("../git-pge-frozen/m2/twoDsim.def", 2, 1);
+        CaseException ("../git-pge/m2/twoDsim.def", 2, 1);
     }
 }
 
@@ -6686,7 +6686,7 @@ static void anticipateCollision (double tc, eventDesc edesc)
 
 
       default:
-        CaseException ("../git-pge-frozen/m2/twoDsim.def", 2, 1);
+        CaseException ("../git-pge/m2/twoDsim.def", 2, 1);
     }
 }
 
@@ -6713,7 +6713,7 @@ static void collisionOccurred (eventDesc edesc)
 
 
       default:
-        CaseException ("../git-pge-frozen/m2/twoDsim.def", 2, 1);
+        CaseException ("../git-pge/m2/twoDsim.def", 2, 1);
     }
 }
 
@@ -7452,7 +7452,7 @@ static void doSpring (eventQueue e)
 
 
       default:
-        CaseException ("../git-pge-frozen/m2/twoDsim.def", 2, 1);
+        CaseException ("../git-pge/m2/twoDsim.def", 2, 1);
     }
   /* gdbif.sleepSpin ;  */
   addNextObjectEvent ();
@@ -7473,7 +7473,7 @@ static void springOccurred (eventDesc edesc)
 
 
       default:
-        CaseException ("../git-pge-frozen/m2/twoDsim.def", 2, 1);
+        CaseException ("../git-pge/m2/twoDsim.def", 2, 1);
     }
 }
 
@@ -7492,7 +7492,7 @@ static void anticipateSpring (double tc, eventDesc edesc)
 
 
       default:
-        CaseException ("../git-pge-frozen/m2/twoDsim.def", 2, 1);
+        CaseException ("../git-pge/m2/twoDsim.def", 2, 1);
     }
 }
 
@@ -7841,7 +7841,7 @@ static void assertCollisionEvent (eventDesc edesc)
 
 
         default:
-          CaseException ("../git-pge-frozen/m2/twoDsim.def", 2, 1);
+          CaseException ("../git-pge/m2/twoDsim.def", 2, 1);
       }
 }
 
@@ -8114,7 +8114,7 @@ static void writeDesc (eventDesc p)
 
 
           default:
-            CaseException ("../git-pge-frozen/m2/twoDsim.def", 2, 1);
+            CaseException ("../git-pge/m2/twoDsim.def", 2, 1);
         }
     }
 }
@@ -8706,7 +8706,7 @@ double twoDsim_get_gravity (unsigned int id)
         libc_printf ((char *) "cannot get the gravity of this object\\n", 39);
         break;
     }
-  ReturnException ("../git-pge-frozen/m2/twoDsim.def", 2, 1);
+  ReturnException ("../git-pge/m2/twoDsim.def", 2, 1);
 }
 
 
@@ -8736,7 +8736,7 @@ double twoDsim_get_mass (unsigned int id)
 
 
       default:
-        CaseException ("../git-pge-frozen/m2/twoDsim.def", 2, 1);
+        CaseException ("../git-pge/m2/twoDsim.def", 2, 1);
     }
 }
 

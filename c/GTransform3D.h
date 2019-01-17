@@ -1,4 +1,4 @@
-/* automatically created by mc from ../git-pge-frozen/m2/Transform3D.def.  */
+/* automatically created by mc from ../git-pge/m2/Transform3D.def.  */
 
 
 #if !defined (_Transform3D_H)

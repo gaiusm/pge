@@ -1,6 +1,6 @@
 IMPLEMENTATION MODULE interpen ;  (*!m2pim+gm2*)
 
-FROM coord IMPORT initCoord, subCoord, dotProd, normaliseCoord, lengthCoord, addCoord ;
+FROM coord IMPORT initCoord, subCoord, dotProd, normaliseCoord, lengthCoord, addCoord, projectVector, equalCoord ;
 FROM segment IMPORT Line, initSegment ;
 FROM roots IMPORT nearZero ;
 FROM libc IMPORT printf, exit ;
@@ -27,12 +27,10 @@ END assert ;
 
 
 (*
-   segmentCollide - returns TRUE if segment, a, overlaps with, b.
-                    If true is returned then collisionPoint will be set to the intersection
-                    point.
+   doSegmentsCollide -
 *)
 
-PROCEDURE segmentsCollide (a, b: Segment) : BOOLEAN ;
+PROCEDURE doSegmentsCollide (a, b: Segment) : BOOLEAN ;
 VAR
    axisA, axisB: Line ;
    rangeA, rangeB:  Range ;
@@ -59,6 +57,141 @@ BEGIN
    ELSE
       RETURN TRUE
    END
+END doSegmentsCollide ;
+
+
+(*
+   pointSegmentCollide - return true if point, p, lies on the segment, s.
+*)
+
+PROCEDURE pointSegmentCollide (p: Coord; s: Segment) : BOOLEAN ;
+VAR
+   d, lp, pr: Coord ;
+BEGIN
+   d := subCoord (s.point2, s.point1) ;
+   lp := subCoord (p, s.point1) ;
+   pr := projectVector (lp, d) ;
+   RETURN equalCoord (lp, pr) AND (lengthCoord (pr) <= lengthCoord (d)) AND (0.0 <= dotProd (pr, d))
+END pointSegmentCollide ;
+
+
+(*
+   doSegmentCollide2 -
+
+
+
+// Returns 1 if the lines intersect, otherwise 0. In addition, if the lines
+// intersect the intersection point may be stored in the floats i_x and i_y.
+char get_line_intersection(float p0_x, float p0_y, float p1_x, float p1_y,
+    float p2_x, float p2_y, float p3_x, float p3_y, float *i_x, float *i_y)
+{
+    float s1_x, s1_y, s2_x, s2_y;
+    s1_x = p1_x - p0_x;     s1_y = p1_y - p0_y;
+    s2_x = p3_x - p2_x;     s2_y = p3_y - p2_y;
+
+    float s, t;
+    s = (-s1_y * (p0_x - p2_x) + s1_x * (p0_y - p2_y)) / (-s2_x * s1_y + s1_x * s2_y);
+    t = ( s2_x * (p0_y - p2_y) - s2_y * (p0_x - p2_x)) / (-s2_x * s1_y + s1_x * s2_y);
+
+    if (s >= 0 && s <= 1 && t >= 0 && t <= 1)
+    {
+        // Collision detected
+        if (i_x != NULL)
+            *i_x = p0_x + (t * s1_x);
+        if (i_y != NULL)
+            *i_y = p0_y + (t * s1_y);
+        return 1;
+    }
+
+    return 0; // No collision
+}
+
+Andre LeMothe
+
+*)
+
+PROCEDURE doSegmentCollide2 (a, b: Segment; VAR p: Coord) : BOOLEAN ;
+VAR
+   aVec, bVec: Coord ;
+   d, s, t   : REAL ;
+BEGIN
+   aVec := initCoord (a.point2.x-a.point1.x, a.point2.y-a.point1.y) ;
+   bVec := initCoord (b.point2.x-b.point1.x, b.point2.y-b.point1.y) ;
+
+   d := -bVec.x * aVec.y + aVec.x * bVec.y ;
+   IF nearZero (d)
+   THEN
+      RETURN FALSE
+   END ;
+   s := (-aVec.y * (a.point1.x - b.point1.x) + aVec.x * (a.point1.y - b.point1.y)) / d ;
+   t := ( bVec.x * (a.point1.y - b.point1.y) - bVec.y * (a.point1.x - b.point1.x)) / d ;
+
+   IF (s >= 0.0) AND (s <= 1.0) AND (t >= 0.0) AND (t <= 1.0)
+   THEN
+      (* collision detected.  *)
+      p.x := a.point1.x + (t * aVec.x) ;
+      p.y := a.point1.y + (t * aVec.y) ;
+      RETURN TRUE
+   END ;
+   (* no collision.  *)
+   RETURN FALSE
+END doSegmentCollide2 ;
+
+
+(*
+   segmentCollide - returns TRUE if segment, a, overlaps with, b.
+                    If true is returned then, p, will be set to
+                    the intersection point.  ata, atb determine where segment, a,
+                    and segment, b, hit (corner or edge).  If ata = corner then
+                    ptna is either 0 or 1 representing the point which collided.
+                    Likewise if atb = corner then
+                    ptna is either 0 or 1 representing the point which collided.
+*)
+
+PROCEDURE segmentsCollide (a, b: Segment;
+                           VAR p: Coord; VAR ata, atb: whereHit; VAR ptna, ptnb: CARDINAL) : BOOLEAN ;
+BEGIN
+   IF pointSegmentCollide (a.point1, b)
+   THEN
+      ptna := 0 ;
+      ata := corner ;
+      p := a.point1 ;
+      atb := edge ;
+      ptnb := 0 ;
+      RETURN TRUE
+   ELSIF pointSegmentCollide (a.point2, b)
+   THEN
+      ptna := 1 ;
+      ata := corner ;
+      p := a.point2 ;
+      atb := edge ;
+      ptnb := 0 ;
+      RETURN TRUE
+   ELSIF pointSegmentCollide (b.point1, a)
+   THEN
+      ptna := 0 ;
+      ata := corner ;
+      p := b.point1 ;
+      atb := edge ;
+      ptnb := 0 ;
+      RETURN TRUE
+   ELSIF pointSegmentCollide (b.point2, a)
+   THEN
+      ptna := 1 ;
+      ata := corner ;
+      p := b.point2 ;
+      atb := edge ;
+      ptnb := 0 ;
+      RETURN TRUE
+   ELSIF doSegmentCollide2 (a, b, p)
+   THEN
+      ptna := 0 ;
+      ata := edge ;
+      atb := edge ;
+      ptnb := 0 ;
+      RETURN TRUE
+   END ;
+   RETURN FALSE
 END segmentsCollide ;
 
 
@@ -176,23 +309,45 @@ END circleCollide ;
 
 
 (*
-   circleSegmentCollide -
+   circleSegmentCollide - Pre-condition:  interCirle, c, and Segment, s, are well formed.
+                          Post-condition:  return TRUE if circle, c, collides with segment, s.
+                          If true is returned then the, point, on the line in deepest collision
+                          with the circle is filled in and likewise, at, is set to corner or edge.
+                          Indicating which part of the segment collides with the circle.
+                          ptn will be set to 0 if point1 of the segment collides with the circle.
+                          ptn will be set to 1 if point2 of the segment collides with the circle.
 *)
 
-PROCEDURE circleSegmentCollide (c: interCircle; s: Segment) : BOOLEAN ;
+PROCEDURE circleSegmentCollide (c: interCircle; s: Segment; VAR point: Coord; VAR at: whereHit; VAR ptn: CARDINAL) : BOOLEAN ;
 VAR
-   d, lc, p, nearest: Coord ;
+   segmentVector, lc, p, nearest: Coord ;
 BEGIN
-   IF circlePointCollide (c, s.point1) OR circlePointCollide (c, s.point2)
+   IF circlePointCollide (c, s.point1)
    THEN
+      point := s.point1 ;
+      at := corner ;
+      ptn := 0 ;
+      RETURN TRUE
+   ELSIF circlePointCollide (c, s.point2)
+   THEN
+      point := s.point2 ;
+      at := corner ;
+      ptn := 1 ;
       RETURN TRUE
    ELSE
-      d := subCoord (s.point2, s.point1) ;
+      segmentVector := subCoord (s.point2, s.point1) ;
       lc := subCoord (c.center, s.point1) ;
-      p := subCoord (lc, d) ;
+      p := projectVector (lc, segmentVector) ;
       nearest := addCoord (s.point1, p) ;
-      RETURN circlePointCollide (c, nearest) AND (lengthCoord (p) <= lengthCoord (d)) AND (0.0 <= dotProd (p, d))
-   END
+      IF circlePointCollide (c, nearest) AND (lengthCoord (p) <= lengthCoord (segmentVector)) AND (0.0 <= dotProd (p, segmentVector))
+      THEN
+         ptn := 0 ;
+         point := nearest ;
+         at := edge ;
+         RETURN TRUE
+      END
+   END ;
+   RETURN FALSE
 END circleSegmentCollide ;
 
 
@@ -224,7 +379,7 @@ BEGIN
    d := initCoord (11.0, 7.0) ;
    s1 := initSegment (a, b) ;
    s2 := initSegment (c, d) ;
-   assert (NOT segmentsCollide (s1, s2), __LINE__) ;
+   assert (NOT doSegmentsCollide (s1, s2), __LINE__) ;
 END testSegmentSegment ;
 
 
@@ -266,11 +421,15 @@ END testCirclePoint ;
 
 PROCEDURE testCircleSegment ;
 VAR
-   c: interCircle ;
-   s: Segment ;
+   c  : interCircle ;
+   s  : Segment ;
+   p  : Coord ;
+   at : whereHit ;
+   ptn: CARDINAL ;
 BEGIN
    c := initCircle (3.0, initCoord (4.0, 4.0)) ;
-   s := initSegment (initCoord (8.0, 6.0), initCoord (13.0, 6.0))
+   s := initSegment (initCoord (8.0, 6.0), initCoord (13.0, 6.0)) ;
+   assert (NOT circleSegmentCollide (c, s, p, at, ptn), __LINE__)
 END testCircleSegment ;
 
 

@@ -102,6 +102,16 @@ END negateCoord ;
 
 
 (*
+   equalCoord - return true if a == b.  (very closely equal).
+*)
+
+PROCEDURE equalCoord (a, b: Coord) : BOOLEAN ;
+BEGIN
+   RETURN nearZeroCoord (subCoord (a, b))
+END equalCoord ;
+
+
+(*
    subCoord - returns a - b.
 *)
 
@@ -160,6 +170,26 @@ PROCEDURE nearZeroCoord (a: Coord) : BOOLEAN ;
 BEGIN
    RETURN nearZero (a.x) AND nearZero (a.y)
 END nearZeroCoord ;
+
+
+(*
+   projectVector - returns the vector, onto, after it has been
+                   projected by, project.
+*)
+
+PROCEDURE projectVector (project, onto: Coord) : Coord ;
+VAR
+   dp, d: REAL ;
+BEGIN
+   d := dotProd (onto, onto) ;
+   (* if angle of onto is < 90 degrees.  *)
+   IF d > 0.0
+   THEN
+      dp := dotProd (project, onto) ;
+      RETURN scaleCoord (onto, dp/d)
+   END ;
+   RETURN onto
+END projectVector ;
 
 
 END coord.

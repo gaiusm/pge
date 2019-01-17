@@ -120,4 +120,19 @@ PROCEDURE dotProd (a, b: Coord) : REAL ;
 PROCEDURE nearZeroCoord (a: Coord) : BOOLEAN ;
 
 
+(*
+   equalCoord - return true if a == b.  (very closely equal).
+*)
+
+PROCEDURE equalCoord (a, b: Coord) : BOOLEAN ;
+
+
+(*
+   projectVector - returns the vector, onto, after it has been
+                   projected by, project.
+*)
+
+PROCEDURE projectVector (project, onto: Coord) : Coord ;
+
+
 END coord.

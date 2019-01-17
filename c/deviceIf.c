@@ -1,4 +1,4 @@
-/* automatically created by mc from ../git-pge-frozen/m2/deviceIf.mod.  */
+/* automatically created by mc from ../git-pge/m2/deviceIf.mod.  */
 
 #   if !defined (PROC_D)
 #      define PROC_D
@@ -714,7 +714,7 @@ void deviceIf_finish (void)
 
 
       default:
-        CaseException ("../git-pge-frozen/m2/deviceIf.def", 2, 1);
+        CaseException ("../git-pge/m2/deviceIf.def", 2, 1);
     }
 }
 

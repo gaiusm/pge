@@ -1,4 +1,4 @@
-/* automatically created by mc from ../git-pge-frozen/m2/PolyMatrix3D.def.  */
+/* automatically created by mc from ../git-pge/m2/PolyMatrix3D.def.  */
 
 
 #if !defined (_PolyMatrix3D_H)

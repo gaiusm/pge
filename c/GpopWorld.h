@@ -1,4 +1,4 @@
-/* automatically created by mc from ../git-pge-frozen/m2/popWorld.def.  */
+/* automatically created by mc from ../git-pge/m2/popWorld.def.  */
 
 
 #if !defined (_popWorld_H)

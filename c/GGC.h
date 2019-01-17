@@ -1,4 +1,4 @@
-/* automatically created by mc from ../git-pge-frozen/m2/GC.def.  */
+/* automatically created by mc from ../git-pge/m2/GC.def.  */
 
 
 #if !defined (_GC_H)
