@@ -22,12 +22,16 @@ TYPE
 
 (*
    segmentCollide - returns TRUE if segment, a, overlaps with, b.
-                    If true is returned then collisionPoint will be set to the intersection
-                    point.
+                    If true is returned then, p, will be set to
+                    the intersection point.  ata, atb determine where segment, a,
+                    and segment, b, hit (corner or edge).  If ata = corner then
+                    ptna is either 0 or 1 representing the point which collided.
+                    Likewise if atb = corner then
+                    ptna is either 0 or 1 representing the point which collided.
 *)
 
 PROCEDURE segmentsCollide (a, b: Segment;
-                           VAR p: Coord; VAR at0, at1: whereHit; VAR ptn0, ptn1: CARDINAL) : BOOLEAN ;
+                           VAR p: Coord; VAR ata, atb: whereHit; VAR ptna, ptnb: CARDINAL) : BOOLEAN ;
 
 
 (*

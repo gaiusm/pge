@@ -1,3 +1,8 @@
+2010-01-18      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* m2/twoDsim.mod:  added broadphase hooks and data
+	  structures.  Worked on frame based interpen.
+
 2010-01-17      Gaius Mulley <gaius@gnu.org>
 
 	* added test code to m2.

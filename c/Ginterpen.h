@@ -30,7 +30,7 @@ struct interpen_interCircle_r {
                                 coord_Coord center;
                               };
 
-EXTERN unsigned int interpen_segmentsCollide (segment_Segment a, segment_Segment b, coord_Coord *p, history_whereHit *at0, history_whereHit *at1, unsigned int *ptn0, unsigned int *ptn1);
+EXTERN unsigned int interpen_segmentsCollide (segment_Segment a, segment_Segment b, coord_Coord *p, history_whereHit *ata, history_whereHit *atb, unsigned int *ptna, unsigned int *ptnb);
 
 /*
    circleCollide - return TRUE if circles, a, b, collide.

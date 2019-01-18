@@ -38,7 +38,7 @@ struct Range_r {
                  double minimum;
                };
 
-unsigned int interpen_segmentsCollide (segment_Segment a, segment_Segment b, coord_Coord *p, history_whereHit *at0, history_whereHit *at1, unsigned int *ptn0, unsigned int *ptn1);
+unsigned int interpen_segmentsCollide (segment_Segment a, segment_Segment b, coord_Coord *p, history_whereHit *ata, history_whereHit *atb, unsigned int *ptna, unsigned int *ptnb);
 
 /*
    circleCollide - return TRUE if circles, a, b, collide.
@@ -483,7 +483,7 @@ static void testCircleSegment (void)
   assert (! (interpen_circleSegmentCollide (c, s, &p, &at, &ptn)), 432);
 }
 
-unsigned int interpen_segmentsCollide (segment_Segment a, segment_Segment b, coord_Coord *p, history_whereHit *at0, history_whereHit *at1, unsigned int *ptn0, unsigned int *ptn1)
+unsigned int interpen_segmentsCollide (segment_Segment a, segment_Segment b, coord_Coord *p, history_whereHit *ata, history_whereHit *atb, unsigned int *ptna, unsigned int *ptnb)
 {
   /* 
    segmentCollide - returns TRUE if segment, a, overlaps with, b.

@@ -1,5 +1,5 @@
 (* Copyright (C) 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016,
-                 2017, 2018
+                 2017, 2018, 2019
                  Free Software Foundation, Inc.  *)
 (* This file is part of GNU Modula-2.
 
@@ -39,6 +39,8 @@ FROM IOChan IMPORT ChanId ;
 FROM ChanConsts IMPORT read, write, raw, text, OpenResults ;
 FROM NetworkOrder IMPORT writeCard, writeFract, writePoint, writeShort, writeReal, writeCoord ;
 FROM StrLib IMPORT StrCopy ;
+FROM interpen IMPORT interCircle, segmentsCollide, circleCollide, circleSegmentCollide ;
+FROM segment IMPORT Segment, initSegment ;
 
 IMPORT MemStream ;
 IMPORT deviceIf ;
@@ -55,6 +57,8 @@ CONST
    Elasticity             =     0.98 ; (* how elastic are the collisions?                                     *)
    ElasticitySpring       =     0.9 ;  (* how much energy is lost in a spring bounce?                         *)
    FrameSprings           =  TRUE ;
+   PolygonDebugging       = FALSE ;
+   BroadphaseDebugging    = FALSE ;
 
 TYPE
    ObjectType = (polygonOb, circleOb, springOb) ;
@@ -181,6 +185,11 @@ TYPE
                               next: eventQueue ;
                            END ;
 
+   broadphase = POINTER TO RECORD
+                              o0, o1: CARDINAL ;  (* the two objects which need to be examined.  *)
+                              next  : broadphase ;
+                           END ;
+
 
 VAR
    objects             : Index ;
@@ -195,6 +204,7 @@ VAR
    freeEvents          : eventQueue ;
    freeDesc            : eventDesc ;
    trace,
+   framePolygons,
    writeTimeDelay,
    drawPrediction,
    drawCollisionFrame  : BOOLEAN ;
@@ -209,6 +219,7 @@ VAR
    file                : ChanId ;
    noOfCulledCollisions: CARDINAL ;
    startedRunning      : BOOLEAN ;
+   freeBroadphase      : broadphase ;
 
 
 (*
@@ -383,12 +394,30 @@ END dumpObject ;
 
 
 (*
+   safeCoord - ensures that 0.0 <= r <= 1.0.
+*)
+
+PROCEDURE safeCoord (r: REAL) : REAL ;
+BEGIN
+   IF r < 0.0
+   THEN
+      RETURN 0.0
+   ELSIF r > 1.0
+   THEN
+      RETURN 1.0
+   ELSE
+      RETURN r
+   END
+END safeCoord ;
+
+
+(*
    c2p - returns a Point given a Coord.
 *)
 
 PROCEDURE c2p (c: Coord) : Point ;
 BEGIN
-   RETURN initPoint (putReal (c.x), putReal (c.y))
+   RETURN initPoint (putReal (safeCoord (c.x)), putReal (safeCoord (c.y)))
 END c2p ;
 
 
@@ -633,7 +662,7 @@ PROCEDURE unfix (id: CARDINAL) : CARDINAL ;
 VAR
    optr: Object ;
 BEGIN
-   (* your code goes here... *)
+   (* your code goes here... 3rd year and mcomp.  *)
    RETURN id
 END unfix ;
 
@@ -1035,13 +1064,23 @@ END apply_impulse_to_circle ;
 
 
 (*
-   objectExists -
+   objectExists - returns TRUE if object, o, has not been deleted.
 *)
 
 PROCEDURE objectExists (o: Object) : BOOLEAN ;
 BEGIN
    RETURN (o # NIL) AND (NOT o^.deleted)
 END objectExists ;
+
+
+(*
+   objectIdExists - returns TRUE if object, id, has not been deleted.
+*)
+
+PROCEDURE objectIdExists (id: CARDINAL) : BOOLEAN ;
+BEGIN
+   RETURN objectExists (GetIndice (objects, id))
+END objectIdExists ;
 
 
 (*
@@ -1359,10 +1398,10 @@ END max ;
 
 
 (*
-   checkInterpenCircle -
+   checkMicroInterpenCircle -
 *)
 
-PROCEDURE checkInterpenCircle ;
+PROCEDURE checkMicroInterpenCircle ;
 VAR
    n, i, j, c: CARDINAL ;
    iptr, jptr: Object ;
@@ -1390,14 +1429,14 @@ BEGIN
       END ;
       (* keep going until no interpentration was found or there is a cycle found.  *)
    UNTIL (c>=n) OR (c=0)
-END checkInterpenCircle ;
+END checkMicroInterpenCircle ;
 
 
 (*
-   checkInterpenPolygon -
+   checkMicroInterpenPolygon -
 *)
 
-PROCEDURE checkInterpenPolygon ;
+PROCEDURE checkMicroInterpenPolygon ;
 VAR
    n, i, j, c: CARDINAL ;
    iptr, jptr: Object ;
@@ -1425,20 +1464,25 @@ BEGIN
       END ;
       (* keep going until no interpentration was found or there is a cycle found.  *)
    UNTIL (c>=n) OR (c=0)
-END checkInterpenPolygon ;
+END checkMicroInterpenPolygon ;
 
 
 (*
-   checkInterpen -
+   checkMicroInterpen - this performs micro collision analysis, it detects interpenetration
+                        between objects and separates the objects, without much force.
+                        This is called if we are using collision prediction and this will solve
+                        rounding errors which might otherwise allow objects to fall into each other.
+                        It will keep moving objects apart from each other and keep going in cycles
+                        (for a limited number of cycles).
 *)
 
-PROCEDURE checkInterpen ;
+PROCEDURE checkMicroInterpen ;
 BEGIN
    (* firstly we move circles away from polygons.  *)
-   checkInterpenPolygon ;
+   checkMicroInterpenPolygon ;
    (* then we move circles away from circles.  *)
-   checkInterpenCircle
-END checkInterpen ;
+   checkMicroInterpenCircle
+END checkMicroInterpen ;
 
 
 (*
@@ -1467,6 +1511,212 @@ BEGIN
       INC (i)
    END
 END resetStationary ;
+
+
+(*
+   getInterCircle - return the interCircle data structure filled in from circle0.
+*)
+
+PROCEDURE getInterCircle (circle0: Object) : interCircle ;
+VAR
+   ic: interCircle ;
+BEGIN
+   ic.radius := circle0^.c.r ;
+   ic.center := circle0^.c.pos ;
+   RETURN ic
+END getInterCircle ;
+
+
+(*
+   checkFrameInterpenCircleCircle -
+*)
+
+PROCEDURE checkFrameInterpenCircleCircle (circle0, circle1: Object) ;
+VAR
+   c0, c1: interCircle ;
+   p     : Coord ;
+   edesc : eventDesc ;
+BEGIN
+   Assert (circle0^.object = circleOb, __LINE__) ;
+   Assert (circle1^.object = circleOb, __LINE__) ;
+   c0 := getInterCircle (circle0) ;
+   c1 := getInterCircle (circle1) ;
+   IF circleCollide (c0, c1)
+   THEN
+      IF circle0^.fixed
+      THEN
+         (* move circle1 away from circle0.  *)
+         p := normaliseCoord (subCoord (c1.center, c0.center)) ;
+         circle1^.c.pos := addCoord (c0.center, scaleCoord (p, c0.radius + c1.radius)) ;
+         p := addCoord (c0.center, scaleCoord (p, c0.radius))
+      ELSE
+         (* move circle0 away from circle1.  *)
+         p := normaliseCoord (subCoord (c0.center, c1.center)) ;
+         circle1^.c.pos := addCoord (c1.center, scaleCoord (p, c1.radius + c0.radius)) ;
+         p := addCoord (c1.center, scaleCoord (p, c1.radius))
+      END ;
+      IF NOT isDuplicateC (currentTime, 0.0,
+                           circle0^.id, circle1^.id, edge, edge, p)
+      THEN
+         edesc := NIL ;
+         edesc := makeCirclesDesc (edesc,
+                                   circle0^.id, circle1^.id, p) ;
+         addCollisionEvent (0.0, doCollision, edesc)
+      END
+   END
+END checkFrameInterpenCircleCircle ;
+
+
+(*
+   checkFrameInterpenCirclePolygon -
+*)
+
+PROCEDURE checkFrameInterpenCirclePolygon  (circle0, polygon0: Object) ;
+VAR
+   s0    : Segment ;
+   c0    : interCircle ;
+   p0, p1,
+   p     : Coord ;
+   edesc : eventDesc ;
+   at    : whereHit ;
+   ptn,
+   i, n  : CARDINAL ;
+BEGIN
+   Assert (circle0^.object = circleOb, __LINE__) ;
+   Assert (polygon0^.object = polygonOb, __LINE__) ;
+   c0 := getInterCircle (circle0) ;
+   n := polygon0^.p.nPoints ;
+   i := 1 ;
+   WHILE i <= n DO
+      getPolygonLine (i, polygon0, p0, p1) ;
+      s0 := initSegment (p0, p1) ;
+      IF circleSegmentCollide (c0, s0, p, at, ptn)
+      THEN
+         (* --fixme-- do we now need to move the objects apart?  *)
+         IF NOT isDuplicateC (currentTime, 0.0,
+                              circle0^.id, polygon0^.id, at, at, p)
+         THEN
+            (* add collision event.  *)
+            edesc := NIL ;
+            edesc := makeCirclesPolygonDesc (edesc,
+                                             circle0^.id, polygon0^.id, i, i+ptn, at, at, p) ;
+            addCollisionEvent (0.0, doCollision, edesc) ;
+            RETURN
+         END
+      END ;
+      INC (i)
+   END
+END checkFrameInterpenCirclePolygon ;
+
+
+(*
+   checkFrameInterpenPolygonPolygon - checks every line segment of polygon0 vs polygon1
+                                      and registers a collision event at the current time
+                                      if these segments intersect.
+*)
+
+PROCEDURE checkFrameInterpenPolygonPolygon (polygon0, polygon1: Object) ;
+BEGIN
+   (* --fixme-- your code goes here.  mcomp.  *)
+END checkFrameInterpenPolygonPolygon ;
+
+
+(*
+   checkFrameInterpenObjects -
+*)
+
+PROCEDURE checkFrameInterpenObjects (i, j: CARDINAL) ;
+VAR
+   iptr, jptr: Object ;
+BEGIN
+   iptr := GetIndice (objects, i) ;
+   jptr := GetIndice (objects, j) ;
+   IF (iptr^.object = circleOb) AND (jptr^.object = circleOb)
+   THEN
+      checkFrameInterpenCircleCircle (iptr, jptr)
+   ELSIF (iptr^.object = circleOb) AND (jptr^.object = polygonOb)
+   THEN
+      checkFrameInterpenCirclePolygon (iptr, jptr)
+   ELSIF (iptr^.object = polygonOb) AND (jptr^.object = circleOb)
+   THEN
+      checkFrameInterpenCirclePolygon (jptr, iptr)
+   ELSIF (iptr^.object = polygonOb) AND (jptr^.object = polygonOb)
+   THEN
+      checkFrameInterpenPolygonPolygon (iptr, jptr)
+   END
+END checkFrameInterpenObjects ;
+
+
+(*
+   displayBroadphase -
+*)
+
+PROCEDURE displayBroadphase (b: broadphase) ;
+BEGIN
+   printf ("  objects:  %d and %d\n", b^.o0, b^.o1)
+END displayBroadphase ;
+
+
+(*
+   dumpBroadphase -
+*)
+
+PROCEDURE dumpBroadphase (list: broadphase) ;
+VAR
+   b: broadphase ;
+BEGIN
+   printf ("broadphase list:\n");
+   IF list = NIL
+   THEN
+      printf ("  empty")
+   ELSE
+      b := list ;
+      WHILE b # NIL DO
+         displayBroadphase (b) ;
+         b := b^.next
+      END
+   END
+END dumpBroadphase ;
+
+
+(*
+   optBroadphase - optimise the broadphase.  (--fixme--) complete me.
+*)
+
+PROCEDURE optBroadphase (list: broadphase) : broadphase ;
+BEGIN
+   (* your code goes here.  mcomp.  *)
+   RETURN list
+END optBroadphase ;
+
+
+(*
+   checkFrameInterpen - at this point the engine is running in frame based mode
+                        as we have at least one polygon moving and rotating.
+                        We need to check for interpenetration of objects, move them apart
+                        and add a collision event for each pair of interpenetrating objects.
+*)
+
+PROCEDURE checkFrameInterpen ;
+VAR
+   list, b: broadphase ;
+BEGIN
+   list := optBroadphase (initBroadphase ()) ;
+   IF BroadphaseDebugging
+   THEN
+      dumpBroadphase (list)
+   END ;
+   b := list ;
+   WHILE b # NIL DO
+      checkFrameInterpenObjects (b^.o0, b^.o1) ;
+      b := b^.next
+   END ;
+   killBroadphase (list) ;
+   IF BroadphaseDebugging
+   THEN
+      printQueue
+   END
+END checkFrameInterpen ;
 
 
 (*
@@ -2381,16 +2631,19 @@ PROCEDURE debugLine (p1, p2: Coord; c: Colour) ;
 CONST
    thickness = 0.01 ;
 VAR
-   p      : ARRAY [0..3] OF Point ;
-   dy, dxy: Coord ;
+   p        : ARRAY [0..3] OF Point ;
+   v, n1, n2: Coord ;
 BEGIN
    sortLine (p1, p2) ;
-   dy := initCoord (0.0, thickness * 2.0) ;
-   dxy := initCoord (thickness, thickness) ;
-   p[0] := c2p (subCoord (p1, dxy)) ;
-   p[1] := c2p (addCoord (subCoord (p1, dxy), dy)) ;
-   p[2] := c2p (addCoord (p2, dxy)) ;
-   p[3] := c2p (subCoord (addCoord (p2, dxy), dy)) ;
+   v := subCoord (p2, p1) ;
+   perpendiculars (v, n1, n2) ;
+   n1 := scaleCoord (normaliseCoord (n1), thickness) ;
+   n2 := scaleCoord (normaliseCoord (n2), thickness) ;
+
+   p[0] := c2p (addCoord (p1, n1)) ;
+   p[1] := c2p (addCoord (p2, n1)) ;
+   p[2] := c2p (addCoord (p2, n2)) ;
+   p[3] := c2p (addCoord (p1, n2)) ;
    glyphPolygon (4, p, TRUE, zero (), c)
 END debugLine ;
 
@@ -2739,6 +2992,156 @@ END getEventObjectColour ;
 
 
 (*
+   equalBroadphase - return TRUE if the pair of objects in, b, is the same
+                     as (i, j).
+*)
+
+PROCEDURE equalBroadphase (b: broadphase; i, j: CARDINAL) : BOOLEAN ;
+BEGIN
+   RETURN (b^.o0 = i) AND (b^.o1 = j)
+END equalBroadphase ;
+
+
+(*
+   assignBroadphase - assign each field in broadphase to: i, j and next.
+                      b is returned.
+*)
+
+PROCEDURE assignBroadphase (b: broadphase; i, j: CARDINAL; next: broadphase) : broadphase ;
+BEGIN
+   b^.o0 := i ;
+   b^.o1 := j ;
+   b^.next := next ;
+   RETURN b
+END assignBroadphase ;
+
+
+(*
+   newBroadphase - return a new initialised broadphase element.
+*)
+
+PROCEDURE newBroadphase (i, j: CARDINAL; next: broadphase) : broadphase ;
+VAR
+   b: broadphase ;
+BEGIN
+   IF freeBroadphase = NIL
+   THEN
+      NEW (b)
+   ELSE
+      b := freeBroadphase ;
+      freeBroadphase := freeBroadphase^.next
+   END ;
+   RETURN assignBroadphase (b, i, j, next)
+END newBroadphase ;
+
+
+(*
+   addBroadphase - adds, pair, i, j, onto the head of the broadphase list
+                   as long as the pair is unique.  It returns the new element
+                   which is chained to head.
+*)
+
+PROCEDURE addBroadphase (head: broadphase; i, j: CARDINAL) : broadphase ;
+VAR
+   b: broadphase ;
+BEGIN
+   IF head = NIL
+   THEN
+      RETURN newBroadphase (i, j, NIL)
+   ELSE
+      b := head ;
+      WHILE b # NIL DO
+         IF equalBroadphase (b, i, j) OR equalBroadphase (b, j, i)
+         THEN
+            (* already seen this pair, therefore return head.  *)
+            RETURN head
+         END ;
+         b := b^.next
+      END ;
+      RETURN newBroadphase (i, j, head)
+   END
+END addBroadphase ;
+
+
+(*
+   initBroadphase - the constructor which returns a new broadphase list of objects.
+*)
+
+PROCEDURE initBroadphase () : broadphase ;
+VAR
+   head   : broadphase ;
+   i, j, n: CARDINAL ;
+BEGIN
+   head := NIL ;
+   n := HighIndice (objects) ;
+   i := 1 ;
+   WHILE i<=n DO
+      j := 1 ;
+      WHILE j<=n DO
+         IF (i # j) AND objectIdExists (i) AND objectIdExists (j) AND
+            ((NOT isFixed (i)) OR (NOT isFixed (j)))
+         THEN
+            (* either i or j is moving therefore there might be interpenetration.  *)
+            head := addBroadphase (head, i, j)
+         END ;
+         INC (j)
+      END ;
+      INC (i)
+   END ;
+   RETURN head
+END initBroadphase ;
+
+
+(*
+   killBroadphase - returns list, head, back to the freeBroadphase list.
+*)
+
+PROCEDURE killBroadphase (VAR head: broadphase) ;
+VAR
+   last: broadphase ;
+BEGIN
+   IF head # NIL
+   THEN
+      IF freeBroadphase = NIL
+      THEN
+         freeBroadphase := head
+      ELSE
+         last := head ;
+         WHILE last^.next # NIL DO
+            last := last^.next
+         END ;
+         last^.next := freeBroadphase ;
+         freeBroadphase := head
+      END ;
+      head := NIL
+   END
+END killBroadphase ;
+
+
+(*
+   checkFrameBasedInterpen -
+*)
+
+PROCEDURE checkFrameBasedInterpen ;
+BEGIN
+   framePolygons := determineFrameBased () ;
+   IF FrameSprings OR framePolygons
+   THEN
+      (* are we using frame based simulation to solve spring motion.  *)
+      updatePhysics (TRUE)
+   END ;
+   IF framePolygons
+   THEN
+      checkFrameInterpen
+   END ;
+   IF PolygonDebugging
+   THEN
+      printQueue
+   END
+END checkFrameBasedInterpen ;
+
+
+(*
    drawFrame - draws the current world into the frame buffer.
                If e is not NIL then it will be a collision event
                which describes the objects colliding.  The
@@ -2752,11 +3155,6 @@ VAR
    i, n    : CARDINAL ;
    optr    : Object ;
 BEGIN
-   IF FrameSprings
-   THEN
-      (* are we using frame based simulation to solve spring motion.  *)
-      updatePhysics (TRUE)
-   END ;
    Assert ((e = NIL) OR (e^.kind = collisionKind) OR (e^.kind = springKind), __LINE__) ;
    IF DebugTrace
    THEN
@@ -2814,6 +3212,11 @@ BEGIN
    IF DebugTrace
    THEN
       printf ("start drawFrameEvent\n")
+   END ;
+   checkFrameBasedInterpen ;
+   IF DebugTrace
+   THEN
+      printf ("before frameNote\n")
    END ;
    frameNote ;
    IF DebugTrace
@@ -3175,7 +3578,7 @@ BEGIN
       disposeDesc (e^.ePtr) ;
       disposeEvent (e) ;
       updateStats (dt) ;
-      checkInterpen ;
+      checkMicroInterpen ;
       RETURN dt
    END
 END doNextEvent ;
@@ -3554,6 +3957,7 @@ BEGIN
                   THEN
                      (* moving polygon hits a fixed circle *)
                      (* --fixme--   to do later *)
+                     printf ("moving polygon hits a fixed circle, on the polygon corner, unimplemented at present, --fixme--\n");
                      HALT
                   ELSIF pPtr^.fixed
                   THEN
@@ -3561,12 +3965,14 @@ BEGIN
                      collideAgainstFixedCircle (cPtr, e^.ePtr^.cp.cPoint)
                   ELSE
                      (* both moving, to do later --fixme-- *)
+                     printf ("collision between circle and polygon which are both moving, on the polygon corner, unimplemented at present, --fixme--\n");
                      HALT
                   END |
          edge  :  IF cPtr^.fixed
                   THEN
                      (* fixed circle against moving polygon *)
                      (* --fixme--   to do later *)
+                     printf ("collision between a fixed circle and a moving polygon, on the polygon edge, unimplemented at present, --fixme--\n");
                      HALT
                   ELSIF pPtr^.fixed
                   THEN
@@ -3575,6 +3981,7 @@ BEGIN
                      getPolygonLine (ln, pPtr, p1, p2) ;
                      collideCircleAgainstFixedEdge (cPtr, p1, p2)
                   ELSE
+                     printf ("collision between a moving circle and a moving polygon, on the polygon edge, unimplemented at present, --fixme--\n");
                      (* both moving, to do later --fixme-- *)
                      HALT
                   END
@@ -3697,7 +4104,7 @@ END updatePolygonVelocity ;
 
 PROCEDURE polygonPolygonCollision (e: eventQueue; id1, id2: Object) ;
 BEGIN
-   collidePolygonAgainstMovingPolygon (e, id1, id2)
+   collidePolygonAgainstMovingPolygon (e, id1, id2) ;
 (*
    IF id1^.fixed
    THEN
@@ -3735,21 +4142,25 @@ END reflect ;
 
 
 (*
-   collidePolygonAgainstFixedPolygon - id1 is moving and id2 is fixed.
+   collidePolygonAgainstFixedPolygon - moving, and, fixed, are two polygons.
+                                       Work out the new velocity of the moving polygon
+                                       and also rotation velocity.
 *)
 
-PROCEDURE collidePolygonAgainstFixedPolygon (e: eventQueue; id1, id2: Object) ;
+PROCEDURE collidePolygonAgainstFixedPolygon (e: eventQueue; moving, fixed: Object) ;
 VAR
    I, m,
    j     : REAL ;
    l,
-   n, rap,
+   n, n2,
+   rap,
    rapn,
    p1, p2,
    p, v  : Coord ;   (* point of collision  *)
 BEGIN
-   Assert (NOT id1^.fixed, __LINE__) ;
-   Assert (id2^.fixed, __LINE__) ;
+   HALT ;   (* this function does not work and is not used.  *)
+   Assert (NOT moving^.fixed, __LINE__) ;
+   Assert (fixed^.fixed, __LINE__) ;
    Assert (e^.ePtr^.etype=polygonPolygonEvent, __LINE__) ;
 
    IF Debugging
@@ -3765,21 +4176,23 @@ BEGIN
       l := subCoord (p2, p1) ;
       debugLine (p1, p2, yellow ())
    ELSE
-      (* hits corner, so we use the normal from the corner to the C of G of he polygon.  *)
-      l := subCoord (p, id2^.p.cOfG)
+      (* hits corner, so we use the normal from the corner to the C of G of the polygon.  *)
+      l := subCoord (p, fixed^.p.cOfG)
    END ;
-   v := rotationalVelocity (id1^.angularVelocity, initCoord (id1^.vx, id1^.vy), subCoord (p, id1^.p.cOfG)) ;
+   perpendiculars (l, n, n2) ;  (* n and n2 are normal vectors to the vector l.  *)
 
-   rap := subCoord (p, id1^.p.cOfG) ;
+   v := rotationalVelocity (moving^.angularVelocity, initCoord (moving^.vx, moving^.vy), subCoord (p, moving^.p.cOfG)) ;
+
+   rap := subCoord (p, moving^.p.cOfG) ;
    rapn := perpendicular (rap) ;
-   I := sqr (dotProd (rapn, n)) / id1^.inertia ;
-   m := 1.0 / id1^.p.mass ;
+   I := sqr (dotProd (rapn, n)) / moving^.inertia ;
+   m := 1.0 / moving^.p.mass ;
 
-   debugCircle (id1^.p.cOfG, 0.002, yellow ()) ;          (* ******************  c of g for id1            *)
-   debugCircle (id2^.p.cOfG, 0.002, purple ()) ;          (* ******************  c of g for id2            *)
+   debugCircle (moving^.p.cOfG, 0.002, yellow ()) ;          (* ******************  c of g for id1            *)
+   debugCircle (fixed^.p.cOfG, 0.002, purple ()) ;          (* ******************  c of g for id2            *)
 
    j := (-(1.0) * dotProd (v, n)) / (dotProd (n, n) * m + I) ;
-   updatePolygonVelocity (id1, -j, n, rapn) ;
+   updatePolygonVelocity (moving, -j, n, rapn) ;
 
    flipBuffer ;      (* ****************** *)
 
@@ -3845,7 +4258,7 @@ BEGIN
       v1 := subCoord (p2, p1) ;     (* v1 is the vector p1 -> p2  *)
       perpendiculars (v1, n, n2) ;  (* n and n2 are normal vectors to the vector v1  *)
       (* n needs to point into id1.  *)
-      debugLine (p1, p2, yellow ())
+      debugLine (p1, p2, purple ())
    ELSIF e^.ePtr^.pp.wpid2=edge
    THEN
       IF Debugging
@@ -3858,7 +4271,7 @@ BEGIN
       v1 := subCoord (p2, p1) ;     (* v1 is the vector p1 -> p2  *)
       perpendiculars (v1, n, n2) ;  (* n and n2 are normal vectors to the vector v1  *)
       (* n needs to point into id1.  *)
-      debugLine (p1, p2, yellow ())
+      debugLine (p1, p2, white ())
    ELSE
       printf ("the corners of two polygon collide\n");
    END ;
@@ -4599,6 +5012,9 @@ END stop ;
 
 (*
    makeCirclesPolygonDesc - returns an eventDesc describing the collision between a circle and a polygon.
+                            notice wpid1 is not used, this is because it is called indirectly
+                            and there are other make...Desc functions which have exactly the
+                            same parameter data types.
 *)
 
 PROCEDURE makeCirclesPolygonDesc (edesc: eventDesc; cid, pid: CARDINAL;
@@ -5200,7 +5616,7 @@ END getPolygonCoord ;
 
 
 (*
-   getPolygonLine - assigns, p1, p2, with the, line, coordinates of polygon, pPtr.
+   getPolygonLine - assigns, c1, c2, with the, line, coordinates of polygon, pPtr.
 *)
 
 PROCEDURE getPolygonLine (line: CARDINAL; pPtr: Object; VAR c1, c2: Coord) ;
@@ -5443,8 +5859,8 @@ END findCollisionCirclePolygon ;
 
 
 (*
-   makePolygonPolygonDesc - return a new eventDesc indicating that we have a polygon/polygon collision
-                            event.
+   makePolygonPolygon - return a new eventDesc indicating that we have a polygon/polygon collision
+                        event.
 *)
 
 PROCEDURE makePolygonPolygon (edesc: eventDesc; id1, id2: CARDINAL;
@@ -5488,19 +5904,21 @@ PROCEDURE findCollisionLineLine (iPtr, jPtr: Object; iLine, jLine: CARDINAL; VAR
 BEGIN
    IF isOrbiting (iPtr) OR isOrbiting (jPtr)
    THEN
-      findCollisionLineLineOrbiting (iPtr, jPtr, iLine, jLine, edesc, tc)
+      RETURN
+      (* findCollisionLineLineOrbiting (iPtr, jPtr, iLine, jLine, edesc, tc) *)
    ELSE
       findCollisionLineLineNonOrbiting (iPtr, jPtr, iLine, jLine, edesc, tc)
    END
 END findCollisionLineLine ;
 
 
-
+(* not finished and does not work.
 PROCEDURE findCollisionLineLineOrbiting (iPtr, jPtr: Object; iLine, jLine: CARDINAL; VAR edesc: eventDesc; VAR tc: REAL) ;
 VAR
    i0, i1,
    j0, j1: Coord ;
 BEGIN
+   HALT ;  (* --fixme-- should not be called as it should be using frame based interpenetration.  *)
    getPolygonLine (iLine, iPtr, i0, i1) ;
    getPolygonLine (jLine, jPtr, j0, j1) ;
 
@@ -5517,6 +5935,7 @@ BEGIN
    findCollisionCircleLineOrbiting (jPtr, iPtr, iLine, jLine, j1, 0.0, edesc, tc, makePolygonPolygon)
 
 END findCollisionLineLineOrbiting ;
+*)
 
 
 PROCEDURE findCollisionLineLineNonOrbiting (iPtr, jPtr: Object; iLine, jLine: CARDINAL; VAR edesc: eventDesc; VAR tc: REAL) ;
@@ -5526,6 +5945,16 @@ VAR
 BEGIN
    getPolygonLine (iLine, iPtr, i0, i1) ;
    getPolygonLine (jLine, jPtr, j0, j1) ;
+
+   IF FALSE
+   THEN
+      frameNote ;
+      drawFrame (NIL) ;
+      debugLine (i0, i1, white ()) ;
+      debugLine (j0, j1, yellow ()) ;
+      flipBuffer ;
+      collectAll
+   END ;
 
    (* test i0 crossing jLine *)
    findCollisionCircleLine (iPtr, jPtr, iLine, jLine, i0, 0.0, edesc, tc, makePolygonPolygon) ;
@@ -6816,46 +7245,51 @@ END when_spring ;
 
 
 (*
+   optPredictiveBroadphase - this function returns the list after culling
+                             any pair objects which are moving in opposite
+                             directions.  It should check for velocity and
+                             acceleration - making sure that both have the
+                             same sign.
+*)
+
+PROCEDURE optPredictiveBroadphase (list: broadphase) : broadphase ;
+BEGIN
+   (* --fixme-- your code goes here.  mcomp.  *)
+   RETURN list
+END optPredictiveBroadphase ;
+
+
+(*
    addNextCollisionEvent - recalculate the next collision event time.
 *)
 
 PROCEDURE addNextCollisionEvent ;
 VAR
-   tc, old   : REAL ;
-   ic, jc,
-   i, j, n   : CARDINAL ;
-   iptr, jptr: Object ;
-   edesc     : eventDesc ;
+   tc, old: REAL ;
+   o0, o1 : Object ;
+   edesc  : eventDesc ;
+   list, b: broadphase ;
 BEGIN
-   n := HighIndice (objects) ;
-   i := 1 ;
    edesc := NIL ;
    tc := -1.0 ;
-   WHILE i<=n DO
-      iptr := GetIndice (objects, i) ;
-      IF objectExists (iptr)
+   list := optPredictiveBroadphase (initBroadphase ()) ;
+   b := list ;
+   WHILE b # NIL DO
+      o0 := GetIndice (objects, b^.o0) ;
+      o1 := GetIndice (objects, b^.o1) ;
+      IF trace
       THEN
-         j := i+1 ;
-         WHILE j<=n DO
-            jptr := GetIndice (objects, j) ;
-            IF (iptr#jptr) AND objectExists (jptr)
-            THEN
-               IF trace
-               THEN
-                  printf ("** checking pair %d, %d\n", iptr^.id, jptr^.id) ;
-                  old := tc
-               END ;
-               findCollision (iptr, jptr, edesc, tc) ;
-	       IF trace AND (old # tc)
-               THEN
-                  printf ("** collision found between pair %d, %d at time %g\n", iptr^.id, jptr^.id, tc)
-               END
-            END ;
-            INC(j)
-         END
+         printf ("** checking pair %d, %d\n", b^.o0, b^.o1) ;
+         old := tc
       END ;
-      INC(i)
+      findCollision (o0, o1, edesc, tc) ;
+      IF trace AND (old # tc)
+      THEN
+         printf ("** collision found between pair %d, %d at time %g\n", b^.o0, b^.o1, tc)
+      END ;
+      b := b^.next
    END ;
+   killBroadphase (list) ;
    IF edesc#NIL
    THEN
       addCollisionEvent (tc, doCollision, edesc) ;
@@ -6865,6 +7299,32 @@ BEGIN
       printf ("no more collisions found\n")
    END
 END addNextCollisionEvent ;
+
+
+(*
+   determineFrameBased - return TRUE if we need to use frame based collision detection.
+*)
+
+PROCEDURE determineFrameBased () : BOOLEAN ;
+VAR
+   n, i: CARDINAL ;
+   o   : Object ;
+BEGIN
+   n := HighIndice (objects) ;
+   i := 1 ;
+   WHILE i<=n DO
+      IF isPolygon (i) AND (NOT isFixed (i))
+      THEN
+         o := GetIndice (objects,  i) ;
+         IF NOT nearZero (o^.angularVelocity)
+         THEN
+            RETURN TRUE
+         END ;
+      END ;
+      INC (i)
+   END ;
+   RETURN FALSE
+END determineFrameBased ;
 
 
 (*
@@ -7048,7 +7508,7 @@ PROCEDURE makeCirclesDesc (VAR edesc: eventDesc; cid1, cid2: CARDINAL; cp: Coord
 BEGIN
    IF edesc=NIL
    THEN
-      edesc := newDesc()
+      edesc := newDesc ()
    END ;
    edesc^.etype := circlesEvent ;
    edesc^.cc.cPoint := cp ;
@@ -7147,7 +7607,6 @@ BEGIN
       printf (", pge should not be detecting a collision event between two fixed objects %d and %d\n", id1, id2)
    END
 END assertMovement ;
-
 
 
 (*
@@ -7891,6 +8350,8 @@ BEGIN
    haveCollisionColour := FALSE ;
    noOfCulledCollisions := 0 ;
    startedRunning := FALSE ;
+   framePolygons := FALSE ;
+   freeBroadphase := NIL ;
    (* gdbif.sleepSpin *)
 END Init ;
 
