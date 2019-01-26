@@ -22,15 +22,15 @@ IMPLEMENTATION MODULE twoDsim ;  (*!m2iso*)
 FROM SYSTEM IMPORT ADR, BYTE ;
 FROM Storage IMPORT ALLOCATE, DEALLOCATE ;
 FROM Indexing IMPORT Index, InitIndex, PutIndice, GetIndice, HighIndice ;
-FROM libc IMPORT printf, exit ;
-FROM deviceIf IMPORT flipBuffer, frameNote, glyphCircle, glyphPolygon, writeTime, blue, red, black, yellow, purple, white ;
+FROM libc IMPORT printf, exit, system ;
+FROM deviceIf IMPORT getFrameNo, flipBuffer, frameNote, glyphCircle, glyphPolygon, writeTime, blue, red, black, yellow, purple, white ;
 FROM libm IMPORT sqrt, asin, sin, cos, atan ;
 FROM roots IMPORT findQuartic, findQuadratic, findQuadraticRoots, findAllRootsQuartic, findQuarticRoots, findOctic, nearZero, nearCoord, nearSame, setTrace ;
 FROM Fractions IMPORT Fract, zero, one, putReal, initFract ;
 FROM Points IMPORT Point, initPoint ;
 FROM GC IMPORT collectAll ;
 FROM coord IMPORT Coord, initCoord, normaliseCoord, perpendiculars, perpendicular, scaleCoord,
-                  subCoord, addCoord, lengthCoord, rotateCoord, dotProd, nearZeroCoord, negateCoord ;
+                  subCoord, addCoord, lengthCoord, rotateCoord, dotProd, nearZeroCoord, negateCoord, equalCoord ;
 FROM polar IMPORT Polar, initPolar, polarToCoord, coordToPolar, rotatePolar ;
 FROM history IMPORT isDuplicateC, occurredC, anticipateC, occurredS, anticipateS, isDuplicateS, forgetFuture, isPair ;
 FROM delay IMPORT getActualFPS ;
@@ -172,6 +172,7 @@ TYPE
                 points : ARRAY [0..MaxPolygonPoints] OF Polar ;
                 mass   : REAL ;
                 col    : Colour ;
+                oldcOfG,
                 cOfG   : Coord ;
              END ;
 
@@ -231,8 +232,10 @@ BEGIN
    IF NOT b
    THEN
       printf ("twoDsim.mod:%d:error assert failed\n", line) ;
-      gdbif.sleepSpin ;
+      (*
+      exit (1);
       HALT
+      *)
    END
 END Assert ;
 
@@ -320,8 +323,8 @@ END dumpCircle ;
 
 PROCEDURE dumpPolygon (o: Object) ;
 VAR
-   i : CARDINAL ;
-   c0: Coord ;
+   i         : CARDINAL ;
+   p0, p1, c0: Coord ;
 BEGIN
    WITH o^ DO
       printf ("polygon mass %g colour %d\n", p.mass, p.col) ;
@@ -329,6 +332,14 @@ BEGIN
       FOR i := 0 TO p.nPoints-1 DO
          c0 := addCoord (p.cOfG, polarToCoord (rotatePolar (p.points[i], angleOrientation))) ;
          printf ("  point at (%g,%g)\n", c0.x, c0.y)
+      END ;
+      FOR i := 1 TO p.nPoints DO
+         printf ("  %d line ", i) ;
+         getPolygonLine (i, o, p0, p1) ;
+         dumpCoord (p0) ;
+         printf (" -> ") ;
+         dumpCoord (p1) ;
+         printf ("\n")
       END
    END
 END dumpPolygon ;
@@ -500,6 +511,7 @@ BEGIN
    WITH optr^ DO
       p.nPoints := 3 ;
       p.cOfG := calculateCofG (p.nPoints, co) ;
+      p.oldcOfG := p.cOfG ;
       FOR i := 0 TO p.nPoints-1 DO
          p.points[i] := coordToPolar (subCoord (co[i], p.cOfG))
       END ;
@@ -536,6 +548,7 @@ BEGIN
    WITH optr^ DO
       p.nPoints := 4 ;
       p.cOfG := calculateCofG (p.nPoints, co) ;
+      p.oldcOfG := p.cOfG ;
       FOR i := 0 TO p.nPoints-1 DO
          p.points[i] := coordToPolar (subCoord(co[i], p.cOfG))
       END ;
@@ -568,6 +581,7 @@ BEGIN
    WITH optr^ DO
       p.nPoints := 5 ;
       p.cOfG := calculateCofG (p.nPoints, co) ;
+      p.oldcOfG := p.cOfG ;
       FOR i := 0 TO p.nPoints-1 DO
          p.points[i] := coordToPolar (subCoord(co[i], p.cOfG))
       END ;
@@ -601,6 +615,7 @@ BEGIN
    WITH optr^ DO
       p.nPoints := 6 ;
       p.cOfG := calculateCofG (p.nPoints, co) ;
+      p.oldcOfG := p.cOfG ;
       FOR i := 0 TO p.nPoints-1 DO
          p.points[i] := coordToPolar (subCoord(co[i], p.cOfG))
       END ;
@@ -1610,14 +1625,146 @@ END checkFrameInterpenCirclePolygon ;
 
 
 (*
+   dumpCoord -
+*)
+
+PROCEDURE dumpCoord (p: Coord) ;
+BEGIN
+   printf ("(%g,%g)", p.x, p.y)
+END dumpCoord ;
+
+
+(*
+   dumpCollision -
+*)
+
+PROCEDURE dumpCollision (pid0, pid1: CARDINAL; l0, l1: CARDINAL; at0, at1: whereHit; p: Coord) ;
+BEGIN
+   printf ("polygon %d:%d vs polygon %d:%d ", pid0, l0, pid1, l1);
+   dumpWhere (at0) ;
+   printf (" ");
+   dumpWhere (at1) ;
+   printf (" ");
+   dumpCoord (p);
+   printf ("\n");
+END dumpCollision ;
+
+
+(*
+   debugDelay -
+*)
+
+PROCEDURE debugDelay (message: ARRAY OF CHAR) ;
+VAR
+   r: INTEGER ;
+BEGIN
+   printf ("debug delay:  %s\n", message);
+   r := system (ADR ("sleep 3"))
+END debugDelay ;
+
+
+(*
+   restoreOldCofG -
+*)
+
+PROCEDURE restoreOldCofG (poly: Object) ;
+BEGIN
+   IF NOT poly^.fixed
+   THEN
+      poly^.p.cOfG := poly^.p.oldcOfG
+   END
+END restoreOldCofG ;
+
+
+(*
    checkFrameInterpenPolygonPolygon - checks every line segment of polygon0 vs polygon1
                                       and registers a collision event at the current time
                                       if these segments intersect.
 *)
 
 PROCEDURE checkFrameInterpenPolygonPolygon (polygon0, polygon1: Object) ;
+   (* --fixme-- you might want to improve this code.  mcomp.  *)
+VAR
+   p0, p1,
+   p       : Coord ;
+   edesc   : eventDesc ;
+   at0, at1: whereHit ;
+   s0, s1  : Segment ;
+   ptn0,
+   ptn1,
+   i0, i1,
+   n0, n1  : CARDINAL ;
+   r       : INTEGER ;
 BEGIN
-   (* --fixme-- your code goes here.  mcomp.  *)
+   Assert (polygon0^.object = polygonOb, __LINE__) ;
+   Assert (polygon1^.object = polygonOb, __LINE__) ;
+   n0 := polygon0^.p.nPoints ;
+   n1 := polygon1^.p.nPoints ;
+   i0 := 1 ;
+   IF PolygonDebugging
+   THEN
+      printf ("checkFrameInterpenPolygonPolygon n0 = %d, n1 = %d\n", n0, n1)
+   END ;
+   WHILE i0 <= n0 DO
+      getPolygonLine (i0, polygon0, p0, p1) ;
+      s0 := initSegment (p0, p1) ;
+      i1 := 1 ;
+      WHILE i1 <= n1 DO
+         getPolygonLine (i1, polygon1, p0, p1) ;
+         s1 := initSegment (p0, p1) ;
+
+         IF PolygonDebugging
+         THEN
+            printf ("polygon %d:%d vs polygon %d:%d\n", polygon0^.id, i0, polygon1^.id, i1);
+            frameNote ;
+            drawFrame (NIL) ;
+            printf (" yellow coordinate pairs:  %g, %g -> %g, %g\n", s0.point1, s0.point2);
+            printf (" white coordinate pairs:  %g, %g -> %g, %g\n", s1.point1, s1.point2);
+            debugLine (s0.point1, s0.point2, yellow ());
+            debugLine (s1.point1, s1.point2, white ());
+            flipBuffer ;
+            collectAll
+         END ;
+         IF segmentsCollide (s0, s1, p, at0, at1, ptn0, ptn1)
+         THEN
+            (* --fixme-- do we now need to move the objects apart?  *)
+            IF NOT isDuplicateC (currentTime, 0.0,
+                                 polygon0^.id, polygon1^.id, at0, at1, p)
+            THEN
+               (* add collision event.  *)
+               IF PolygonDebugging
+               THEN
+                  printf ("frame number %d: ", getFrameNo ());
+                  printf ("short circuit further test\n");
+                  dumpCollision (polygon0^.id, polygon1^.id, i0, i1, at0, at1, p) ;
+                  frameNote ;
+                  drawFrame (NIL) ;
+                  printf (" yellow coordinate pairs:  %g, %g -> %g, %g\n", s0.point1, s0.point2);
+                  printf (" white coordinate pairs:  %g, %g -> %g, %g\n", s1.point1, s1.point2);
+                  debugLine (s0.point1, s0.point2, purple ()) ;
+                  debugLine (s1.point1, s1.point2, purple ()) ;
+                  flipBuffer ;
+                  collectAll
+               END ;
+
+               edesc := NIL ;
+               edesc := makePolygonPolygon (edesc,
+                                            polygon0^.id, polygon1^.id, i0+ptn0, i1+ptn1, at0, at1, p) ;
+               addCollisionEvent (0.0, doCollision, edesc) ;
+               IF PolygonDebugging
+               THEN
+                  printf ("interpen created queue\n") ;
+                  printQueue
+               END ;
+               (*
+               RETURN
+               *)
+            END
+         END ;
+         INC (i1)
+      END ;
+      INC (i0)
+   END
 END checkFrameInterpenPolygonPolygon ;
 
 
@@ -3282,6 +3429,7 @@ BEGIN
       IF NOT deleted
       THEN
          ac := getAccelCoord (optr) ;
+         p.oldcOfG := p.cOfG ;
          p.cOfG.x := newPositionScalar (p.cOfG.x, vx, ac.x, dt) ;
          p.cOfG.y := newPositionScalar (p.cOfG.y, vy, ac.y, dt) ;
          vx := vx + ax*dt ;
@@ -3564,7 +3712,7 @@ BEGIN
    ELSE
       IF trace
       THEN
-         printQueue
+         printf ("inside doNextEvent\n") ; printQueue ;
       END ;
       e := eventQ ;
       eventQ := eventQ^.next ;
@@ -4221,8 +4369,9 @@ VAR
    modifiedVel,
    j1, j2, m  : REAL ;
 BEGIN
-   IF Debugging
+   IF PolygonDebugging
    THEN
+      printf ("before processing collision\n");
       displayEvent(e) ;
       dumpObject(id1) ;
       dumpObject(id2)
@@ -4230,65 +4379,120 @@ BEGIN
    Assert (e^.ePtr^.etype=polygonPolygonEvent, __LINE__) ;
    p := e^.ePtr^.pp.cPoint ;
 
-   frameNote ;      (* ****************** *)
-   drawFrame (e) ;  (* ****************** *)
+   IF PolygonDebugging
+   THEN
+      dumpDesc (e^.ePtr) ;
+
+      frameNote ;      (* ****************** *)
+      drawFrame (e) ;  (* ****************** *)
+   END ;
 
    IF (e^.ePtr^.pp.wpid1=edge) AND (e^.ePtr^.pp.wpid2=edge)
    THEN
-      IF Debugging
+      IF PolygonDebugging
       THEN
          printf ("the edges of two polygon collide\n")
       END ;
-      getPolygonLine (e^.ePtr^.pp.lineCorner1, GetIndice (objects, e^.ePtr^.pp.pid1), p1, p2) ;
-      sortLine (p1, p2) ;           (* p1 and p2 are the start end positions of the line  *)
+      (* choose the fixed line, if one exists.  *)
+      IF isFixed (id1^.id)
+      THEN
+         IF PolygonDebugging
+         THEN
+            printf ("using line %d:%d\n", e^.ePtr^.pp.pid1, e^.ePtr^.pp.lineCorner1)
+         END ;
+         getPolygonLine (e^.ePtr^.pp.lineCorner1, GetIndice (objects, e^.ePtr^.pp.pid1), p1, p2)
+      ELSE
+         IF PolygonDebugging
+         THEN
+            printf ("using line %d:%d\n", e^.ePtr^.pp.pid2, e^.ePtr^.pp.lineCorner2)
+         END ;
+         getPolygonLine (e^.ePtr^.pp.lineCorner2, GetIndice (objects, e^.ePtr^.pp.pid2), p1, p2)
+      END ;
+      (* sortLine (p1, p2) ; *)          (* p1 and p2 are the start end positions of the line  *)
       v1 := subCoord (p2, p1) ;     (* v1 is the vector p1 -> p2  *)
       perpendiculars (v1, n, n2) ;  (* n and n2 are normal vectors to the vector v1  *)
       (* n needs to point into id1.  *)
-      debugLine (p1, p2, yellow ())
+      IF PolygonDebugging
+      THEN
+         debugLine (p1, p2, yellow ())
+      END
    ELSIF e^.ePtr^.pp.wpid1=edge
    THEN
       (* corner collision.  *)
-      IF Debugging
+      IF PolygonDebugging
       THEN
          printf ("the edge of polygon collides with corner of polygon\n")
       END ;
       Assert (e^.ePtr^.pp.wpid2=corner, __LINE__) ;
 
-      getPolygonLine (e^.ePtr^.pp.lineCorner2, GetIndice (objects, e^.ePtr^.pp.pid2), p1, p2) ;
+      getPolygonLine (e^.ePtr^.pp.lineCorner1, GetIndice (objects, e^.ePtr^.pp.pid1), p1, p2) ;
       v1 := subCoord (p2, p1) ;     (* v1 is the vector p1 -> p2  *)
       perpendiculars (v1, n, n2) ;  (* n and n2 are normal vectors to the vector v1  *)
       (* n needs to point into id1.  *)
-      debugLine (p1, p2, purple ())
+      IF PolygonDebugging
+      THEN
+         debugLine (p1, p2, purple ())
+      END
    ELSIF e^.ePtr^.pp.wpid2=edge
    THEN
-      IF Debugging
+      IF PolygonDebugging
       THEN
          printf ("the edge of polygon collides with corner of polygon\n")
       END ;
       Assert (e^.ePtr^.pp.wpid1=corner, __LINE__) ;
 
-      getPolygonLine (e^.ePtr^.pp.lineCorner1, GetIndice (objects, e^.ePtr^.pp.pid1), p1, p2) ;
+      getPolygonLine (e^.ePtr^.pp.lineCorner2, GetIndice (objects, e^.ePtr^.pp.pid2), p1, p2) ;
       v1 := subCoord (p2, p1) ;     (* v1 is the vector p1 -> p2  *)
       perpendiculars (v1, n, n2) ;  (* n and n2 are normal vectors to the vector v1  *)
       (* n needs to point into id1.  *)
-      debugLine (p1, p2, white ())
+      IF PolygonDebugging
+      THEN
+         debugLine (p1, p2, white ())
+      END
    ELSE
       printf ("the corners of two polygon collide\n");
+      (* n needs and assignment.  *)
+      HALT
    END ;
 
-   debugCircle (id1^.p.cOfG, 0.002, yellow ()) ;          (* ******************  c of g for id1            *)
-   debugCircle (id2^.p.cOfG, 0.002, purple ()) ;          (* ******************  c of g for id2            *)
-   (* debugCircle (getPolygonCoord (id1, e^.ePtr^.pp.pointNo), 0.002, white ()) ; *)
-                                                          (* ******************  point on id1 of collision *)
+   IF PolygonDebugging
+   THEN
+      printf ("line: ") ; dumpCoord (p1) ; printf (" -> ") ; dumpCoord (p2) ; printf ("\n");
+      printf ("v1 vector along line: "); dumpCoord (v1) ; printf ("  perpendicular: ");
+      dumpCoord (n) ; printf ("\n");
+
+      debugCircle (id1^.p.cOfG, 0.02, yellow ()) ;          (* ******************  c of g for id1            *)
+      debugCircle (id2^.p.cOfG, 0.02, purple ()) ;          (* ******************  c of g for id2            *)
+      debugCircle (p, 0.02, white ()) ;          (* ******************  collision point           *)
+   END ;
 
    (* calculate relative velocity.  *)
    rap := subCoord (p, id1^.p.cOfG) ;
    rbp := subCoord (p, id2^.p.cOfG) ;
    vap := addCoord (initCoord (id1^.vx, id1^.vy), scaleCoord (rap, id1^.angularVelocity)) ;
-   vbp := addCoord (initCoord (id2^.vx, id2^.vy), scaleCoord (rap, id2^.angularVelocity)) ;
-   vab := subCoord (vap, vbp) ;
+   vbp := addCoord (initCoord (id2^.vx, id2^.vy), scaleCoord (rbp, id2^.angularVelocity)) ;
+   vab := subCoord (vap, vbp) ;  (* eq 1.  C.Hecker.  *)
 
-   (* calculate impulse factor.  *)
+   IF PolygonDebugging
+   THEN
+      printf ("v1 = ") ; dumpCoord (v1) ; printf (" rap = ") ; dumpCoord (rap) ; printf (" rbp = ") ; dumpCoord (rbp) ;
+      printf (" vap = ") ; dumpCoord (vap) ; printf (" vbp = ") ; dumpCoord (vbp) ; printf ("\n");
+      printf ("vab = ") ; dumpCoord (vab) ; printf (", n = ") ; dumpCoord (n) ; printf (" dotProd (vab, n) = %g\n", dotProd (vab, n));
+   END ;
+
+   (* eq 2.  C.Hecker.  *)
+   IF dotProd (vab, n) < 0.0
+   THEN
+      IF PolygonDebugging
+      THEN
+         flipBuffer ;     (* ****************** *)
+         printf ("objects are moving apart, ignore.\n");
+      END ;
+      (* objects are moving apart, ignore.  *)
+      RETURN
+   END ;
+
+   (* calculate impulse factor. Eq 6. C.Hecker.  *)
    IF id1^.fixed
    THEN
       m := 0.0
@@ -4300,7 +4504,13 @@ BEGIN
       m := m + 1.0/id2^.p.mass
    END ;
 
-   denominator := m * dotProd (n, n) ;
+   denominator := dotProd (n, n) * m ;  (* bottom of Eq 6.  C.Hecker.  *)
+   IF PolygonDebugging
+   THEN
+      printf ("n = ") ; dumpCoord (n) ; printf ("\n");
+      printf ("m = %g, dotProd (n, n) = %g\n", m, dotProd (n, n));
+      printf ("denominator = %g\n", denominator);
+   END ;
 
    (* calculate angular factors.  *)
 
@@ -4323,7 +4533,7 @@ BEGIN
    (* calculate total impulse of collision, j.  *)
 
    vabDotN := dotProd (vab, n) ;
-   IF Debugging
+   IF PolygonDebugging
    THEN
       printf ("vabDotN = %g\n", vabDotN)
    END ;
@@ -4332,7 +4542,7 @@ BEGIN
    j1 := -(1.0 + Elasticity) * modifiedVel ;
    j2 := (1.0 + Elasticity) * modifiedVel ;
 
-   IF Debugging
+   IF PolygonDebugging
    THEN
       printf ("j1 = %g, j2 = %g\n", j1, j2)
    END ;
@@ -4376,7 +4586,36 @@ BEGIN
       id2^.angularVelocity := (1.0 / id2^.inertia) * id2^.angularMomentum
    END ;
 
-   flipBuffer      (* ****************** *)
+   IF PolygonDebugging
+   THEN
+      printf ("after processing collision\n");
+      displayEvent(e) ;
+      dumpObject(id1) ;
+      dumpObject(id2) ;
+      flipBuffer ;    (* ****************** *)
+
+      dumpDesc (e^.ePtr) ;
+      IF NOT id2^.fixed
+      THEN
+         Assert (id2^.vy > 0.0, __LINE__);
+         IF id2^.vy > 0.0
+         THEN
+            printf ("SUCCESSFUL collide polygon\n")
+         ELSE
+            debugDelay ("FAILED collide polygon - terminating") ;
+         END
+      END ;
+      IF NOT id1^.fixed
+      THEN
+         Assert (id1^.vy > 0.0, __LINE__);
+         IF id1^.vy > 0.0
+         THEN
+            printf ("SUCCESSFUL collide polygon\n")
+         ELSE
+            debugDelay ("FAILED collide polygon - terminating") ;
+         END
+      END
+   END
 
 END collidePolygonAgainstMovingPolygon ;
 
@@ -5022,7 +5261,7 @@ PROCEDURE makeCirclesPolygonDesc (edesc: eventDesc; cid, pid: CARDINAL;
                                   wpid1, wpid2: whereHit;
                                   collisionPoint: Coord) : eventDesc ;
 BEGIN
-   Assert (wpid1=corner, __LINE__) ;  (* circle must always be treated as corner.  *)
+   (* Assert (wpid1=corner, __LINE__) ; *)  (* circle must always be treated as corner.  *)
    IF edesc=NIL
    THEN
       edesc := newDesc ()
@@ -5864,7 +6103,7 @@ END findCollisionCirclePolygon ;
 *)
 
 PROCEDURE makePolygonPolygon (edesc: eventDesc; id1, id2: CARDINAL;
-                              lineCorner1, lineCorner2: CARDINAL;
+                              lineCorner2, lineCorner1: CARDINAL;
                               wpid1, wpid2: whereHit;
                               collisionPoint: Coord) : eventDesc ;
 BEGIN
@@ -5880,6 +6119,10 @@ BEGIN
    edesc^.pp.wpid2 := wpid2 ;
    edesc^.pp.lineCorner1 := lineCorner1 ;
    edesc^.pp.lineCorner2 := lineCorner2 ;
+   IF PolygonDebugging
+   THEN
+      dumpDesc (edesc)
+   END ;
    RETURN edesc
 END makePolygonPolygon ;
 
@@ -5900,14 +6143,14 @@ END isOrbiting ;
                            and, tc, the time of collision in the future.
 *)
 
-PROCEDURE findCollisionLineLine (iPtr, jPtr: Object; iLine, jLine: CARDINAL; VAR edesc: eventDesc; VAR tc: REAL) ;
+PROCEDURE findCollisionLineLine (iPtr, jPtr: Object; jLine, iLine: CARDINAL; VAR edesc: eventDesc; VAR tc: REAL) ;
 BEGIN
    IF isOrbiting (iPtr) OR isOrbiting (jPtr)
    THEN
       RETURN
-      (* findCollisionLineLineOrbiting (iPtr, jPtr, iLine, jLine, edesc, tc) *)
+      (* findCollisionLineLineOrbiting (iPtr, jPtr, jLine, iLine, edesc, tc) *)
    ELSE
-      findCollisionLineLineNonOrbiting (iPtr, jPtr, iLine, jLine, edesc, tc)
+      findCollisionLineLineNonOrbiting (iPtr, jPtr, jLine, iLine, edesc, tc)
    END
 END findCollisionLineLine ;
 
@@ -5923,10 +6166,10 @@ BEGIN
    getPolygonLine (jLine, jPtr, j0, j1) ;
 
    (* test i0 crossing jLine *)
-   findCollisionCircleLineOrbiting (iPtr, jPtr, iLine, jLine, i0, 0.0, edesc, tc, makePolygonPolygon) ;
+   findCollisionCircleLineOrbiting (iPtr, jPtr, jLine, iLine, i0, 0.0, edesc, tc, makePolygonPolygon) ;
 
    (* test i1 crossing line j *)
-   findCollisionCircleLineOrbiting (iPtr, jPtr, iLine, jLine, i1, 0.0, edesc, tc, makePolygonPolygon) ;
+   findCollisionCircleLineOrbiting (iPtr, jPtr, jLine, iLine, i1, 0.0, edesc, tc, makePolygonPolygon) ;
 
    (* test j0 crossing line i *)
    findCollisionCircleLineOrbiting (jPtr, iPtr, iLine, jLine, j0, 0.0, edesc, tc, makePolygonPolygon) ;
@@ -5936,6 +6179,23 @@ BEGIN
 
 END findCollisionLineLineOrbiting ;
 *)
+
+
+(*
+   findCollisionPointLine - determines whether point, p, which is at one of the ends of iPtr:iLine will hit
+                            line jPtr:jLine.  If so then the time of collision is recorded in, tc, (provided
+                            it is sooner than the current value of tc).  It also updates the event descriptor,
+                            edesc.
+*)
+
+PROCEDURE findCollisionPointLine (iPtr, jPtr: Object; jLine, iLine: CARDINAL; p: Coord; VAR edesc: eventDesc; VAR tc: REAL) ;
+VAR
+   i0, i1: Coord ;
+BEGIN
+   getPolygonLine (iLine, iPtr, i0, i1) ;
+   Assert (equalCoord (i0, p) OR equalCoord (i1, p), __LINE__) ;
+   findCollisionCircleLine (iPtr, jPtr, jLine, iLine, p, 0.0, edesc, tc, makePolygonPolygon)
+END findCollisionPointLine ;
 
 
 PROCEDURE findCollisionLineLineNonOrbiting (iPtr, jPtr: Object; iLine, jLine: CARDINAL; VAR edesc: eventDesc; VAR tc: REAL) ;
@@ -5956,18 +6216,10 @@ BEGIN
       collectAll
    END ;
 
-   (* test i0 crossing jLine *)
-   findCollisionCircleLine (iPtr, jPtr, iLine, jLine, i0, 0.0, edesc, tc, makePolygonPolygon) ;
-
-   (* test i1 crossing line j *)
-   findCollisionCircleLine (iPtr, jPtr, iLine, jLine, i1, 0.0, edesc, tc, makePolygonPolygon) ;
-
-   (* test j0 crossing line i *)
-   findCollisionCircleLine (jPtr, iPtr, iLine, jLine, j0, 0.0, edesc, tc, makePolygonPolygon) ;
-
-   (* test j1 crossing line i *)
-   findCollisionCircleLine (jPtr, iPtr, iLine, jLine, j1, 0.0, edesc, tc, makePolygonPolygon)
-
+   findCollisionPointLine (iPtr, jPtr, jLine, iLine, i0, edesc, tc) ;   (* i0 crossing jLine.  *)
+   findCollisionPointLine (iPtr, jPtr, jLine, iLine, i1, edesc, tc) ;   (* i1 crossing jLine.  *)
+   findCollisionPointLine (jPtr, iPtr, iLine, jLine, j0, edesc, tc) ;   (* j0 crossing iLine.  *)
+   findCollisionPointLine (jPtr, iPtr, iLine, jLine, j1, edesc, tc) ;   (* j1 crossing iLine.  *)
 END findCollisionLineLineNonOrbiting ;
 
 
@@ -6158,6 +6410,72 @@ BEGIN
    findCollisionLineRPoint (rPtr, iPtr, j, i, edesc, tc)
 
 END findCollisionLineRLine ;
+
+
+(*
+   dumpLine -
+*)
+
+PROCEDURE dumpLine (id: CARDINAL; line: CARDINAL; at: whereHit) ;
+VAR
+   p1, p2: Coord ;
+BEGIN
+   getPolygonLine (line, GetIndice (objects, id), p1, p2) ;
+   printf ("poly/line %d:%d ", id, line) ;
+   dumpCoord (p1) ;
+   printf (" ") ;
+   dumpCoord (p2) ;
+   printf (" ") ;
+   dumpWhere (at) ;
+   printf ("\n")
+END dumpLine ;
+
+
+(*
+   dumpWhere -
+*)
+
+PROCEDURE dumpWhere (at: whereHit) ;
+BEGIN
+   CASE at OF
+
+   edge  :  printf ("edge") |
+   corner:  printf ("corner")
+
+   END
+END dumpWhere ;
+
+
+(*
+   dumpDesc -
+*)
+
+PROCEDURE dumpDesc (e: eventDesc) ;
+BEGIN
+   IF e # NIL
+   THEN
+      CASE e^.etype OF
+
+      frameEvent: |
+      circlesEvent      :  printf ("circle/circle  (%d:%d) at point ", e^.cc.cid1, e^.cc.cid2) ;
+                           dumpCoord (e^.cc.cPoint) ; printf ("\n") |
+      circlePolygonEvent:
+                           printf ("circle/polygon  (%d:%d) at point ", e^.cp.pid, e^.cp.cid) ;
+                           dumpCoord (e^.cp.cPoint) ; printf (" line %d, pointno %d\n", e^.cp.lineNo, e^.cp.pointNo) |
+      polygonPolygonEvent:
+                           printf ("polygon/polygon  (%d:%d) (%d:%d) at point\n",
+                                   e^.pp.pid1, e^.pp.lineCorner1, e^.pp.pid2, e^.pp.lineCorner2) ;
+                           dumpCoord (e^.pp.cPoint) ;
+                           printf ("  ") ;
+                           dumpLine (e^.pp.pid1, e^.pp.lineCorner1, e^.pp.wpid1) ;
+                           printf ("  ") ;
+                           dumpLine (e^.pp.pid2, e^.pp.lineCorner2, e^.pp.wpid2) ;
+                           printf ("  collision ") ;
+                           dumpCoord (e^.pp.cPoint) ; printf ("\n");
+      ELSE
+      END
+   END
+END dumpDesc ;
 
 
 (*
@@ -7273,6 +7591,12 @@ BEGIN
    edesc := NIL ;
    tc := -1.0 ;
    list := optPredictiveBroadphase (initBroadphase ()) ;
+   (*
+   IF list # NIL
+   THEN
+      gdbif.sleepSpin
+   END ;
+   *)
    b := list ;
    WHILE b # NIL DO
       o0 := GetIndice (objects, b^.o0) ;
@@ -7285,7 +7609,11 @@ BEGIN
       findCollision (o0, o1, edesc, tc) ;
       IF trace AND (old # tc)
       THEN
-         printf ("** collision found between pair %d, %d at time %g\n", b^.o0, b^.o1, tc)
+         printf ("** collision found between pair %d, %d at time %g\n", b^.o0, b^.o1, tc) ;
+         IF edesc # NIL
+         THEN
+            dumpDesc (edesc)
+         END
       END ;
       b := b^.next
    END ;
@@ -7293,8 +7621,14 @@ BEGIN
    IF edesc#NIL
    THEN
       addCollisionEvent (tc, doCollision, edesc) ;
-      anticipateCollision (tc, edesc)
-   ELSIF trace
+      anticipateCollision (tc, edesc) ;
+      IF PolygonDebugging
+      THEN
+         printQueue ;
+         printf ("collision detected\n") ;
+         dumpDesc (edesc)
+      END
+   ELSIF trace OR PolygonDebugging
    THEN
       printf ("no more collisions found\n")
    END
@@ -7328,11 +7662,11 @@ END determineFrameBased ;
 
 
 (*
-   addNextObjectEvent - removes the next spring and collision event and recalculates
-                        the time of both events.
+   doAddNextObjectEvent - removes the next spring and collision event and recalculates
+                          the time of both events.
 *)
 
-PROCEDURE addNextObjectEvent ;
+PROCEDURE doAddNextObjectEvent ;
 BEGIN
    removeCollisionEvent ;
    removeSpringEvents ;
@@ -7351,6 +7685,17 @@ BEGIN
       printf ("event queue created and it looks like this\n") ;
       printQueue
    END
+END doAddNextObjectEvent ;
+
+
+(*
+   addNextObjectEvent - check to see if we are using predictive event mode
+                        and if so then add the next predictive collision event.
+*)
+
+PROCEDURE addNextObjectEvent ;
+BEGIN
+   doAddNextObjectEvent
 END addNextObjectEvent ;
 
 
@@ -7418,6 +7763,7 @@ BEGIN
          THEN
             printQueue
          END ;
+         dumpWorld ;
          WHILE s<t DO
             dt := doNextEvent () ;
             s := s + dt
@@ -7919,18 +8265,7 @@ BEGIN
       printf ("before doNextEvent\n");
       printQueue
    END ;
-(*
-   gdbif.sleepSpin ;
-   printf ("(1)  dumpWorld\n") ;
-   dumpWorld ;
-   printQueue ;
-*)
    dt := doNextEvent () ;
-(*
-   printf ("(2)  dumpWorld\n") ;
-   dumpWorld ;
-   exit (0) ;
-*)
    IF DebugTrace
    THEN
       printf ("finished doNextEvent\n")

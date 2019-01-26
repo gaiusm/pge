@@ -168,7 +168,7 @@ M2MODS = bagatelle.mod bounce2.mod bounce3.mod bounce4.mod \
          snooker.mod stairs.mod Storage.mod test.mod \
          testpy.mod Transform3D.mod twoDsim.mod \
          wallh.mod wall.mod wallv.mod world.mod \
-         PolyMatrix3D.mod
+         PolyMatrix3D.mod gdbif.mod
 
 M2EMODS = coord.mod RTgen.mod
 
@@ -183,7 +183,7 @@ M2PIMLIBDEFS = Storage.def Indexing.def libc.def libm.def \
                RTExceptions.def
 
 M2PIMLIBMODS = Storage.mod Indexing.mod \
-               MathLib0.mod StrLib.mod gdbif.mod \
+               MathLib0.mod StrLib.mod \
                Assertion.mod DynamicStrings.mod ASCII.mod \
                FormatStrings.mod StringConvert.mod \
                M2RTS.mod StrIO.mod StdIO.mod FIO.mod NumberIO.mod \

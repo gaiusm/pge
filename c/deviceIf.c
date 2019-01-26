@@ -227,6 +227,12 @@ void deviceIf_getFrameBuffer (void * *start, unsigned int *length, unsigned int 
 void deviceIf_getColourBuffer (void * *start, unsigned int *length, unsigned int *used);
 
 /*
+   getFrameNo - return the current frame number.
+*/
+
+unsigned int deviceIf_getFrameNo (void);
+
+/*
    checkOpened -
 */
 
@@ -757,6 +763,16 @@ void deviceIf_getColourBuffer (void * *start, unsigned int *length, unsigned int
   (*used) = cbufferUsed;
   if (DebugTrace)
     libc_printf ((char *) "getColourBuffer (addr = 0x%p, length = %d, used = %d)\\n", 55, (*start), (*length), (*used));
+}
+
+
+/*
+   getFrameNo - return the current frame number.
+*/
+
+unsigned int deviceIf_getFrameNo (void)
+{
+  return nextFrame;
 }
 
 void _M2_deviceIf_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])

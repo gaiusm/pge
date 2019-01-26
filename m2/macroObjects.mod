@@ -40,7 +40,7 @@ TYPE
 
    Object = POINTER TO RECORD
                           CASE type: typeOfObject OF
-                          
+
                           tcircle    :  oCircle    :  Circle |
                           tpolygon   :  oPolygon   :  Polygon
 
@@ -78,7 +78,7 @@ VAR
 
 
 (*
-   dumpFract - 
+   dumpFract -
 *)
 
 PROCEDURE dumpFract (f: Fract) ;
@@ -113,7 +113,7 @@ END dp ;
 
 
 (*
-   dumpColour - 
+   dumpColour -
 *)
 
 PROCEDURE dumpColour (c: Colour) ;
@@ -213,7 +213,7 @@ END dmac ;
 
 
 (*
-   dmat - 
+   dmat -
 *)
 
 PROCEDURE dmat (m: Matrix) ;
@@ -588,12 +588,13 @@ VAR
    a, b, c, d: Matrix ;
    n         : Macro ;
 BEGIN
-   a := Transform3D.translate(negatePoint(dupPoint(p))) ;
-   b := Transform3D.rotate(r) ;
-   c := Transform3D.translate(p) ;
-   d := PolyMatrix3D.mult3(a, b, c) ;
-   n := initMacro() ;
-   n := foreachObject(n, m, d) ;
+   (* a: translate point, p, to the origin.  *)
+   a := Transform3D.translate (negatePoint (dupPoint (p))) ;
+   b := Transform3D.rotate (r) ;  (* b: rotate, r, radians.  *)
+   c := Transform3D.translate (p) ;  (* c: translate from origin to point, p.  *)
+   d := PolyMatrix3D.mult3 (a, b, c) ;  (* d: combine a, b and c transforms.  *)
+   n := initMacro () ;
+   n := foreachObject (n, m, d) ;  (* n: for every object in, m, transform using, d. *)
    RETURN n
 END rotate ;
 
@@ -608,9 +609,9 @@ VAR
    a: Matrix ;
    n: Macro ;
 BEGIN
-   a := Transform3D.translate(vector) ;
-   n := initMacro() ;
-   RETURN foreachObject(n, m, a)
+   a := Transform3D.translate (vector) ;
+   n := initMacro () ;
+   RETURN foreachObject (n, m, a)
 END translate ;
 
 
@@ -645,7 +646,7 @@ END scalar ;
 
 
 (*
-   setPointValues - 
+   setPointValues -
 *)
 
 PROCEDURE setPointValues (VAR v: MatrixValue; p: Point) ;
@@ -807,7 +808,7 @@ END foreachObject ;
 
 
 (*
-   addToEnd - 
+   addToEnd -
 *)
 
 PROCEDURE addToEnd (m: Macro; o: Object) : Macro ;
@@ -849,7 +850,7 @@ END append ;
 
 
 (*
-   callCircle - 
+   callCircle -
 *)
 
 PROCEDURE callCircle (o: Object; c: cProc) ;
@@ -861,7 +862,7 @@ END callCircle ;
 
 
 (*
-   callPolygon - 
+   callPolygon -
 *)
 
 PROCEDURE callPolygon (o: Object; p: pProc) ;
@@ -874,7 +875,7 @@ END callPolygon ;
 
 (*
    runCallBacks - for each
-                           polygon call p 
+                           polygon call p
                            circle call c
                                          in macro, m.
 *)
@@ -897,7 +898,7 @@ END runCallBacks ;
 
 
 (*
-   markCircle - 
+   markCircle -
 *)
 
 PROCEDURE markCircle (o: Object) ;
@@ -911,7 +912,7 @@ END markCircle ;
 
 
 (*
-   markPolygon - 
+   markPolygon -
 *)
 
 PROCEDURE markPolygon (o: Object) ;
@@ -930,7 +931,7 @@ END markPolygon ;
 
 
 (*
-   markObject - 
+   markObject -
 *)
 
 PROCEDURE markObject (o: Object) ;
@@ -988,7 +989,7 @@ END markObjectEntity ;
 
 
 (*
-   Init - 
+   Init -
 *)
 
 PROCEDURE Init ;

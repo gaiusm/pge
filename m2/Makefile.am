@@ -33,6 +33,7 @@ libpgeif_la_SOURCES = macroObjects.mod Points.mod Fractions.mod PolyMatrix3D.mod
                       twoDsim.mod roots.mod coord.mod polar.mod history.mod \
                       deviceIf.mod rpc.mod pgeif.mod NetworkOrder.mod \
                       RTExceptions.mod interpen.mod segment.mod \
+                      gdbif.mod \
                       buffers.c
 
 MY_DEPS = macroObjects.lo Points.lo Fractions.lo PolyMatrix3D.lo \
@@ -41,6 +42,7 @@ MY_DEPS = macroObjects.lo Points.lo Fractions.lo PolyMatrix3D.lo \
           history.lo deviceIf.lo rpc.lo \
           pgeif.lo NetworkOrder.lo \
           RTExceptions.lo interpen.lo segment.lo \
+          gdbif.lo \
           buffers.lo
 
 BUILT_SOURCES = springs.m circles.m rotating-line.m rotating-circles.m
@@ -213,6 +215,10 @@ npn: $(OBJECTS)
 
 test: $(OBJECTS)
 	gm2 -fcpp -I. $(GM2FLAGS) -fonlylink $(srcdir)/test.mod && ./a.out
+
+rotation: $(OBJECTS)
+	gm2 -fiso -g -fsoft-check-all -O0 -fm2-g -I$(srcdir) $(srcdir)/rotation.mod
+
 endif
 
 transforms: rotating-circles.asc rotating-line.asc

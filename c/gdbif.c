@@ -1,4 +1,4 @@
-/* automatically created by mc from /home/gaius/GM2/graft-8.2.0/gcc-8.2.0/gcc/gm2/gm2-libs/gdbif.mod.  */
+/* automatically created by mc from ../git-pge/m2/gdbif.mod.  */
 
 #   if !defined (PROC_D)
 #      define PROC_D
@@ -18,7 +18,10 @@
 #define _gdbif_C
 
 #   include "Glibc.h"
+#   include "GFIO.h"
+#   include "GNumberIO.h"
 
+static unsigned int invoked;
 static unsigned int mustWait;
 
 /*
@@ -40,6 +43,40 @@ void gdbif_sleepSpin (void);
 
 void gdbif_connectSpin (void);
 
+/*
+   gdbinit - create a ".gdbinit" file in the current directory.
+*/
+
+static void gdbinit (void);
+
+
+/*
+   gdbinit - create a ".gdbinit" file in the current directory.
+*/
+
+static void gdbinit (void)
+{
+  typedef struct _T1_a _T1;
+
+  struct _T1_a { char array[7+1]; };
+  FIO_File file;
+  _T1 pidstr;
+
+  file = FIO_OpenToWrite ((char *) ".gdbinit", 8);
+  if (FIO_IsNoError (file))
+    {
+      FIO_WriteString (file, (char *) "attach ", 7);
+      NumberIO_IntToStr (libc_getpid (), 0, (char *) &pidstr.array[0], 7);
+      FIO_WriteString (file, (char *) &pidstr.array[0], 7);
+      FIO_WriteLine (file);
+      FIO_WriteString (file, (char *) "set mustWait=0", 14);
+      FIO_WriteLine (file);
+      FIO_WriteString (file, (char *) "fin", 3);
+      FIO_WriteLine (file);
+      FIO_Close (file);
+    }
+}
+
 
 /*
    finishSpin - sets boolean mustWait to FALSE.
@@ -60,6 +97,7 @@ void gdbif_sleepSpin (void)
 {
   if (mustWait)
     {
+      gdbinit ();
       libc_printf ((char *) "process %d is waiting for you to:\\n", 35, libc_getpid ());
       libc_printf ((char *) "(gdb) attach %d\\n", 17, libc_getpid ());
       libc_printf ((char *) "(gdb) break connectSpin\\n", 25);

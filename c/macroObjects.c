@@ -184,7 +184,7 @@ macroObjects_Macro macroObjects_dup (macroObjects_Macro m);
 
 /*
    runCallBacks - for each
-                           polygon call p 
+                           polygon call p
                            circle call c
                                          in macro, m.
 */
@@ -211,7 +211,7 @@ macroObjects_Macro macroObjects_unRootMacro (macroObjects_Macro m);
 void macroObjects_markMacro (macroObjects_Macro m);
 
 /*
-   dumpFract - 
+   dumpFract -
 */
 
 static void dumpFract (Fractions_Fract f);
@@ -229,7 +229,7 @@ static void dumpPoint (Points_Point p);
 static void dp (Points_Point p);
 
 /*
-   dumpColour - 
+   dumpColour -
 */
 
 static void dumpColour (deviceIf_Colour c);
@@ -259,7 +259,7 @@ static void dumpObject (Object o);
 static void dmac (macroObjects_Macro m);
 
 /*
-   dmat - 
+   dmat -
 */
 
 static void dmat (PolyMatrix3D_Matrix m);
@@ -306,7 +306,7 @@ static macroObjects_Macro addTo (macroObjects_Macro m, Object o);
 static macroObjects_Macro scalar (macroObjects_Macro m, Fractions_Fract f);
 
 /*
-   setPointValues - 
+   setPointValues -
 */
 
 static void setPointValues (PolyMatrix3D_MatrixValue *v, Points_Point p);
@@ -351,37 +351,37 @@ static Object objectPolygonMatrix (Object o, PolyMatrix3D_Matrix a);
 static macroObjects_Macro foreachObject (macroObjects_Macro n, macroObjects_Macro m, PolyMatrix3D_Matrix a);
 
 /*
-   addToEnd - 
+   addToEnd -
 */
 
 static macroObjects_Macro addToEnd (macroObjects_Macro m, Object o);
 
 /*
-   callCircle - 
+   callCircle -
 */
 
 static void callCircle (Object o, macroObjects_cProc c);
 
 /*
-   callPolygon - 
+   callPolygon -
 */
 
 static void callPolygon (Object o, macroObjects_pProc p);
 
 /*
-   markCircle - 
+   markCircle -
 */
 
 static void markCircle (Object o);
 
 /*
-   markPolygon - 
+   markPolygon -
 */
 
 static void markPolygon (Object o);
 
 /*
-   markObject - 
+   markObject -
 */
 
 static void markObject (Object o);
@@ -399,14 +399,14 @@ static void markMacroEntity (GC_entity e);
 static void markObjectEntity (GC_entity e);
 
 /*
-   Init - 
+   Init -
 */
 
 static void Init (void);
 
 
 /*
-   dumpFract - 
+   dumpFract -
 */
 
 static void dumpFract (Fractions_Fract f)
@@ -441,7 +441,7 @@ static void dp (Points_Point p)
 
 
 /*
-   dumpColour - 
+   dumpColour -
 */
 
 static void dumpColour (deviceIf_Colour c)
@@ -549,7 +549,7 @@ static void dmac (macroObjects_Macro m)
 
 
 /*
-   dmat - 
+   dmat -
 */
 
 static void dmat (PolyMatrix3D_Matrix m)
@@ -698,7 +698,7 @@ static macroObjects_Macro scalar (macroObjects_Macro m, Fractions_Fract f)
 
 
 /*
-   setPointValues - 
+   setPointValues -
 */
 
 static void setPointValues (PolyMatrix3D_MatrixValue *v, Points_Point p)
@@ -867,7 +867,7 @@ static macroObjects_Macro foreachObject (macroObjects_Macro n, macroObjects_Macr
 
 
 /*
-   addToEnd - 
+   addToEnd -
 */
 
 static macroObjects_Macro addToEnd (macroObjects_Macro m, Object o)
@@ -889,7 +889,7 @@ static macroObjects_Macro addToEnd (macroObjects_Macro m, Object o)
 
 
 /*
-   callCircle - 
+   callCircle -
 */
 
 static void callCircle (Object o, macroObjects_cProc c)
@@ -899,7 +899,7 @@ static void callCircle (Object o, macroObjects_cProc c)
 
 
 /*
-   callPolygon - 
+   callPolygon -
 */
 
 static void callPolygon (Object o, macroObjects_pProc p)
@@ -909,7 +909,7 @@ static void callPolygon (Object o, macroObjects_pProc p)
 
 
 /*
-   markCircle - 
+   markCircle -
 */
 
 static void markCircle (Object o)
@@ -921,7 +921,7 @@ static void markCircle (Object o)
 
 
 /*
-   markPolygon - 
+   markPolygon -
 */
 
 static void markPolygon (Object o)
@@ -939,7 +939,7 @@ static void markPolygon (Object o)
 
 
 /*
-   markObject - 
+   markObject -
 */
 
 static void markObject (Object o)
@@ -983,7 +983,7 @@ static void markObjectEntity (GC_entity e)
 
 
 /*
-   Init - 
+   Init -
 */
 
 static void Init (void)
@@ -1227,13 +1227,14 @@ macroObjects_Macro macroObjects_rotate (macroObjects_Macro m, Points_Point p, Fr
   PolyMatrix3D_Matrix d;
   macroObjects_Macro n;
 
+  /* a: translate point, p, to the origin.  */
   a = Transform3D_translate (Points_negatePoint (Points_dupPoint (p)));
-  b = Transform3D_rotate (r);
-  c = Transform3D_translate (p);
-  d = PolyMatrix3D_mult3 (a, b, c);
-  n = macroObjects_initMacro ();
-  n = foreachObject (n, m, d);
-  return n;
+  b = Transform3D_rotate (r);  /* b: rotate, r, radians.  */
+  c = Transform3D_translate (p);  /* c: translate from origin to point, p.  */
+  d = PolyMatrix3D_mult3 (a, b, c);  /* d: combine a, b and c transforms.  */
+  n = macroObjects_initMacro ();  /* d: combine a, b and c transforms.  */
+  n = foreachObject (n, m, d);  /* n: for every object in, m, transform using, d.  */
+  return n;  /* n: for every object in, m, transform using, d.  */
 }
 
 
@@ -1292,7 +1293,7 @@ macroObjects_Macro macroObjects_dup (macroObjects_Macro m)
 
 /*
    runCallBacks - for each
-                           polygon call p 
+                           polygon call p
                            circle call c
                                          in macro, m.
 */

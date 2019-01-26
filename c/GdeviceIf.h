@@ -172,6 +172,12 @@ EXTERN void deviceIf_getFrameBuffer (void * *start, unsigned int *length, unsign
 */
 
 EXTERN void deviceIf_getColourBuffer (void * *start, unsigned int *length, unsigned int *used);
+
+/*
+   getFrameNo - return the current frame number.
+*/
+
+EXTERN unsigned int deviceIf_getFrameNo (void);
 #   ifdef __cplusplus
 }
 #   endif

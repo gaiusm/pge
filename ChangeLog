@@ -1,3 +1,11 @@
+2010-01-26      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* m2/twoDsim.mod:  fixed many polygon/polygon.
+	  (checkFrameInterpenPolygonPolygon)  New procedure.
+          Many new procedures implemented and general tidying up.
+	* m2/rotation.mod:  New file.
+	* examples/rotation/rotation.py:  New file.
+
 2010-01-18      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* m2/twoDsim.mod:  added broadphase hooks and data

@@ -77,6 +77,16 @@ VAR
 
 
 (*
+   getFrameNo - return the current frame number.
+*)
+
+PROCEDURE getFrameNo () : CARDINAL ;
+BEGIN
+   RETURN nextFrame
+END getFrameNo ;
+
+
+(*
    checkOpened -
 *)
 

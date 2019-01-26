@@ -361,7 +361,7 @@ DISTFILES = Makefile.in configure.ac configure \
 @MAINTAINER_TRUE@         snooker.mod stairs.mod Storage.mod test.mod \
 @MAINTAINER_TRUE@         testpy.mod Transform3D.mod twoDsim.mod \
 @MAINTAINER_TRUE@         wallh.mod wall.mod wallv.mod world.mod \
-@MAINTAINER_TRUE@         PolyMatrix3D.mod
+@MAINTAINER_TRUE@         PolyMatrix3D.mod gdbif.mod
 
 @MAINTAINER_TRUE@M2EMODS = coord.mod RTgen.mod
 @MAINTAINER_TRUE@M2PIMLIBDEFS = Storage.def Indexing.def libc.def libm.def \
@@ -375,7 +375,7 @@ DISTFILES = Makefile.in configure.ac configure \
 @MAINTAINER_TRUE@               RTExceptions.def
 
 @MAINTAINER_TRUE@M2PIMLIBMODS = Storage.mod Indexing.mod \
-@MAINTAINER_TRUE@               MathLib0.mod StrLib.mod gdbif.mod \
+@MAINTAINER_TRUE@               MathLib0.mod StrLib.mod \
 @MAINTAINER_TRUE@               Assertion.mod DynamicStrings.mod ASCII.mod \
 @MAINTAINER_TRUE@               FormatStrings.mod StringConvert.mod \
 @MAINTAINER_TRUE@               M2RTS.mod StrIO.mod StdIO.mod FIO.mod NumberIO.mod \

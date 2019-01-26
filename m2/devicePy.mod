@@ -323,7 +323,7 @@ BEGIN
       UNTIL res=opened ;
       IF rpc.resolution(file, initcc(towhole(config^.outMax.x), towhole(config^.outMax.y)))#ready
       THEN
-         
+
       END
    END ;
    IF frameNo=341
@@ -368,7 +368,7 @@ BEGIN
 
       circle :  regColour(gCircle.colour) |
       polygon:  regColour(gPolygon.colour)
-      
+
       END
    END
 END registerColour ;
@@ -431,9 +431,8 @@ BEGIN
 END WriteLongCard ;
 
 
-
 (*
-   scaleX - 
+   scaleX -
 *)
 
 PROCEDURE scaleX (x: Fract) : Fract ;
@@ -463,7 +462,7 @@ END scaleY ;
 
 
 (*
-   dumpFract - 
+   dumpFract -
 *)
 
 PROCEDURE dumpFract (f: Fract) ;
@@ -503,7 +502,7 @@ END dumpPoint ;
 
 
 (*
-   dumpPolygon - 
+   dumpPolygon -
 *)
 
 PROCEDURE dumpPolygon (g: glyphDesc) ;
@@ -527,7 +526,7 @@ END dumpPolygon ;
 
 
 (*
-   dumpColour - 
+   dumpColour -
 *)
 
 PROCEDURE dumpColour (c: colourDesc) ;
@@ -536,7 +535,7 @@ END dumpColour ;
 
 
 (*
-   dumpCircle - 
+   dumpCircle -
 *)
 
 PROCEDURE dumpCircle (g: glyphDesc) ;
@@ -598,7 +597,7 @@ END tocardy ;
 
 
 (*
-   tocard - 
+   tocard -
 *)
 
 PROCEDURE tocard (f: Fract) : CARDINAL ;
@@ -634,7 +633,7 @@ END towhole ;
 
 
 (*
-   drawCircle - 
+   drawCircle -
 *)
 
 PROCEDURE drawCircle (g: glyphDesc) ;
@@ -961,7 +960,7 @@ END configDevice ;
 
 
 (*
-   markConfig - 
+   markConfig -
 *)
 
 PROCEDURE markConfig (e: entity) ;
@@ -983,7 +982,7 @@ END markConfig ;
 
 
 (*
-   Init - 
+   Init -
 *)
 
 PROCEDURE Init ;
@@ -1002,7 +1001,7 @@ BEGIN
    cBlue := defineColour(initFract(0, 1, 10), initFract(0, 2, 10), initFract(0, 6, 10)) ;
    cYellow := defineColour(initFract(1, 0, 0), initFract(0, 66, 100), initFract(0, 7, 100)) ;
    cPurple := defineColour(initFract(0, 79, 255), initFract(0, 47, 255), initFract(0, 70, 255)) ;
-   
+
    configHeap := initGarbage(markConfig, TSIZE(config^), InitString('config')) ;
    rootAllocate(configHeap, e, config) ;
    config^.centity := e ;

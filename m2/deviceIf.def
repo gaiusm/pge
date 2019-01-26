@@ -24,7 +24,7 @@ DEFINITION MODULE deviceIf ;
     Author     : Gaius Mulley
     System     : GNU Modula-2
     Date       : Mon Jun 18 15:00:23 2012
-    Revision   : $Version$ 
+    Revision   : $Version$
     Description: provides a generic interface to all supported output
                  devices.
 *)
@@ -205,6 +205,13 @@ PROCEDURE getFrameBuffer (VAR start: ADDRESS; VAR length: CARDINAL; VAR used: CA
 *)
 
 PROCEDURE getColourBuffer (VAR start: ADDRESS; VAR length: CARDINAL; VAR used: CARDINAL) ;
+
+
+(*
+   getFrameNo - return the current frame number.
+*)
+
+PROCEDURE getFrameNo () : CARDINAL ;
 
 
 END deviceIf.

@@ -186,6 +186,7 @@ struct Polygon_r {
                    _T3 points;
                    double mass;
                    deviceIf_Colour col;
+                   coord_Coord oldcOfG;
                    coord_Coord cOfG;
                  };
 
@@ -852,6 +853,30 @@ static void checkFrameInterpenCircleCircle (Object circle0, Object circle1);
 */
 
 static void checkFrameInterpenCirclePolygon (Object circle0, Object polygon0);
+
+/*
+   dumpCoord -
+*/
+
+static void dumpCoord (coord_Coord p);
+
+/*
+   dumpCollision -
+*/
+
+static void dumpCollision (unsigned int pid0, unsigned int pid1, unsigned int l0, unsigned int l1, history_whereHit at0, history_whereHit at1, coord_Coord p);
+
+/*
+   debugDelay -
+*/
+
+static void debugDelay (char *message_, unsigned int _message_high);
+
+/*
+   restoreOldCofG -
+*/
+
+static void restoreOldCofG (Object poly);
 
 /*
    checkFrameInterpenPolygonPolygon - checks every line segment of polygon0 vs polygon1
@@ -1885,7 +1910,7 @@ static void findCollisionCirclePolygon (Object cPtr, Object pPtr, eventDesc *ede
                         event.
 */
 
-static eventDesc makePolygonPolygon (eventDesc edesc, unsigned int id1, unsigned int id2, unsigned int lineCorner1, unsigned int lineCorner2, history_whereHit wpid1, history_whereHit wpid2, coord_Coord collisionPoint);
+static eventDesc makePolygonPolygon (eventDesc edesc, unsigned int id1, unsigned int id2, unsigned int lineCorner2, unsigned int lineCorner1, history_whereHit wpid1, history_whereHit wpid2, coord_Coord collisionPoint);
 
 /*
    isOrbiting - return TRUE if object, o, is rotating.
@@ -1899,7 +1924,24 @@ static unsigned int isOrbiting (Object o);
                            and, tc, the time of collision in the future.
 */
 
-static void findCollisionLineLine (Object iPtr, Object jPtr, unsigned int iLine, unsigned int jLine, eventDesc *edesc, double *tc);
+static void findCollisionLineLine (Object iPtr, Object jPtr, unsigned int jLine, unsigned int iLine, eventDesc *edesc, double *tc);
+
+/*
+   findCollisionPointLine - determines whether point, p, which is at one of the ends of iPtr:iLine will hit
+                            line jPtr:jLine.  If so then the time of collision is recorded in, tc, (provided
+                            it is sooner than the current value of tc).  It also updates the event descriptor,
+                            edesc.
+*/
+
+static void findCollisionPointLine (Object iPtr, Object jPtr, unsigned int jLine, unsigned int iLine, coord_Coord p, eventDesc *edesc, double *tc);
+
+/*
+   findCollisionPointLine - determines whether point, p, which is at one of the ends of iPtr:iLine will hit
+                            line jPtr:jLine.  If so then the time of collision is recorded in, tc, (provided
+                            it is sooner than the current value of tc).  It also updates the event descriptor,
+                            edesc.
+*/
+
 static void findCollisionLineLineNonOrbiting (Object iPtr, Object jPtr, unsigned int iLine, unsigned int jLine, eventDesc *edesc, double *tc);
 
 /*
@@ -1960,6 +2002,24 @@ static void findCollisionLineRPoint (Object iPtr, Object rPtr, unsigned int i, u
 */
 
 static void findCollisionLineRLine (Object iPtr, Object rPtr, unsigned int i, unsigned int j, eventDesc *edesc, double *tc);
+
+/*
+   dumpLine -
+*/
+
+static void dumpLine (unsigned int id, unsigned int line, history_whereHit at);
+
+/*
+   dumpWhere -
+*/
+
+static void dumpWhere (history_whereHit at);
+
+/*
+   dumpDesc -
+*/
+
+static void dumpDesc (eventDesc e);
 
 /*
    findCollisionPolygonPolygon - find the smallest positive time (if any) between the polygons, iPtr
@@ -2218,8 +2278,15 @@ static void addNextCollisionEvent (void);
 static unsigned int determineFrameBased (void);
 
 /*
-   addNextObjectEvent - removes the next spring and collision event and recalculates
-                        the time of both events.
+   doAddNextObjectEvent - removes the next spring and collision event and recalculates
+                          the time of both events.
+*/
+
+static void doAddNextObjectEvent (void);
+
+/*
+   addNextObjectEvent - check to see if we are using predictive event mode
+                        and if so then add the next predictive collision event.
 */
 
 static void addNextObjectEvent (void);
@@ -2417,11 +2484,11 @@ static void Init (void);
 static void Assert (unsigned int b, unsigned int line)
 {
   if (! b)
-    {
-      libc_printf ((char *) "twoDsim.mod:%d:error assert failed\\n", 36, line);
-      gdbif_sleepSpin ();
-      M2RTS_HALT (-1);
-    }
+    libc_printf ((char *) "twoDsim.mod:%d:error assert failed\\n", 36, line);
+  /* 
+      exit (1);
+      HALT
+  */
 }
 
 
@@ -2506,6 +2573,8 @@ static void dumpCircle (Object o)
 static void dumpPolygon (Object o)
 {
   unsigned int i;
+  coord_Coord p0;
+  coord_Coord p1;
   coord_Coord c0;
 
   libc_printf ((char *) "polygon mass %g colour %d\\n", 27, o->p.mass, o->p.col);
@@ -2514,6 +2583,15 @@ static void dumpPolygon (Object o)
     {
       c0 = coord_addCoord (o->p.cOfG, polar_polarToCoord (polar_rotatePolar ((polar_Polar) o->p.points.array[i], o->angleOrientation)));
       libc_printf ((char *) "  point at (%g,%g)\\n", 20, c0.x, c0.y);
+    }
+  for (i=1; i<=o->p.nPoints; i++)
+    {
+      libc_printf ((char *) "  %d line ", 10, i);
+      getPolygonLine (i, o, &p0, &p1);
+      dumpCoord (p0);
+      libc_printf ((char *) " -> ", 4);
+      dumpCoord (p1);
+      libc_printf ((char *) "\\n", 2);
     }
 }
 
@@ -2908,8 +2986,8 @@ static unsigned int doCheckInterpenCirclePolygon (Object iptr, Object jptr)
   coord_Coord p2;
   coord_Coord p3;
 
-  Assert (iptr->object == circleOb, 1242);
-  Assert (jptr->object == polygonOb, 1243);
+  Assert (iptr->object == circleOb, 1257);
+  Assert (jptr->object == polygonOb, 1258);
   c = checkZeroCoord (iptr->c.pos);
   r = iptr->c.r;
   n = jptr->p.nPoints;
@@ -3203,8 +3281,8 @@ static void checkFrameInterpenCircleCircle (Object circle0, Object circle1)
   coord_Coord p;
   eventDesc edesc;
 
-  Assert (circle0->object == circleOb, 1540);
-  Assert (circle1->object == circleOb, 1541);
+  Assert (circle0->object == circleOb, 1555);
+  Assert (circle1->object == circleOb, 1556);
   c0 = getInterCircle (circle0);
   c1 = getInterCircle (circle1);
   if (interpen_circleCollide (c0, c1))
@@ -3250,8 +3328,8 @@ static void checkFrameInterpenCirclePolygon (Object circle0, Object polygon0)
   unsigned int i;
   unsigned int n;
 
-  Assert (circle0->object == circleOb, 1585);
-  Assert (polygon0->object == polygonOb, 1586);
+  Assert (circle0->object == circleOb, 1600);
+  Assert (polygon0->object == polygonOb, 1601);
   c0 = getInterCircle (circle0);
   n = polygon0->p.nPoints;
   i = 1;
@@ -3275,6 +3353,60 @@ static void checkFrameInterpenCirclePolygon (Object circle0, Object polygon0)
 
 
 /*
+   dumpCoord -
+*/
+
+static void dumpCoord (coord_Coord p)
+{
+  libc_printf ((char *) "(%g,%g)", 7, p.x, p.y);
+}
+
+
+/*
+   dumpCollision -
+*/
+
+static void dumpCollision (unsigned int pid0, unsigned int pid1, unsigned int l0, unsigned int l1, history_whereHit at0, history_whereHit at1, coord_Coord p)
+{
+  libc_printf ((char *) "polygon %d:%d vs polygon %d:%d ", 31, pid0, l0, pid1, l1);
+  dumpWhere (at0);
+  libc_printf ((char *) " ", 1);
+  dumpWhere (at1);
+  libc_printf ((char *) " ", 1);
+  dumpCoord (p);
+  libc_printf ((char *) "\\n", 2);
+}
+
+
+/*
+   debugDelay -
+*/
+
+static void debugDelay (char *message_, unsigned int _message_high)
+{
+  int r;
+  char message[_message_high+1];
+
+  /* make a local copy of each unbounded array.  */
+  memcpy (message, message_, _message_high+1);
+
+  libc_printf ((char *) "debug delay:  %s\\n", 18, message);
+  r = libc_system ("sleep 3");
+}
+
+
+/*
+   restoreOldCofG -
+*/
+
+static void restoreOldCofG (Object poly)
+{
+  if (! poly->fixed)
+    poly->p.cOfG = poly->p.oldcOfG;
+}
+
+
+/*
    checkFrameInterpenPolygonPolygon - checks every line segment of polygon0 vs polygon1
                                       and registers a collision event at the current time
                                       if these segments intersect.
@@ -3282,6 +3414,86 @@ static void checkFrameInterpenCirclePolygon (Object circle0, Object polygon0)
 
 static void checkFrameInterpenPolygonPolygon (Object polygon0, Object polygon1)
 {
+  coord_Coord p0;
+  coord_Coord p1;
+  coord_Coord p;
+  eventDesc edesc;
+  history_whereHit at0;
+  history_whereHit at1;
+  segment_Segment s0;
+  segment_Segment s1;
+  unsigned int ptn0;
+  unsigned int ptn1;
+  unsigned int i0;
+  unsigned int i1;
+  unsigned int n0;
+  unsigned int n1;
+  int r;
+
+  /* --fixme-- your code goes here.  mcomp.  */
+  Assert (polygon0->object == polygonOb, 1699);
+  Assert (polygon1->object == polygonOb, 1700);
+  n0 = polygon0->p.nPoints;
+  n1 = polygon1->p.nPoints;
+  i0 = 1;
+  if (PolygonDebugging)
+    libc_printf ((char *) "checkFrameInterpenPolygonPolygon n0 = %d, n1 = %d\\n", 51, n0, n1);
+  while (i0 <= n0)
+    {
+      getPolygonLine (i0, polygon0, &p0, &p1);
+      s0 = segment_initSegment (p0, p1);
+      i1 = 1;
+      while (i1 <= n1)
+        {
+          getPolygonLine (i1, polygon1, &p0, &p1);
+          s1 = segment_initSegment (p0, p1);
+          if (PolygonDebugging)
+            {
+              libc_printf ((char *) "polygon %d:%d vs polygon %d:%d\\n", 32, polygon0->id, i0, polygon1->id, i1);
+              deviceIf_frameNote ();
+              drawFrame ((eventQueue) NULL);
+              libc_printf ((char *) " yellow coordinate pairs:  %g, %g -> %g, %g\\n", 45, s0.point1, s0.point2);
+              libc_printf ((char *) " white coordinate pairs:  %g, %g -> %g, %g\\n", 44, s1.point1, s1.point2);
+              debugLine (s0.point1, s0.point2, (deviceIf_Colour) deviceIf_yellow ());
+              debugLine (s1.point1, s1.point2, (deviceIf_Colour) deviceIf_white ());
+              deviceIf_flipBuffer ();
+              GC_collectAll ();
+            }
+          if (interpen_segmentsCollide (s0, s1, &p, &at0, &at1, &ptn0, &ptn1))
+            /* --fixme-- do we now need to move the objects apart?  */
+            if (! (history_isDuplicateC (currentTime, 0.0, polygon0->id, polygon1->id, at0, at1, p)))
+              {
+                /* add collision event.  */
+                if (PolygonDebugging)
+                  {
+                    libc_printf ((char *) "frame number %d: ", 17, deviceIf_getFrameNo ());
+                    libc_printf ((char *) "short circuit further test\\n", 28);
+                    dumpCollision (polygon0->id, polygon1->id, i0, i1, at0, at1, p);
+                    deviceIf_frameNote ();
+                    drawFrame ((eventQueue) NULL);
+                    libc_printf ((char *) " yellow coordinate pairs:  %g, %g -> %g, %g\\n", 45, s0.point1, s0.point2);
+                    libc_printf ((char *) " white coordinate pairs:  %g, %g -> %g, %g\\n", 44, s1.point1, s1.point2);
+                    debugLine (s0.point1, s0.point2, (deviceIf_Colour) deviceIf_purple ());
+                    debugLine (s1.point1, s1.point2, (deviceIf_Colour) deviceIf_purple ());
+                    deviceIf_flipBuffer ();
+                    GC_collectAll ();
+                  }
+                edesc = NULL;
+                edesc = makePolygonPolygon (edesc, polygon0->id, polygon1->id, i0+ptn0, i1+ptn1, at0, at1, p);
+                addCollisionEvent (0.0, (eventProc) {(eventProc_t) doCollision}, edesc);
+                if (PolygonDebugging)
+                  {
+                    libc_printf ((char *) "interpen created queue\\n", 24);
+                    printQueue ();
+                  }
+              }
+            /* 
+               RETURN
+  */
+          i1 += 1;
+        }
+      i0 += 1;
+    }
 }
 
 
@@ -3792,7 +4004,7 @@ static void calcSpringEnergy (unsigned int i)
   Object id2ptr;
   Object iptr;
 
-  Assert (isSpringObject (i), 2237);
+  Assert (isSpringObject (i), 2384);
   iptr = Indexing_GetIndice (objects, i);
   iptr->ke = 0.0;  /* no kinetic energy as a spring has no mass.  */
   iptr->pe = (iptr->s.k*(sqr (iptr->s.l0-iptr->s.l1)))/2.0;  /* no kinetic energy as a spring has no mass.  */
@@ -4191,7 +4403,7 @@ static void doSpringFrame (Object optr, double dt, unsigned int col)
   coord_Coord ac;
   double w2;
 
-  Assert (optr->object == springOb, 2843);
+  Assert (optr->object == springOb, 2990);
   if (optr->s.draw)
     {
       w2 = optr->s.width/2.0;
@@ -4524,7 +4736,7 @@ static void drawFrame (eventQueue e)
   unsigned int n;
   Object optr;
 
-  Assert (((e == NULL) || (e->kind == collisionKind)) || (e->kind == springKind), 3158);
+  Assert (((e == NULL) || (e->kind == collisionKind)) || (e->kind == springKind), 3305);
   if (DebugTrace)
     libc_printf ((char *) "start drawFrame\\n", 17);
   if (writeTimeDelay)
@@ -4616,6 +4828,7 @@ static void updatePolygon (Object optr, double dt)
   if (! optr->deleted)
     {
       ac = getAccelCoord (optr);
+      optr->p.oldcOfG = optr->p.cOfG;
       optr->p.cOfG.x = newPositionScalar (optr->p.cOfG.x, optr->vx, ac.x, dt);
       optr->p.cOfG.y = newPositionScalar (optr->p.cOfG.y, optr->vy, ac.y, dt);
       optr->vx = optr->vx+(optr->ax*dt);
@@ -4904,13 +5117,16 @@ static double doNextEvent (void)
   else
     {
       if (trace)
-        printQueue ();
+        {
+          libc_printf ((char *) "inside doNextEvent\\n", 20);
+          printQueue ();
+        }
       e = eventQ;
       eventQ = eventQ->next;
       dt = e->time;
       p = e->p;
       currentTime = currentTime+dt;
-      Assert (((((p.proc == drawFrameEvent) || (p.proc == doCollision)) || (p.proc == debugFrame)) || (p.proc == doFunctionEvent)) || (p.proc == doSpring), 3576);
+      Assert (((((p.proc == drawFrameEvent) || (p.proc == doCollision)) || (p.proc == debugFrame)) || (p.proc == doFunctionEvent)) || (p.proc == doSpring), 3724);
       (*p.proc) (e);
       disposeDesc (&e->ePtr);
       disposeEvent (e);
@@ -5401,9 +5617,9 @@ static void collidePolygonAgainstFixedPolygon (eventQueue e, Object moving, Obje
   coord_Coord v;
 
   M2RTS_HALT (-1);  /* this function does not work and is not used.  */
-  Assert (! moving->fixed, 4162);  /* this function does not work and is not used.  */
-  Assert (fixed->fixed, 4163);
-  Assert (e->ePtr->etype == polygonPolygonEvent, 4164);
+  Assert (! moving->fixed, 4310);  /* this function does not work and is not used.  */
+  Assert (fixed->fixed, 4311);
+  Assert (e->ePtr->etype == polygonPolygonEvent, 4312);
   if (Debugging)
     libc_printf ((char *) "collidePolygonAgainstFixedPolygon\\n", 35);
   drawFrame (e);  /* ******************  */
@@ -5462,68 +5678,145 @@ static void collidePolygonAgainstMovingPolygon (eventQueue e, Object id1, Object
   double j2;
   double m;
 
-  if (Debugging)
+  if (PolygonDebugging)
     {
+      libc_printf ((char *) "before processing collision\\n", 29);
       displayEvent (e);
       dumpObject (id1);
       dumpObject (id2);
     }
-  Assert (e->ePtr->etype == polygonPolygonEvent, 4230);
+  Assert (e->ePtr->etype == polygonPolygonEvent, 4379);
   p = e->ePtr->pp.cPoint;
-  deviceIf_frameNote ();  /* ******************  */
-  drawFrame (e);  /* ******************  */
-  if ((e->ePtr->pp.wpid1 == history_edge) && (e->ePtr->pp.wpid2 == history_edge))  /* ******************  */
+  if (PolygonDebugging)
     {
-      if (Debugging)
+      dumpDesc (e->ePtr);
+      deviceIf_frameNote ();  /* ******************  */
+      drawFrame (e);  /* ******************  */
+    }
+   /* ******************  */
+  if ((e->ePtr->pp.wpid1 == history_edge) && (e->ePtr->pp.wpid2 == history_edge))
+    {
+      if (PolygonDebugging)
         libc_printf ((char *) "the edges of two polygon collide\\n", 34);
-      getPolygonLine (e->ePtr->pp.lineCorner1, (Object) Indexing_GetIndice (objects, e->ePtr->pp.pid1), &p1, &p2);
-      sortLine (&p1, &p2);  /* p1 and p2 are the start end positions of the line  */
+      /* choose the fixed line, if one exists.  */
+      if (twoDsim_isFixed (id1->id))
+        {
+          if (PolygonDebugging)
+            libc_printf ((char *) "using line %d:%d\\n", 18, e->ePtr->pp.pid1, e->ePtr->pp.lineCorner1);
+          getPolygonLine (e->ePtr->pp.lineCorner1, (Object) Indexing_GetIndice (objects, e->ePtr->pp.pid1), &p1, &p2);
+        }
+      else
+        {
+          if (PolygonDebugging)
+            libc_printf ((char *) "using line %d:%d\\n", 18, e->ePtr->pp.pid2, e->ePtr->pp.lineCorner2);
+          getPolygonLine (e->ePtr->pp.lineCorner2, (Object) Indexing_GetIndice (objects, e->ePtr->pp.pid2), &p1, &p2);
+        }
+      /* p1 and p2 are the start end positions of the line  */
       v1 = coord_subCoord (p2, p1);  /* v1 is the vector p1 -> p2  */
       coord_perpendiculars (v1, &n, &n2);  /* n and n2 are normal vectors to the vector v1  */
       /* n needs to point into id1.  */
-      debugLine (p1, p2, (deviceIf_Colour) deviceIf_yellow ());
+      if (PolygonDebugging)
+        debugLine (p1, p2, (deviceIf_Colour) deviceIf_yellow ());
     }
   else if (e->ePtr->pp.wpid1 == history_edge)
     {
       /* corner collision.  */
-      if (Debugging)
+      if (PolygonDebugging)
         libc_printf ((char *) "the edge of polygon collides with corner of polygon\\n", 53);
-      Assert (e->ePtr->pp.wpid2 == history_corner, 4255);
-      getPolygonLine (e->ePtr->pp.lineCorner2, (Object) Indexing_GetIndice (objects, e->ePtr->pp.pid2), &p1, &p2);
-      v1 = coord_subCoord (p2, p1);  /* v1 is the vector p1 -> p2  */
-      coord_perpendiculars (v1, &n, &n2);  /* n and n2 are normal vectors to the vector v1  */
-      /* n needs to point into id1.  */
-      debugLine (p1, p2, (deviceIf_Colour) deviceIf_purple ());
-    }
-  else if (e->ePtr->pp.wpid2 == history_edge)
-    {
-      if (Debugging)
-        libc_printf ((char *) "the edge of polygon collides with corner of polygon\\n", 53);
-      Assert (e->ePtr->pp.wpid1 == history_corner, 4268);
+      Assert (e->ePtr->pp.wpid2 == history_corner, 4426);
       getPolygonLine (e->ePtr->pp.lineCorner1, (Object) Indexing_GetIndice (objects, e->ePtr->pp.pid1), &p1, &p2);
       v1 = coord_subCoord (p2, p1);  /* v1 is the vector p1 -> p2  */
       coord_perpendiculars (v1, &n, &n2);  /* n and n2 are normal vectors to the vector v1  */
       /* n needs to point into id1.  */
-      debugLine (p1, p2, (deviceIf_Colour) deviceIf_white ());
+      if (PolygonDebugging)
+        debugLine (p1, p2, (deviceIf_Colour) deviceIf_purple ());
+    }
+  else if (e->ePtr->pp.wpid2 == history_edge)
+    {
+      if (PolygonDebugging)
+        libc_printf ((char *) "the edge of polygon collides with corner of polygon\\n", 53);
+      Assert (e->ePtr->pp.wpid1 == history_corner, 4442);
+      getPolygonLine (e->ePtr->pp.lineCorner2, (Object) Indexing_GetIndice (objects, e->ePtr->pp.pid2), &p1, &p2);
+      v1 = coord_subCoord (p2, p1);  /* v1 is the vector p1 -> p2  */
+      coord_perpendiculars (v1, &n, &n2);  /* n and n2 are normal vectors to the vector v1  */
+      /* n needs to point into id1.  */
+      if (PolygonDebugging)
+        debugLine (p1, p2, (deviceIf_Colour) deviceIf_white ());
     }
   else
-    libc_printf ((char *) "the corners of two polygon collide\\n", 36);
-  debugCircle (id1->p.cOfG, 0.002, (deviceIf_Colour) deviceIf_yellow ());  /* ******************  c of g for id1  */
-  debugCircle (id2->p.cOfG, 0.002, (deviceIf_Colour) deviceIf_purple ());  /* ******************  c of g for id2  */
+    {
+      libc_printf ((char *) "the corners of two polygon collide\\n", 36);
+      /* n needs and assignment.  */
+      M2RTS_HALT (-1);
+    }
+  if (PolygonDebugging)
+    {
+      libc_printf ((char *) "line: ", 6);
+      dumpCoord (p1);
+      libc_printf ((char *) " -> ", 4);
+      dumpCoord (p2);
+      libc_printf ((char *) "\\n", 2);
+      libc_printf ((char *) "v1 vector along line: ", 22);
+      dumpCoord (v1);
+      libc_printf ((char *) "  perpendicular: ", 17);
+      dumpCoord (n);
+      libc_printf ((char *) "\\n", 2);
+      debugCircle (id1->p.cOfG, 0.02, (deviceIf_Colour) deviceIf_yellow ());  /* ******************  c of g for id1  */
+      debugCircle (id2->p.cOfG, 0.02, (deviceIf_Colour) deviceIf_purple ());  /* ******************  c of g for id2  */
+      debugCircle (p, 0.02, (deviceIf_Colour) deviceIf_white ());  /* ******************  collision point  */
+    }
   /* calculate relative velocity.  */
   rap = coord_subCoord (p, id1->p.cOfG);
   rbp = coord_subCoord (p, id2->p.cOfG);
   vap = coord_addCoord (coord_initCoord (id1->vx, id1->vy), coord_scaleCoord (rap, id1->angularVelocity));
-  vbp = coord_addCoord (coord_initCoord (id2->vx, id2->vy), coord_scaleCoord (rap, id2->angularVelocity));
-  vab = coord_subCoord (vap, vbp);
-  /* calculate impulse factor.  */
+  vbp = coord_addCoord (coord_initCoord (id2->vx, id2->vy), coord_scaleCoord (rbp, id2->angularVelocity));
+  vab = coord_subCoord (vap, vbp);  /* eq 1.  C.Hecker.  */
+  if (PolygonDebugging)  /* eq 1.  C.Hecker.  */
+    {
+      libc_printf ((char *) "v1 = ", 5);
+      dumpCoord (v1);
+      libc_printf ((char *) " rap = ", 7);
+      dumpCoord (rap);
+      libc_printf ((char *) " rbp = ", 7);
+      dumpCoord (rbp);
+      libc_printf ((char *) " vap = ", 7);
+      dumpCoord (vap);
+      libc_printf ((char *) " vbp = ", 7);
+      dumpCoord (vbp);
+      libc_printf ((char *) "\\n", 2);
+      libc_printf ((char *) "vab = ", 6);
+      dumpCoord (vab);
+      libc_printf ((char *) ", n = ", 6);
+      dumpCoord (n);
+      libc_printf ((char *) " dotProd (vab, n) = %g\\n", 24, coord_dotProd (vab, n));
+    }
+  /* eq 2.  C.Hecker.  */
+  if ((coord_dotProd (vab, n)) < 0.0)
+    {
+      if (PolygonDebugging)
+        {
+          deviceIf_flipBuffer ();  /* ******************  */
+          libc_printf ((char *) "objects are moving apart, ignore.\\n", 35);  /* ******************  */
+        }
+      /* objects are moving apart, ignore.  */
+      return;
+    }
+  /* calculate impulse factor. Eq 6. C.Hecker.  */
   if (id1->fixed)
     m = 0.0;
   else
     m = 1.0/id1->p.mass;
   if (! id2->fixed)
     m = m+(1.0/id2->p.mass);
-  denominator = m*(coord_dotProd (n, n));
+  denominator = (coord_dotProd (n, n))*m;  /* bottom of Eq 6.  C.Hecker.  */
+  if (PolygonDebugging)  /* bottom of Eq 6.  C.Hecker.  */
+    {
+      libc_printf ((char *) "n = ", 4);
+      dumpCoord (n);
+      libc_printf ((char *) "\\n", 2);
+      libc_printf ((char *) "m = %g, dotProd (n, n) = %g\\n", 29, m, coord_dotProd (n, n));
+      libc_printf ((char *) "denominator = %g\\n", 18, denominator);
+    }
   /* calculate angular factors.  */
   if (id1->fixed)
     ca = 0.0;
@@ -5536,12 +5829,12 @@ static void collidePolygonAgainstMovingPolygon (eventQueue e, Object id1, Object
   denominator = (denominator+ca)+cb;
   /* calculate total impulse of collision, j.  */
   vabDotN = coord_dotProd (vab, n);
-  if (Debugging)
+  if (PolygonDebugging)
     libc_printf ((char *) "vabDotN = %g\\n", 14, vabDotN);
   modifiedVel = vabDotN/denominator;
   j1 = -((1.0+Elasticity)*modifiedVel);
   j2 = (1.0+Elasticity)*modifiedVel;
-  if (Debugging)
+  if (PolygonDebugging)
     libc_printf ((char *) "j1 = %g, j2 = %g\\n", 18, j1, j2);
   /* update the velocities.  */
   if (! id1->fixed)
@@ -5571,7 +5864,31 @@ static void collidePolygonAgainstMovingPolygon (eventQueue e, Object id1, Object
       id2->angularMomentum = id2->angularMomentum+(coord_dotProd (rbp, coord_scaleCoord (n, j2)));
       id2->angularVelocity = (1.0/id2->inertia)*id2->angularMomentum;
     }
-  deviceIf_flipBuffer ();  /* ******************  */
+  if (PolygonDebugging)
+    {
+      libc_printf ((char *) "after processing collision\\n", 28);
+      displayEvent (e);
+      dumpObject (id1);
+      dumpObject (id2);
+      deviceIf_flipBuffer ();  /* ******************  */
+      dumpDesc (e->ePtr);  /* ******************  */
+      if (! id2->fixed)
+        {
+          Assert (id2->vy > 0.0, 4600);
+          if (id2->vy > 0.0)
+            libc_printf ((char *) "SUCCESSFUL collide polygon\\n", 28);
+          else
+            debugDelay ((char *) "FAILED collide polygon - terminating", 36);
+        }
+      if (! id1->fixed)
+        {
+          Assert (id1->vy > 0.0, 4610);
+          if (id1->vy > 0.0)
+            libc_printf ((char *) "SUCCESSFUL collide polygon\\n", 28);
+          else
+            debugDelay ((char *) "FAILED collide polygon - terminating", 36);
+        }
+    }
 }
 
 
@@ -5981,14 +6298,14 @@ static unsigned int doEarlierCircleCollision (eventDesc edesc, unsigned int id1,
           libc_printf ((char *) "%gt^4 + %gt^3 +%gt^2 + %gt + %g = %g    (t=%g)\\n", 48, A, B, C, D, E, T, (*t));
           libc_printf ((char *) "found collision at %g\\n", 23, (*t));
         }
-      Assert ((*t) >= 0.0, 4819);
+      Assert ((*t) >= 0.0, 5058);
       /* remember edesc = NIL if bestTimeOfCollision is unassigned.  */
       if ((edesc == NULL) || ((*t) < bestTimeOfCollision))
         {
           c1 = newPositionCoord (coord_initCoord (a, g), coord_initCoord (c, k), coord_initCoord (e, m), (*t));
           c2 = newPositionCoord (coord_initCoord (b, h), coord_initCoord (d, l), coord_initCoord (f, n), (*t));
           v12 = coord_subCoord (c1, c2);
-          Assert (roots_nearCoord (c1, coord_addCoord (c2, v12)), 4830);
+          Assert (roots_nearCoord (c1, coord_addCoord (c2, v12)), 5069);
           cp2 = coord_addCoord (c2, coord_scaleCoord (v12, o/(o+p)));
           cp1 = coord_subCoord (c1, coord_scaleCoord (v12, p/(o+p)));
           (*cp) = cp2;
@@ -6012,7 +6329,7 @@ static unsigned int doEarlierCircleCollision (eventDesc edesc, unsigned int id1,
             printf ("cp1 = c2 + r12 = %g, %g
               ", cp1.x, cp1.y) ;
   */
-              Assert (roots_nearCoord (cp1, cp2), 4847);
+              Assert (roots_nearCoord (cp1, cp2), 5086);
               /* found a value of t which is better than bestTimeOfCollision, but it might be a duplicate collision.  */
               if (! (history_isDuplicateC (currentTime, (*t), id1, id2, (history_whereHit) history_edge, (history_whereHit) history_edge, (*cp))))
                 /* ok, this has not been seen before.  */
@@ -6179,8 +6496,8 @@ static void stop (void)
 
 static eventDesc makeCirclesPolygonDesc (eventDesc edesc, unsigned int cid, unsigned int pid, unsigned int lineNo, unsigned int pointNo, history_whereHit wpid1, history_whereHit wpid2, coord_Coord collisionPoint)
 {
-  Assert (wpid1 == history_corner, 5025);  /* circle must always be treated as corner.  */
-  if (edesc == NULL)  /* circle must always be treated as corner.  */
+  /* circle must always be treated as corner.  */
+  if (edesc == NULL)
     edesc = newDesc ();
   edesc->etype = circlePolygonEvent;
   edesc->cp.pid = pid;
@@ -6870,8 +7187,8 @@ static void findCollisionCirclePolygon (Object cPtr, Object pPtr, eventDesc *ede
 {
   unsigned int i;
 
-  Assert (cPtr->object == circleOb, 5846);
-  Assert (pPtr->object == polygonOb, 5847);
+  Assert (cPtr->object == circleOb, 6085);
+  Assert (pPtr->object == polygonOb, 6086);
   if (isOrbiting (pPtr))
     for (i=1; i<=pPtr->p.nPoints; i++)
       findCollisionCircleLineOrbiting (cPtr, pPtr, i, 0, cPtr->c.pos, cPtr->c.r, edesc, tc, (descP) {(descP_t) makeCirclesPolygonDesc});
@@ -6886,7 +7203,7 @@ static void findCollisionCirclePolygon (Object cPtr, Object pPtr, eventDesc *ede
                         event.
 */
 
-static eventDesc makePolygonPolygon (eventDesc edesc, unsigned int id1, unsigned int id2, unsigned int lineCorner1, unsigned int lineCorner2, history_whereHit wpid1, history_whereHit wpid2, coord_Coord collisionPoint)
+static eventDesc makePolygonPolygon (eventDesc edesc, unsigned int id1, unsigned int id2, unsigned int lineCorner2, unsigned int lineCorner1, history_whereHit wpid1, history_whereHit wpid2, coord_Coord collisionPoint)
 {
   if (edesc == NULL)
     edesc = newDesc ();
@@ -6898,6 +7215,8 @@ static eventDesc makePolygonPolygon (eventDesc edesc, unsigned int id1, unsigned
   edesc->pp.wpid2 = wpid2;
   edesc->pp.lineCorner1 = lineCorner1;
   edesc->pp.lineCorner2 = lineCorner2;
+  if (PolygonDebugging)
+    dumpDesc (edesc);
   return edesc;
 }
 
@@ -6918,14 +7237,40 @@ static unsigned int isOrbiting (Object o)
                            and, tc, the time of collision in the future.
 */
 
-static void findCollisionLineLine (Object iPtr, Object jPtr, unsigned int iLine, unsigned int jLine, eventDesc *edesc, double *tc)
+static void findCollisionLineLine (Object iPtr, Object jPtr, unsigned int jLine, unsigned int iLine, eventDesc *edesc, double *tc)
 {
   if ((isOrbiting (iPtr)) || (isOrbiting (jPtr)))
-    /* findCollisionLineLineOrbiting (iPtr, jPtr, iLine, jLine, edesc, tc)  */
+    /* findCollisionLineLineOrbiting (iPtr, jPtr, jLine, iLine, edesc, tc)  */
     return;
   else
-    findCollisionLineLineNonOrbiting (iPtr, jPtr, iLine, jLine, edesc, tc);
+    findCollisionLineLineNonOrbiting (iPtr, jPtr, jLine, iLine, edesc, tc);
 }
+
+
+/*
+   findCollisionPointLine - determines whether point, p, which is at one of the ends of iPtr:iLine will hit
+                            line jPtr:jLine.  If so then the time of collision is recorded in, tc, (provided
+                            it is sooner than the current value of tc).  It also updates the event descriptor,
+                            edesc.
+*/
+
+static void findCollisionPointLine (Object iPtr, Object jPtr, unsigned int jLine, unsigned int iLine, coord_Coord p, eventDesc *edesc, double *tc)
+{
+  coord_Coord i0;
+  coord_Coord i1;
+
+  getPolygonLine (iLine, iPtr, &i0, &i1);
+  Assert ((coord_equalCoord (i0, p)) || (coord_equalCoord (i1, p)), 6196);
+  findCollisionCircleLine (iPtr, jPtr, jLine, iLine, p, 0.0, edesc, tc, (descP) {(descP_t) makePolygonPolygon});
+}
+
+
+/*
+   findCollisionPointLine - determines whether point, p, which is at one of the ends of iPtr:iLine will hit
+                            line jPtr:jLine.  If so then the time of collision is recorded in, tc, (provided
+                            it is sooner than the current value of tc).  It also updates the event descriptor,
+                            edesc.
+*/
 
 static void findCollisionLineLineNonOrbiting (Object iPtr, Object jPtr, unsigned int iLine, unsigned int jLine, eventDesc *edesc, double *tc)
 {
@@ -6934,30 +7279,6 @@ static void findCollisionLineLineNonOrbiting (Object iPtr, Object jPtr, unsigned
   coord_Coord j0;
   coord_Coord j1;
 
-  /* not finished and does not work.
-PROCEDURE findCollisionLineLineOrbiting (iPtr, jPtr: Object; iLine, jLine: CARDINAL; VAR edesc: eventDesc; VAR tc: REAL) ;
-VAR
-   i0, i1,
-   j0, j1: Coord ;
-BEGIN
-   HALT ;   --fixme-- should not be called as it should be using frame based interpenetration.  
-   getPolygonLine (iLine, iPtr, i0, i1) ;
-   getPolygonLine (jLine, jPtr, j0, j1) ;
-
-    test i0 crossing jLine 
-   findCollisionCircleLineOrbiting (iPtr, jPtr, iLine, jLine, i0, 0.0, edesc, tc, makePolygonPolygon) ;
-
-    test i1 crossing line j 
-   findCollisionCircleLineOrbiting (iPtr, jPtr, iLine, jLine, i1, 0.0, edesc, tc, makePolygonPolygon) ;
-
-    test j0 crossing line i 
-   findCollisionCircleLineOrbiting (jPtr, iPtr, iLine, jLine, j0, 0.0, edesc, tc, makePolygonPolygon) ;
-
-    test j1 crossing line i 
-   findCollisionCircleLineOrbiting (jPtr, iPtr, iLine, jLine, j1, 0.0, edesc, tc, makePolygonPolygon)
-
-END findCollisionLineLineOrbiting ;
-  */
   getPolygonLine (iLine, iPtr, &i0, &i1);
   getPolygonLine (jLine, jPtr, &j0, &j1);
   if (FALSE)
@@ -6969,14 +7290,10 @@ END findCollisionLineLineOrbiting ;
       deviceIf_flipBuffer ();
       GC_collectAll ();
     }
-  /* test i0 crossing jLine  */
-  findCollisionCircleLine (iPtr, jPtr, iLine, jLine, i0, 0.0, edesc, tc, (descP) {(descP_t) makePolygonPolygon});
-  /* test i1 crossing line j  */
-  findCollisionCircleLine (iPtr, jPtr, iLine, jLine, i1, 0.0, edesc, tc, (descP) {(descP_t) makePolygonPolygon});
-  /* test j0 crossing line i  */
-  findCollisionCircleLine (jPtr, iPtr, iLine, jLine, j0, 0.0, edesc, tc, (descP) {(descP_t) makePolygonPolygon});
-  /* test j1 crossing line i  */
-  findCollisionCircleLine (jPtr, iPtr, iLine, jLine, j1, 0.0, edesc, tc, (descP) {(descP_t) makePolygonPolygon});
+  findCollisionPointLine (iPtr, jPtr, jLine, iLine, i0, edesc, tc);  /* i0 crossing jLine.  */
+  findCollisionPointLine (iPtr, jPtr, jLine, iLine, i1, edesc, tc);  /* i1 crossing jLine.  */
+  findCollisionPointLine (jPtr, iPtr, iLine, jLine, j0, edesc, tc);  /* j0 crossing iLine.  */
+  findCollisionPointLine (jPtr, iPtr, iLine, jLine, j1, edesc, tc);  /* j1 crossing iLine.  */
 }
 
 
@@ -7105,6 +7422,92 @@ static void findCollisionLineRLine (Object iPtr, Object rPtr, unsigned int i, un
 
 
 /*
+   dumpLine -
+*/
+
+static void dumpLine (unsigned int id, unsigned int line, history_whereHit at)
+{
+  coord_Coord p1;
+  coord_Coord p2;
+
+  getPolygonLine (line, (Object) Indexing_GetIndice (objects, id), &p1, &p2);
+  libc_printf ((char *) "poly/line %d:%d ", 16, id, line);
+  dumpCoord (p1);
+  libc_printf ((char *) " ", 1);
+  dumpCoord (p2);
+  libc_printf ((char *) " ", 1);
+  dumpWhere (at);
+  libc_printf ((char *) "\\n", 2);
+}
+
+
+/*
+   dumpWhere -
+*/
+
+static void dumpWhere (history_whereHit at)
+{
+  switch (at)
+    {
+      case history_edge:
+        libc_printf ((char *) "edge", 4);
+        break;
+
+      case history_corner:
+        libc_printf ((char *) "corner", 6);
+        break;
+
+
+      default:
+        CaseException ("../git-pge/m2/twoDsim.def", 2, 1);
+    }
+}
+
+
+/*
+   dumpDesc -
+*/
+
+static void dumpDesc (eventDesc e)
+{
+  if (e != NULL)
+    switch (e->etype)
+      {
+        case frameEvent:
+          break;
+
+        case circlesEvent:
+          libc_printf ((char *) "circle/circle  (%d:%d) at point ", 32, e->cc.cid1, e->cc.cid2);
+          dumpCoord (e->cc.cPoint);
+          libc_printf ((char *) "\\n", 2);
+          break;
+
+        case circlePolygonEvent:
+          libc_printf ((char *) "circle/polygon  (%d:%d) at point ", 33, e->cp.pid, e->cp.cid);
+          dumpCoord (e->cp.cPoint);
+          libc_printf ((char *) " line %d, pointno %d\\n", 22, e->cp.lineNo, e->cp.pointNo);
+          break;
+
+        case polygonPolygonEvent:
+          libc_printf ((char *) "polygon/polygon  (%d:%d) (%d:%d) at point\\n", 43, e->pp.pid1, e->pp.lineCorner1, e->pp.pid2, e->pp.lineCorner2);
+          dumpCoord (e->pp.cPoint);
+          libc_printf ((char *) "  ", 2);
+          dumpLine (e->pp.pid1, e->pp.lineCorner1, e->pp.wpid1);
+          libc_printf ((char *) "  ", 2);
+          dumpLine (e->pp.pid2, e->pp.lineCorner2, e->pp.wpid2);
+          libc_printf ((char *) "  collision ", 12);
+          dumpCoord (e->pp.cPoint);
+          libc_printf ((char *) "\\n", 2);
+          break;
+
+
+        default:
+          break;
+      }
+}
+
+
+/*
    findCollisionPolygonPolygon - find the smallest positive time (if any) between the polygons, iPtr
                                  and jPtr colliding.
                                  If a collision if found then, tc, is assigned to the time and the
@@ -7116,7 +7519,7 @@ static void findCollisionPolygonPolygon (Object iPtr, Object jPtr, eventDesc *ed
   unsigned int i;
   unsigned int j;
 
-  Assert (iPtr != jPtr, 6174);
+  Assert (iPtr != jPtr, 6492);
   i = 1;
   while (i <= iPtr->p.nPoints)
     {
@@ -7280,11 +7683,11 @@ static void subEvent (eventQueue e)
     }
   if (f != NULL)
     {
-      Assert (f == e, 6337);
+      Assert (f == e, 6655);
       if (before == NULL)
         {
-          Assert (eventQ == f, 6340);
-          Assert (eventQ == e, 6341);
+          Assert (eventQ == f, 6658);
+          Assert (eventQ == e, 6659);
           eventQ = eventQ->next;
           if (eventQ != NULL)
             eventQ->time = eventQ->time+e->time;
@@ -7446,7 +7849,7 @@ static unsigned int earlierSpringLength (eventDesc edesc, unsigned int id, doubl
           libc_printf ((char *) "%gt^4 + %gt^3 +%gt^2 + %gt + %g = %g    (t=%g)\\n", 48, array.array[4], array.array[3], array.array[2], array.array[1], array.array[0], T, (*t));
           libc_printf ((char *) "found spring reaches length %g at %g\\n", 38, l, (*t));
         }
-      Assert ((*t) >= 0.0, 6514);
+      Assert ((*t) >= 0.0, 6832);
       /* remember edesc = NIL if bestTime is unassigned.  */
       if ((edesc == NULL) || ((*t) < bestTime))
         if (! (history_isDuplicateS (currentTime, (*t), id, sp)))
@@ -7510,7 +7913,7 @@ static void calcSpringLengthEvents (unsigned int i)
   Object id1ptr;
   Object id2ptr;
 
-  Assert (isSpringObject (i), 6564);
+  Assert (isSpringObject (i), 6882);
   iptr = Indexing_GetIndice (objects, i);
   id1 = iptr->s.id1;
   id2 = iptr->s.id2;
@@ -7676,7 +8079,7 @@ static void calcSpringEndEvents (unsigned int i)
   Object id1ptr;
   Object id2ptr;
 
-  Assert (isSpringObject (i), 6726);
+  Assert (isSpringObject (i), 7044);
   iptr = Indexing_GetIndice (objects, i);
   id1 = iptr->s.id1;
   id2 = iptr->s.id2;
@@ -7749,7 +8152,7 @@ static void addSpringEvent (double t, eventProc dop, eventDesc edesc)
 
   if (Debugging)
     libc_printf ((char *) "spring event will occur in %g simulated seconds\\n", 49, t);
-  Assert (t >= 0.0, 6831);
+  Assert (t >= 0.0, 7149);
   e = newEvent ();
   e->kind = springKind;
   e->time = t;
@@ -7779,7 +8182,7 @@ static void reverseSpringAccel (Object o)
   Object id1p;
   Object id2p;
 
-  Assert (isSpringObject (o->id), 6862);
+  Assert (isSpringObject (o->id), 7180);
   if (! o->deleted && ! o->fixed)
     {
       id1p = Indexing_GetIndice (objects, o->s.id1);
@@ -7949,10 +8352,10 @@ static void doSpringCallPoint (eventQueue e)
   fcDesc fc;
 
   /* gdbif.sleepSpin ;  */
-  Assert (e->ePtr->etype == springEvent, 7066);
-  Assert (e->ePtr->sp.type == history_callPoint, 7067);
+  Assert (e->ePtr->etype == springEvent, 7384);
+  Assert (e->ePtr->sp.type == history_callPoint, 7385);
   o = Indexing_GetIndice (objects, e->ePtr->sp.id);
-  Assert (isSpringObject (e->ePtr->sp.id), 7069);
+  Assert (isSpringObject (e->ePtr->sp.id), 7387);
   o->s.hasCallBackLength = FALSE;  /* turn this off.  */
   /* now invoke the call.  */
   twoDsim_createFunctionEvent (0.0, o->s.func, o->id);
@@ -8094,6 +8497,12 @@ static void addNextCollisionEvent (void)
   edesc = NULL;
   tc = -1.0;
   list = optPredictiveBroadphase (initBroadphase ());
+  /* 
+   IF list # NIL
+   THEN
+      gdbif.sleepSpin
+   END ;
+  */
   b = list;
   while (b != NULL)
     {
@@ -8106,7 +8515,11 @@ static void addNextCollisionEvent (void)
         }
       findCollision (o0, o1, &edesc, &tc);
       if (trace && (old != tc))
-        libc_printf ((char *) "** collision found between pair %d, %d at time %g\\n", 51, b->o0, b->o1, tc);
+        {
+          libc_printf ((char *) "** collision found between pair %d, %d at time %g\\n", 51, b->o0, b->o1, tc);
+          if (edesc != NULL)
+            dumpDesc (edesc);
+        }
       b = b->next;
     }
   killBroadphase (&list);
@@ -8114,8 +8527,14 @@ static void addNextCollisionEvent (void)
     {
       addCollisionEvent (tc, (eventProc) {(eventProc_t) doCollision}, edesc);
       anticipateCollision (tc, edesc);
+      if (PolygonDebugging)
+        {
+          printQueue ();
+          libc_printf ((char *) "collision detected\\n", 20);
+          dumpDesc (edesc);
+        }
     }
-  else if (trace)
+  else if (trace || PolygonDebugging)
     libc_printf ((char *) "no more collisions found\\n", 26);
 }
 
@@ -8147,11 +8566,11 @@ static unsigned int determineFrameBased (void)
 
 
 /*
-   addNextObjectEvent - removes the next spring and collision event and recalculates
-                        the time of both events.
+   doAddNextObjectEvent - removes the next spring and collision event and recalculates
+                          the time of both events.
 */
 
-static void addNextObjectEvent (void)
+static void doAddNextObjectEvent (void)
 {
   removeCollisionEvent ();
   removeSpringEvents ();
@@ -8169,6 +8588,17 @@ static void addNextObjectEvent (void)
       libc_printf ((char *) "event queue created and it looks like this\\n", 44);
       printQueue ();
     }
+}
+
+
+/*
+   addNextObjectEvent - check to see if we are using predictive event mode
+                        and if so then add the next predictive collision event.
+*/
+
+static void addNextObjectEvent (void)
+{
+  doAddNextObjectEvent ();
 }
 
 
@@ -8352,7 +8782,7 @@ static void addEvent (eventKind k, double t, eventProc dop)
 
   if (Debugging)
     libc_printf ((char *) "new event will occur at time %g in the future\\n", 47, t);
-  Assert (t >= 0.0, 7584);
+  Assert (t >= 0.0, 7930);
   e = newEvent ();
   e->kind = k;
   e->time = t;
@@ -8429,7 +8859,7 @@ static void addCollisionEvent (double t, eventProc dop, eventDesc edesc)
 
   if (Debugging)
     libc_printf ((char *) "collision will occur in %g simulated seconds\\n", 46, t);
-  Assert (t >= 0.0, 7650);
+  Assert (t >= 0.0, 7996);
   e = newEvent ();
   e->kind = collisionKind;
   e->time = t;
@@ -8835,6 +9265,7 @@ unsigned int twoDsim_poly3 (double x0, double y0, double x1, double y1, double x
   co.array[2] = coord_initCoord (x2, y2);
   optr->p.nPoints = 3;
   optr->p.cOfG = calculateCofG (optr->p.nPoints, (coord_Coord *) &co.array[0], 2);
+  optr->p.oldcOfG = optr->p.cOfG;
   for (i=0; i<=optr->p.nPoints-1; i++)
     optr->p.points.array[i] = polar_coordToPolar (coord_subCoord ((coord_Coord) co.array[i], optr->p.cOfG));
   optr->p.col = colour;
@@ -8872,6 +9303,7 @@ unsigned int twoDsim_poly4 (double x0, double y0, double x1, double y1, double x
   co.array[3] = coord_initCoord (x3, y3);
   optr->p.nPoints = 4;
   optr->p.cOfG = calculateCofG (optr->p.nPoints, (coord_Coord *) &co.array[0], 3);
+  optr->p.oldcOfG = optr->p.cOfG;
   for (i=0; i<=optr->p.nPoints-1; i++)
     optr->p.points.array[i] = polar_coordToPolar (coord_subCoord ((coord_Coord) co.array[i], optr->p.cOfG));
   optr->p.col = colour;
@@ -8905,6 +9337,7 @@ unsigned int twoDsim_poly5 (double x0, double y0, double x1, double y1, double x
   co.array[4] = coord_initCoord (x4, y4);
   optr->p.nPoints = 5;
   optr->p.cOfG = calculateCofG (optr->p.nPoints, (coord_Coord *) &co.array[0], 4);
+  optr->p.oldcOfG = optr->p.cOfG;
   for (i=0; i<=optr->p.nPoints-1; i++)
     optr->p.points.array[i] = polar_coordToPolar (coord_subCoord ((coord_Coord) co.array[i], optr->p.cOfG));
   optr->p.col = colour;
@@ -8939,6 +9372,7 @@ unsigned int twoDsim_poly6 (double x0, double y0, double x1, double y1, double x
   co.array[5] = coord_initCoord (x5, y5);
   optr->p.nPoints = 6;
   optr->p.cOfG = calculateCofG (optr->p.nPoints, (coord_Coord *) &co.array[0], 5);
+  optr->p.oldcOfG = optr->p.cOfG;
   for (i=0; i<=optr->p.nPoints-1; i++)
     optr->p.points.array[i] = polar_coordToPolar (coord_subCoord ((coord_Coord) co.array[i], optr->p.cOfG));
   optr->p.col = colour;
@@ -9650,6 +10084,7 @@ void twoDsim_simulateFor (double t)
           pumpQueue ();
           if (trace)
             printQueue ();
+          twoDsim_dumpWorld ();
           while (s < t)
             {
               dt = doNextEvent ();
@@ -9763,20 +10198,7 @@ void twoDsim_processEvent (void)
       libc_printf ((char *) "before doNextEvent\\n", 20);
       printQueue ();
     }
-  /* 
-   gdbif.sleepSpin ;
-   printf ("(1)  dumpWorld
-  ") ;
-   dumpWorld ;
-   printQueue ;
-  */
   dt = doNextEvent ();
-  /* 
-   printf ("(2)  dumpWorld
-  ") ;
-   dumpWorld ;
-   exit (0) ;
-  */
   if (DebugTrace)
     libc_printf ((char *) "finished doNextEvent\\n", 22);
 }
