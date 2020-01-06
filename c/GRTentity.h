@@ -1,4 +1,3 @@
-/* automatically created by mc from /home/gaius/GM2/graft-8.2.0/gcc-8.2.0/gcc/gm2/gm2-libs-iso/RTentity.def.  */
 
 
 #if !defined (_RTentity_H)

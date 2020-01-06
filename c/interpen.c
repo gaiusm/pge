@@ -1,4 +1,6 @@
-/* automatically created by mc from ../git-pge/m2/interpen.mod.  */
+/* 
+   sleep - calling thread sleeps for seconds.
+  */
 
 #   if !defined (PROC_D)
 #      define PROC_D
@@ -199,7 +201,7 @@ static void testCircleSegment (void);
 static void assert (unsigned int condition, unsigned int line)
 {
   if (! condition)
-    libc_printf ((char *) "%s:%d: assert failed\\n", 22, "../git-pge/m2/interpen.mod", line);
+    libc_printf ((char *) "%s:%d: assert failed\\n", 22, "../pge/m2/interpen.mod", line);
 }
 
 

@@ -1,4 +1,3 @@
-/* automatically created by mc from ../git-pge/m2/pgeif.def.  */
 
 
 #if !defined (_H)

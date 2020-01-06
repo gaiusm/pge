@@ -1,4 +1,18 @@
-/* automatically created by mc from /home/gaius/GM2/graft-8.2.0/gcc-8.2.0/gcc/gm2/gm2-libs/StringConvert.mod.  */
+/* This file is part of GNU Modula-2.
+
+GNU Modula-2 is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free
+Software Foundation; either version 3, or (at your option) any later
+version.
+
+GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License along
+with gm2; see the file COPYING.  If not, write to the Free Software
+Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.  */
 
 #   if !defined (PROC_D)
 #      define PROC_D
@@ -1463,6 +1477,7 @@ DynamicStrings_String StringConvert_LongrealToString (long double x, unsigned in
   l = DynamicStrings_Length (s);
   if (point > l)
     {
+      /* avoid dangling else.  */
       s = DynamicStrings_ConCat (s, DynamicStrings_Mark (DynamicStrings_Mult (DynamicStrings_Mark (DynamicStrings_InitStringChar ('0')), (unsigned int) point-l)));
       s = DynamicStrings_ConCat (s, DynamicStrings_Mark (DynamicStrings_InitString ((char *) ".0", 2)));
       if (! maxprecision && (FractionWidth > 0))
@@ -1474,6 +1489,7 @@ DynamicStrings_String StringConvert_LongrealToString (long double x, unsigned in
     }
   else if (point < 0)
     {
+      /* avoid dangling else.  */
       s = DynamicStrings_ConCat (DynamicStrings_Mult (DynamicStrings_Mark (DynamicStrings_InitStringChar ('0')), (unsigned int) -point), DynamicStrings_Mark (s));
       l = DynamicStrings_Length (s);
       s = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "0.", 2), DynamicStrings_Mark (s));
@@ -1566,7 +1582,7 @@ DynamicStrings_String StringConvert_ToSigFig (DynamicStrings_String s, unsigned 
   int point;
   unsigned int poTen;
 
-  Assert ((IsDigit (DynamicStrings_char (s, 0))) || ((DynamicStrings_char (s, 0)) == '.'), (char *) "/home/gaius/GM2/graft-8.2.0/gcc-8.2.0/gcc/gm2/gm2-libs/StringConvert.mod", 72, 1215, (char *) "ToSigFig", 8);
+  Assert ((IsDigit (DynamicStrings_char (s, 0))) || ((DynamicStrings_char (s, 0)) == '.'), (char *) "/home/gaius/GM2/graft-9.1.0/gcc-9.1.0/gcc/gm2/gm2-libs/StringConvert.mod", 72, 1215, (char *) "ToSigFig", 8);
   point = DynamicStrings_Index (s, '.', 0);
   if (point < 0)
     poTen = DynamicStrings_Length (s);
@@ -1608,7 +1624,7 @@ DynamicStrings_String StringConvert_ToDecimalPlaces (DynamicStrings_String s, un
 {
   int point;
 
-  Assert ((IsDigit (DynamicStrings_char (s, 0))) || ((DynamicStrings_char (s, 0)) == '.'), (char *) "/home/gaius/GM2/graft-8.2.0/gcc-8.2.0/gcc/gm2/gm2-libs/StringConvert.mod", 72, 1062, (char *) "ToDecimalPlaces", 15);
+  Assert ((IsDigit (DynamicStrings_char (s, 0))) || ((DynamicStrings_char (s, 0)) == '.'), (char *) "/home/gaius/GM2/graft-9.1.0/gcc-9.1.0/gcc/gm2/gm2-libs/StringConvert.mod", 72, 1062, (char *) "ToDecimalPlaces", 15);
   point = DynamicStrings_Index (s, '.', 0);
   if (point < 0)
     {

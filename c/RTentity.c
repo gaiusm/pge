@@ -1,4 +1,18 @@
-/* automatically created by mc from /home/gaius/GM2/graft-8.2.0/gcc-8.2.0/gcc/gm2/gm2-libs-iso/RTentity.mod.  */
+/* This file is part of GNU Modula-2.
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA  */
 
 #   if !defined (PROC_D)
 #      define PROC_D
@@ -61,7 +75,7 @@ static void findChildAndParent (RTentity_Group t, void * a, RTentity_Group *chil
   /* remember to skip the sentinal value and assign parent and child  */
   (*parent) = t;
   if (t == NULL)
-    M2RTS_Halt ((char *) "/home/gaius/GM2/graft-8.2.0/gcc-8.2.0/gcc/gm2/gm2-libs-iso/RTentity.mod", 71, 207, (char *) "findChildAndParent", 18, (char *) "internal runtime error, RTentity is either corrupt or the module storage has not been initialized yet", 101);
+    M2RTS_Halt ((char *) "/home/gaius/GM2/graft-9.1.0/gcc-9.1.0/gcc/gm2/gm2-libs-iso/RTentity.mod", 71, 207, (char *) "findChildAndParent", 18, (char *) "internal runtime error, RTentity is either corrupt or the module storage has not been initialized yet", 101);
   (*child) = t->left;
   if ((*child) != NULL)
     do {
@@ -82,21 +96,6 @@ RTentity_Group RTentity_InitGroup (void)
 {
   RTentity_Group g;
 
-  /* This file is part of GNU Modula-2.
-
-This library is free software; you can redistribute it and/or
-modify it under the terms of the GNU Lesser General Public
-License as published by the Free Software Foundation; either
-version 2.1 of the License, or (at your option) any later version.
-
-This library is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-Lesser General Public License for more details.
-
-You should have received a copy of the GNU Lesser General Public
-License along with this library; if not, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA  */
   g = libc_malloc ((size_t) sizeof ((*g)));
   g->left = NULL;
   g->right = NULL;
@@ -161,7 +160,7 @@ void RTentity_PutKey (RTentity_Group g, void * a, unsigned int key)
       child->entityKey = key;
     }
   else
-    M2RTS_Halt ((char *) "/home/gaius/GM2/graft-8.2.0/gcc-8.2.0/gcc/gm2/gm2-libs-iso/RTentity.mod", 71, 110, (char *) "PutKey", 6, (char *) "internal runtime error, entity already stored", 45);
+    M2RTS_Halt ((char *) "/home/gaius/GM2/graft-9.1.0/gcc-9.1.0/gcc/gm2/gm2-libs-iso/RTentity.mod", 71, 110, (char *) "PutKey", 6, (char *) "internal runtime error, entity already stored", 45);
 }
 
 
@@ -218,7 +217,7 @@ void RTentity_DelKey (RTentity_Group g, void * a)
         libc_free ((void *) child);
       }
   else
-    M2RTS_Halt ((char *) "/home/gaius/GM2/graft-8.2.0/gcc-8.2.0/gcc/gm2/gm2-libs-iso/RTentity.mod", 71, 188, (char *) "DelKey", 6, (char *) "internal runtime error, trying to delete an entity which is not in the tree", 75);
+    M2RTS_Halt ((char *) "/home/gaius/GM2/graft-9.1.0/gcc-9.1.0/gcc/gm2/gm2-libs-iso/RTentity.mod", 71, 188, (char *) "DelKey", 6, (char *) "internal runtime error, trying to delete an entity which is not in the tree", 75);
 }
 
 unsigned int RTentity_IsIn (RTentity_Group g, void * a)

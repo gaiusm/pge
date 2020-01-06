@@ -1,4 +1,3 @@
-/* automatically created by mc from ../git-pge/m2/roots.def.  */
 
 
 #if !defined (_roots_H)

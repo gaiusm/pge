@@ -1,4 +1,7 @@
-/* automatically created by mc from ../git-pge/m2/rboxes.mod.  */
+/* 
+   projectVector - returns the vector, onto, after it has been
+                   projected by, project.
+  */
 
 #   if !defined (PROC_D)
 #      define PROC_D
@@ -53,10 +56,6 @@ static void placeBoarders (double thickness, unsigned int color)
 {
   unsigned int b;
 
-  /* 
-   projectVector - returns the vector, onto, after it has been
-                   projected by, project.
-  */
   b = twoDsim_box (0.0, 0.0, 1.0, thickness, (deviceIf_Colour) color);
   b = twoDsim_fix (b);
   b = twoDsim_box (0.0, 0.0, thickness, 1.0, (deviceIf_Colour) color);

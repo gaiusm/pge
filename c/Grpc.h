@@ -1,4 +1,3 @@
-/* automatically created by mc from ../git-pge/m2/rpc.def.  */
 
 
 #if !defined (_rpc_H)

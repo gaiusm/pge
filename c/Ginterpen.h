@@ -1,4 +1,3 @@
-/* automatically created by mc from ../git-pge/m2/interpen.def.  */
 
 
 #if !defined (_interpen_H)

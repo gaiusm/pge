@@ -1,4 +1,3 @@
-/* automatically created by mc from ../git-pge/m2/NetworkOrder.def.  */
 
 
 #if !defined (_NetworkOrder_H)

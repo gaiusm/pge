@@ -1,4 +1,18 @@
-/* automatically created by mc from ../git-pge/m2/RTExceptions.mod.  */
+/* This file is part of GNU Modula-2.
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA  */
 
 #   if !defined (PROC_D)
 #      define PROC_D
@@ -659,7 +673,7 @@ static void AddHandler (RTExceptions_EHBlock e, Handler h)
 
 static void indexf (void * a)
 {
-  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_indexException), "../git-pge/m2/RTExceptions.mod", 605, 9, "indexf", "array index out of bounds");
+  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_indexException), "../pge/m2/RTExceptions.mod", 605, 9, "indexf", "array index out of bounds");
 }
 
 
@@ -669,7 +683,7 @@ static void indexf (void * a)
 
 static void range (void * a)
 {
-  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_rangeException), "../git-pge/m2/RTExceptions.mod", 617, 9, "range", "assignment out of range");
+  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_rangeException), "../pge/m2/RTExceptions.mod", 617, 9, "range", "assignment out of range");
 }
 
 
@@ -679,7 +693,7 @@ static void range (void * a)
 
 static void casef (void * a)
 {
-  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_caseSelectException), "../git-pge/m2/RTExceptions.mod", 629, 9, "casef", "case selector out of range");
+  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_caseSelectException), "../pge/m2/RTExceptions.mod", 629, 9, "casef", "case selector out of range");
 }
 
 
@@ -689,7 +703,7 @@ static void casef (void * a)
 
 static void invalidloc (void * a)
 {
-  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_invalidLocation), "../git-pge/m2/RTExceptions.mod", 641, 9, "invalidloc", "invalid address referenced");
+  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_invalidLocation), "../pge/m2/RTExceptions.mod", 641, 9, "invalidloc", "invalid address referenced");
 }
 
 
@@ -699,7 +713,7 @@ static void invalidloc (void * a)
 
 static void function (void * a)
 {
-  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_functionException), "../git-pge/m2/RTExceptions.mod", 653, 9, "function", "... function ... ");  /* --fixme-- what has happened ?  */
+  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_functionException), "../pge/m2/RTExceptions.mod", 653, 9, "function", "... function ... ");  /* --fixme-- what has happened ?  */
 }
 
 
@@ -709,7 +723,7 @@ static void function (void * a)
 
 static void wholevalue (void * a)
 {
-  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_wholeValueException), "../git-pge/m2/RTExceptions.mod", 665, 9, "wholevalue", "illegal whole value exception");
+  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_wholeValueException), "../pge/m2/RTExceptions.mod", 665, 9, "wholevalue", "illegal whole value exception");
 }
 
 
@@ -719,7 +733,7 @@ static void wholevalue (void * a)
 
 static void wholediv (void * a)
 {
-  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_wholeDivException), "../git-pge/m2/RTExceptions.mod", 677, 9, "wholediv", "illegal whole value exception");
+  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_wholeDivException), "../pge/m2/RTExceptions.mod", 677, 9, "wholediv", "illegal whole value exception");
 }
 
 
@@ -729,7 +743,7 @@ static void wholediv (void * a)
 
 static void realvalue (void * a)
 {
-  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_realValueException), "../git-pge/m2/RTExceptions.mod", 689, 9, "realvalue", "illegal real value exception");
+  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_realValueException), "../pge/m2/RTExceptions.mod", 689, 9, "realvalue", "illegal real value exception");
 }
 
 
@@ -739,7 +753,7 @@ static void realvalue (void * a)
 
 static void realdiv (void * a)
 {
-  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_realDivException), "../git-pge/m2/RTExceptions.mod", 701, 9, "realdiv", "real number division by zero exception");
+  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_realDivException), "../pge/m2/RTExceptions.mod", 701, 9, "realdiv", "real number division by zero exception");
 }
 
 
@@ -749,7 +763,7 @@ static void realdiv (void * a)
 
 static void complexvalue (void * a)
 {
-  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_complexValueException), "../git-pge/m2/RTExceptions.mod", 713, 9, "complexvalue", "illegal complex value exception");
+  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_complexValueException), "../pge/m2/RTExceptions.mod", 713, 9, "complexvalue", "illegal complex value exception");
 }
 
 
@@ -759,7 +773,7 @@ static void complexvalue (void * a)
 
 static void complexdiv (void * a)
 {
-  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_complexDivException), "../git-pge/m2/RTExceptions.mod", 725, 9, "complexdiv", "complex number division by zero exception");
+  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_complexDivException), "../pge/m2/RTExceptions.mod", 725, 9, "complexdiv", "complex number division by zero exception");
 }
 
 
@@ -769,7 +783,7 @@ static void complexdiv (void * a)
 
 static void protection (void * a)
 {
-  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_protException), "../git-pge/m2/RTExceptions.mod", 737, 9, "protection", "protection exception");
+  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_protException), "../pge/m2/RTExceptions.mod", 737, 9, "protection", "protection exception");
 }
 
 
@@ -779,7 +793,7 @@ static void protection (void * a)
 
 static void systemf (void * a)
 {
-  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_sysException), "../git-pge/m2/RTExceptions.mod", 749, 9, "systemf", "system exception");
+  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_sysException), "../pge/m2/RTExceptions.mod", 749, 9, "systemf", "system exception");
 }
 
 
@@ -789,7 +803,7 @@ static void systemf (void * a)
 
 static void coroutine (void * a)
 {
-  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_coException), "../git-pge/m2/RTExceptions.mod", 761, 9, "coroutine", "coroutine exception");
+  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_coException), "../pge/m2/RTExceptions.mod", 761, 9, "coroutine", "coroutine exception");
 }
 
 
@@ -799,7 +813,7 @@ static void coroutine (void * a)
 
 static void exception (void * a)
 {
-  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_exException), "../git-pge/m2/RTExceptions.mod", 773, 9, "exception", "exception exception");
+  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_exException), "../pge/m2/RTExceptions.mod", 773, 9, "exception", "exception exception");
 }
 
 
@@ -1085,10 +1099,10 @@ void RTExceptions_SwitchExceptionState (unsigned int *from, unsigned int to)
 RTExceptions_EHBlock RTExceptions_GetBaseExceptionBlock (void)
 {
   if (currentEHB == NULL)
-    M2RTS_Halt ((char *) "../git-pge/m2/RTExceptions.mod", 30, 591, (char *) "GetBaseExceptionBlock", 21, (char *) "currentEHB has not been initialized yet", 39);
+    M2RTS_Halt ((char *) "../pge/m2/RTExceptions.mod", 26, 591, (char *) "GetBaseExceptionBlock", 21, (char *) "currentEHB has not been initialized yet", 39);
   else
     return currentEHB;
-  ReturnException ("/home/gaius/GM2/graft-8.2.0/gcc-8.2.0/gcc/gm2/gm2-libs/RTExceptions.def", 2, 1);
+  ReturnException ("/home/gaius/GM2/graft-9.1.0/gcc-9.1.0/gcc/gm2/gm2-libs/RTExceptions.def", 19, 1);
 }
 
 

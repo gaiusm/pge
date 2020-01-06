@@ -1,4 +1,18 @@
-/* automatically created by mc from /home/gaius/GM2/graft-8.2.0/gcc-8.2.0/gcc/gm2/gm2-libs/FormatStrings.mod.  */
+/* This file is part of GNU Modula-2.
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA  */
 
 #   if !defined (PROC_D)
 #      define PROC_D
@@ -14,6 +28,7 @@
 #      define FALSE (1==0)
 #   endif
 
+#include <stddef.h>
 #include <string.h>
 #include <limits.h>
 #define _FormatStrings_H
@@ -31,32 +46,32 @@
               escape sequences translated.
 */
 
-DynamicStrings_String FormatStrings_Sprintf0 (DynamicStrings_String s);
+DynamicStrings_String FormatStrings_Sprintf0 (DynamicStrings_String fmt);
 
 /*
    Sprintf1 - returns a String containing, s, together with encapsulated
               entity, w. It only formats the first %s or %d with n.
 */
 
-DynamicStrings_String FormatStrings_Sprintf1 (DynamicStrings_String s, unsigned char *w_, unsigned int _w_high);
+DynamicStrings_String FormatStrings_Sprintf1 (DynamicStrings_String fmt, unsigned char *w_, unsigned int _w_high);
 
 /*
    Sprintf2 - returns a string, s, which has been formatted.
 */
 
-DynamicStrings_String FormatStrings_Sprintf2 (DynamicStrings_String s, unsigned char *w1_, unsigned int _w1_high, unsigned char *w2_, unsigned int _w2_high);
+DynamicStrings_String FormatStrings_Sprintf2 (DynamicStrings_String fmt, unsigned char *w1_, unsigned int _w1_high, unsigned char *w2_, unsigned int _w2_high);
 
 /*
    Sprintf3 - returns a string, s, which has been formatted.
 */
 
-DynamicStrings_String FormatStrings_Sprintf3 (DynamicStrings_String s, unsigned char *w1_, unsigned int _w1_high, unsigned char *w2_, unsigned int _w2_high, unsigned char *w3_, unsigned int _w3_high);
+DynamicStrings_String FormatStrings_Sprintf3 (DynamicStrings_String fmt, unsigned char *w1_, unsigned int _w1_high, unsigned char *w2_, unsigned int _w2_high, unsigned char *w3_, unsigned int _w3_high);
 
 /*
    Sprintf4 - returns a string, s, which has been formatted.
 */
 
-DynamicStrings_String FormatStrings_Sprintf4 (DynamicStrings_String s, unsigned char *w1_, unsigned int _w1_high, unsigned char *w2_, unsigned int _w2_high, unsigned char *w3_, unsigned int _w3_high, unsigned char *w4_, unsigned int _w4_high);
+DynamicStrings_String FormatStrings_Sprintf4 (DynamicStrings_String fmt, unsigned char *w1_, unsigned int _w1_high, unsigned char *w2_, unsigned int _w2_high, unsigned char *w3_, unsigned int _w3_high, unsigned char *w4_, unsigned int _w4_high);
 
 /*
    doDSdbEnter -
@@ -107,7 +122,29 @@ static DynamicStrings_String HandleEscape (DynamicStrings_String s);
                   A new string is returned.
 */
 
-static DynamicStrings_String FormatString (DynamicStrings_String s, unsigned char *w_, unsigned int _w_high);
+static DynamicStrings_String FormatString (DynamicStrings_String fmt, int *startpos, DynamicStrings_String in, unsigned char *w_, unsigned int _w_high);
+
+/*
+   FormatString - returns a String containing, s, together with encapsulated
+                  entity, w. It only formats the first %s or %d or %u with n.
+                  A new string is returned.
+*/
+
+static DynamicStrings_String PerformFormatString (DynamicStrings_String fmt, int *startpos, DynamicStrings_String in, unsigned char *w_, unsigned int _w_high);
+
+/*
+   Copy - copies, fmt[start:end] -> in and returns in.  Providing that start >= 0.
+*/
+
+static DynamicStrings_String Copy (DynamicStrings_String fmt, DynamicStrings_String in, int start, int end);
+
+/*
+   HandlePercent - pre-condition:  s, is a string.
+                   Post-condition:  a new string is returned which is a copy of,
+                   s, except %% is transformed into %.
+*/
+
+static DynamicStrings_String HandlePercent (DynamicStrings_String fmt, DynamicStrings_String s, int startpos);
 
 
 /*
@@ -226,15 +263,39 @@ static DynamicStrings_String HandleEscape (DynamicStrings_String s)
                   A new string is returned.
 */
 
-static DynamicStrings_String FormatString (DynamicStrings_String s, unsigned char *w_, unsigned int _w_high)
+static DynamicStrings_String FormatString (DynamicStrings_String fmt, int *startpos, DynamicStrings_String in, unsigned char *w_, unsigned int _w_high)
+{
+  DynamicStrings_String s;
+  unsigned char w[_w_high+1];
+
+  /* make a local copy of each unbounded array.  */
+  memcpy (w, w_, _w_high+1);
+
+  DSdbEnter ();
+  if ((*startpos) >= 0)
+    s = PerformFormatString (fmt, startpos, in, (unsigned char *) w, _w_high);
+  else
+    s = DynamicStrings_Dup (in);
+  DSdbExit (s);
+  return s;
+}
+
+
+/*
+   FormatString - returns a String containing, s, together with encapsulated
+                  entity, w. It only formats the first %s or %d or %u with n.
+                  A new string is returned.
+*/
+
+static DynamicStrings_String PerformFormatString (DynamicStrings_String fmt, int *startpos, DynamicStrings_String in, unsigned char *w_, unsigned int _w_high)
 {
   unsigned int left;
   unsigned int u;
   int c;
   int width;
-  int i;
-  int j;
-  int k;
+  int nextperc;
+  int afterperc;
+  int endpos;
   char leader;
   char ch;
   char ch2;
@@ -244,81 +305,170 @@ static DynamicStrings_String FormatString (DynamicStrings_String s, unsigned cha
   /* make a local copy of each unbounded array.  */
   memcpy (w, w_, _w_high+1);
 
-  DSdbEnter ();
-  i = 0;
-  j = DynamicStrings_Index (s, '%', 0);
-  if (j == 0)
-    k = -(DynamicStrings_Length (s));
-  else
-    k = j;
-  if (j >= 0)
+  while ((*startpos) >= 0)
     {
-      if ((DynamicStrings_char (s, j+1)) == '-')
+      nextperc = DynamicStrings_Index (fmt, '%', (unsigned int) (*startpos));
+      afterperc = nextperc;
+      if (nextperc >= 0)
         {
-          left = TRUE;
-          j += 1;
-        }
-      else
-        left = FALSE;
-      ch = DynamicStrings_char (s, j+1);
-      if (ch == '0')
-        leader = '0';
-      else
-        leader = ' ';
-      width = 0;
-      while (IsDigit (ch))
-        {
-          width = (width*10)+((int ) (((unsigned int) (ch))-((unsigned int) ('0'))));
-          j += 1;
-          ch = DynamicStrings_char (s, j+1);
-        }
-      if ((ch == 'c') || (ch == 's'))
-        {
-          if (ch == 'c')
+          afterperc += 1;
+          if ((DynamicStrings_char (fmt, afterperc)) == '-')
             {
-              ch2 = w[0];
-              p = DynamicStrings_ConCatChar (DynamicStrings_InitString ((char *) "", 0), ch2);
+              left = TRUE;
+              afterperc += 1;
+            }
+          else
+            left = FALSE;
+          ch = DynamicStrings_char (fmt, afterperc);
+          if (ch == '0')
+            leader = '0';
+          else
+            leader = ' ';
+          width = 0;
+          while (IsDigit (ch))
+            {
+              width = (width*10)+((int ) (((unsigned int) (ch))-((unsigned int) ('0'))));
+              afterperc += 1;
+              ch = DynamicStrings_char (fmt, afterperc);
+            }
+          if ((ch == 'c') || (ch == 's'))
+            {
+              afterperc += 1;
+              if (ch == 'c')
+                {
+                  ch2 = w[0];
+                  p = DynamicStrings_ConCatChar (DynamicStrings_InitString ((char *) "", 0), ch2);
+                }
+              else
+                {
+                  Cast ((unsigned char *) &p, (sizeof (p)-1), (unsigned char *) w, _w_high);
+                  p = DynamicStrings_Dup (p);
+                }
+              if ((width > 0) && (((int ) (DynamicStrings_Length (p))) < width))
+                {
+                  /* avoid gcc warning by using compound statement even if not strictly necessary.  */
+                  if (left)
+                    /* place trailing spaces after, p.  */
+                    p = DynamicStrings_ConCat (p, DynamicStrings_Mark (DynamicStrings_Mult (DynamicStrings_Mark (DynamicStrings_InitString ((char *) " ", 1)), (unsigned int) width-((int ) (DynamicStrings_Length (p))))));
+                  else
+                    /* padd string, p, with leading spaces.  */
+                    p = DynamicStrings_ConCat (DynamicStrings_Mult (DynamicStrings_Mark (DynamicStrings_InitString ((char *) " ", 1)), (unsigned int) width-((int ) (DynamicStrings_Length (p)))), DynamicStrings_Mark (p));
+                }
+              /* include string, p, into, in.  */
+              if (nextperc > 0)
+                in = DynamicStrings_ConCat (in, DynamicStrings_Slice (fmt, (*startpos), nextperc));
+              in = DynamicStrings_ConCat (in, p);
+              (*startpos) = afterperc;
+              DSdbExit ((DynamicStrings_String) NULL);
+              return in;
+            }
+          else if (ch == 'd')
+            {
+              afterperc += 1;
+              Cast ((unsigned char *) &c, (sizeof (c)-1), (unsigned char *) w, _w_high);
+              in = Copy (fmt, in, (*startpos), nextperc);
+              in = DynamicStrings_ConCat (in, StringConvert_IntegerToString (c, (unsigned int) width, leader, FALSE, 10, FALSE));
+              (*startpos) = afterperc;
+              DSdbExit ((DynamicStrings_String) NULL);
+              return in;
+            }
+          else if (ch == 'x')
+            {
+              afterperc += 1;
+              Cast ((unsigned char *) &u, (sizeof (u)-1), (unsigned char *) w, _w_high);
+              in = DynamicStrings_ConCat (in, DynamicStrings_Slice (fmt, (*startpos), nextperc));
+              in = DynamicStrings_ConCat (in, StringConvert_CardinalToString (u, (unsigned int) width, leader, 16, TRUE));
+              (*startpos) = afterperc;
+              DSdbExit ((DynamicStrings_String) NULL);
+              return in;
+            }
+          else if (ch == 'u')
+            {
+              afterperc += 1;
+              Cast ((unsigned char *) &u, (sizeof (u)-1), (unsigned char *) w, _w_high);
+              in = DynamicStrings_ConCat (in, DynamicStrings_Slice (fmt, (*startpos), nextperc));
+              in = DynamicStrings_ConCat (in, StringConvert_CardinalToString (u, (unsigned int) width, leader, 10, FALSE));
+              (*startpos) = afterperc;
+              DSdbExit ((DynamicStrings_String) NULL);
+              return in;
             }
           else
             {
-              Cast ((unsigned char *) &p, (sizeof (p)-1), (unsigned char *) w, _w_high);
-              p = DynamicStrings_Dup (p);
+              afterperc += 1;
+              /* copy format string.  */
+              if (nextperc > 0)
+                in = DynamicStrings_ConCat (in, DynamicStrings_Slice (fmt, (*startpos), nextperc));
+              /* and the character after the %.  */
+              in = DynamicStrings_ConCat (in, DynamicStrings_Mark (DynamicStrings_InitStringChar (ch)));
             }
-          if ((width > 0) && (((int ) (DynamicStrings_Length (p))) < width))
-            {
-              /* avoid gcc warning by using compound statement even if not strictly necessary.  */
-              if (left)
-                /* place trailing spaces after, p  */
-                p = DynamicStrings_ConCat (p, DynamicStrings_Mark (DynamicStrings_Mult (DynamicStrings_Mark (DynamicStrings_InitString ((char *) " ", 1)), (unsigned int) width-((int ) (DynamicStrings_Length (p))))));
-              else
-                /* padd string, p, with leading spaces  */
-                p = DynamicStrings_ConCat (DynamicStrings_Mult (DynamicStrings_Mark (DynamicStrings_InitString ((char *) " ", 1)), (unsigned int) width-((int ) (DynamicStrings_Length (p)))), DynamicStrings_Mark (p));
-            }
-          /* include string, p, into s  */
-          s = DynamicStrings_ConCat (DynamicStrings_ConCat (DynamicStrings_Slice (s, i, k), DynamicStrings_Mark (p)), DynamicStrings_Mark (DynamicStrings_Slice (s, j+2, 0)));
-        }
-      else if (ch == 'd')
-        {
-          Cast ((unsigned char *) &c, (sizeof (c)-1), (unsigned char *) w, _w_high);
-          s = DynamicStrings_ConCat (DynamicStrings_ConCat (DynamicStrings_Slice (s, i, k), StringConvert_IntegerToString (c, (unsigned int) width, leader, FALSE, 10, FALSE)), DynamicStrings_Mark (DynamicStrings_Slice (s, j+2, 0)));
-        }
-      else if (ch == 'x')
-        {
-          Cast ((unsigned char *) &u, (sizeof (u)-1), (unsigned char *) w, _w_high);
-          s = DynamicStrings_ConCat (DynamicStrings_ConCat (DynamicStrings_Slice (s, i, k), StringConvert_CardinalToString (u, (unsigned int) width, leader, 16, TRUE)), DynamicStrings_Mark (DynamicStrings_Slice (s, j+2, 0)));
-        }
-      else if (ch == 'u')
-        {
-          Cast ((unsigned char *) &u, (sizeof (u)-1), (unsigned char *) w, _w_high);
-          s = DynamicStrings_ConCat (DynamicStrings_ConCat (DynamicStrings_Slice (s, i, k), StringConvert_CardinalToString (u, (unsigned int) width, leader, 10, FALSE)), DynamicStrings_Mark (DynamicStrings_Slice (s, j+2, 0)));
+          (*startpos) = afterperc;
         }
       else
-        s = DynamicStrings_ConCat (DynamicStrings_ConCat (DynamicStrings_Slice (s, i, k), DynamicStrings_Mark (DynamicStrings_InitStringChar (ch))), DynamicStrings_Mark (DynamicStrings_Slice (s, j+1, 0)));
+        {
+          /* nothing to do.  */
+          DSdbExit ((DynamicStrings_String) NULL);
+          return in;
+        }
     }
+  DSdbExit ((DynamicStrings_String) NULL);
+  return in;
+}
+
+
+/*
+   Copy - copies, fmt[start:end] -> in and returns in.  Providing that start >= 0.
+*/
+
+static DynamicStrings_String Copy (DynamicStrings_String fmt, DynamicStrings_String in, int start, int end)
+{
+  if (start >= 0)
+    {
+      /* avoid gcc warning by using compound statement even if not strictly necessary.  */
+      if (end > 0)
+        in = DynamicStrings_ConCat (in, DynamicStrings_Mark (DynamicStrings_Slice (fmt, start, end)));
+      else if (end < 0)
+        in = DynamicStrings_ConCat (in, DynamicStrings_Mark (DynamicStrings_Slice (fmt, start, 0)));
+    }
+  return in;
+}
+
+
+/*
+   HandlePercent - pre-condition:  s, is a string.
+                   Post-condition:  a new string is returned which is a copy of,
+                   s, except %% is transformed into %.
+*/
+
+static DynamicStrings_String HandlePercent (DynamicStrings_String fmt, DynamicStrings_String s, int startpos)
+{
+  int prevpos;
+  DynamicStrings_String result;
+
+  if ((startpos == (DynamicStrings_Length (fmt))) || (startpos < 0))
+    return s;
   else
-    s = DynamicStrings_Dup (s);
-  DSdbExit (s);
-  return s;
+    {
+      prevpos = startpos;
+      while ((startpos >= 0) && (prevpos < ((int ) (DynamicStrings_Length (fmt)))))
+        {
+          startpos = DynamicStrings_Index (fmt, '%', (unsigned int) startpos);
+          if (startpos >= prevpos)
+            {
+              if (startpos > 0)
+                s = DynamicStrings_ConCat (s, DynamicStrings_Mark (DynamicStrings_Slice (fmt, prevpos, startpos)));
+              startpos += 1;
+              if ((DynamicStrings_char (fmt, startpos)) == '%')
+                {
+                  s = DynamicStrings_ConCatChar (s, '%');
+                  startpos += 1;
+                }
+              prevpos = startpos;
+            }
+        }
+      if (prevpos < ((int ) (DynamicStrings_Length (fmt))))
+        s = DynamicStrings_ConCat (s, DynamicStrings_Mark (DynamicStrings_Slice (fmt, prevpos, 0)));
+      return s;
+    }
 }
 
 
@@ -327,10 +477,13 @@ static DynamicStrings_String FormatString (DynamicStrings_String s, unsigned cha
               escape sequences translated.
 */
 
-DynamicStrings_String FormatStrings_Sprintf0 (DynamicStrings_String s)
+DynamicStrings_String FormatStrings_Sprintf0 (DynamicStrings_String fmt)
 {
+  DynamicStrings_String s;
+
   DSdbEnter ();
-  s = HandleEscape (s);
+  fmt = HandleEscape (fmt);
+  s = HandlePercent (fmt, DynamicStrings_InitString ((char *) "", 0), 0);
   DSdbExit (s);
   return s;
 }
@@ -341,15 +494,20 @@ DynamicStrings_String FormatStrings_Sprintf0 (DynamicStrings_String s)
               entity, w. It only formats the first %s or %d with n.
 */
 
-DynamicStrings_String FormatStrings_Sprintf1 (DynamicStrings_String s, unsigned char *w_, unsigned int _w_high)
+DynamicStrings_String FormatStrings_Sprintf1 (DynamicStrings_String fmt, unsigned char *w_, unsigned int _w_high)
 {
+  int i;
+  DynamicStrings_String s;
   unsigned char w[_w_high+1];
 
   /* make a local copy of each unbounded array.  */
   memcpy (w, w_, _w_high+1);
 
   DSdbEnter ();
-  s = FormatString (HandleEscape (s), (unsigned char *) w, _w_high);
+  fmt = HandleEscape (fmt);
+  i = 0;
+  s = FormatString (fmt, &i, DynamicStrings_InitString ((char *) "", 0), (unsigned char *) w, _w_high);
+  s = HandlePercent (fmt, s, i);
   DSdbExit (s);
   return s;
 }
@@ -359,8 +517,10 @@ DynamicStrings_String FormatStrings_Sprintf1 (DynamicStrings_String s, unsigned 
    Sprintf2 - returns a string, s, which has been formatted.
 */
 
-DynamicStrings_String FormatStrings_Sprintf2 (DynamicStrings_String s, unsigned char *w1_, unsigned int _w1_high, unsigned char *w2_, unsigned int _w2_high)
+DynamicStrings_String FormatStrings_Sprintf2 (DynamicStrings_String fmt, unsigned char *w1_, unsigned int _w1_high, unsigned char *w2_, unsigned int _w2_high)
 {
+  int i;
+  DynamicStrings_String s;
   unsigned char w1[_w1_high+1];
   unsigned char w2[_w2_high+1];
 
@@ -369,7 +529,11 @@ DynamicStrings_String FormatStrings_Sprintf2 (DynamicStrings_String s, unsigned 
   memcpy (w2, w2_, _w2_high+1);
 
   DSdbEnter ();
-  s = FormatString (FormatString (HandleEscape (s), (unsigned char *) w1, _w1_high), (unsigned char *) w2, _w2_high);
+  fmt = HandleEscape (fmt);
+  i = 0;
+  s = FormatString (fmt, &i, DynamicStrings_InitString ((char *) "", 0), (unsigned char *) w1, _w1_high);
+  s = FormatString (fmt, &i, s, (unsigned char *) w2, _w2_high);
+  s = HandlePercent (fmt, s, i);
   DSdbExit (s);
   return s;
 }
@@ -379,8 +543,10 @@ DynamicStrings_String FormatStrings_Sprintf2 (DynamicStrings_String s, unsigned 
    Sprintf3 - returns a string, s, which has been formatted.
 */
 
-DynamicStrings_String FormatStrings_Sprintf3 (DynamicStrings_String s, unsigned char *w1_, unsigned int _w1_high, unsigned char *w2_, unsigned int _w2_high, unsigned char *w3_, unsigned int _w3_high)
+DynamicStrings_String FormatStrings_Sprintf3 (DynamicStrings_String fmt, unsigned char *w1_, unsigned int _w1_high, unsigned char *w2_, unsigned int _w2_high, unsigned char *w3_, unsigned int _w3_high)
 {
+  int i;
+  DynamicStrings_String s;
   unsigned char w1[_w1_high+1];
   unsigned char w2[_w2_high+1];
   unsigned char w3[_w3_high+1];
@@ -391,7 +557,12 @@ DynamicStrings_String FormatStrings_Sprintf3 (DynamicStrings_String s, unsigned 
   memcpy (w3, w3_, _w3_high+1);
 
   DSdbEnter ();
-  s = FormatString (FormatString (FormatString (HandleEscape (s), (unsigned char *) w1, _w1_high), (unsigned char *) w2, _w2_high), (unsigned char *) w3, _w3_high);
+  fmt = HandleEscape (fmt);
+  i = 0;
+  s = FormatString (fmt, &i, DynamicStrings_InitString ((char *) "", 0), (unsigned char *) w1, _w1_high);
+  s = FormatString (fmt, &i, s, (unsigned char *) w2, _w2_high);
+  s = FormatString (fmt, &i, s, (unsigned char *) w3, _w3_high);
+  s = HandlePercent (fmt, s, i);
   DSdbExit (s);
   return s;
 }
@@ -401,8 +572,10 @@ DynamicStrings_String FormatStrings_Sprintf3 (DynamicStrings_String s, unsigned 
    Sprintf4 - returns a string, s, which has been formatted.
 */
 
-DynamicStrings_String FormatStrings_Sprintf4 (DynamicStrings_String s, unsigned char *w1_, unsigned int _w1_high, unsigned char *w2_, unsigned int _w2_high, unsigned char *w3_, unsigned int _w3_high, unsigned char *w4_, unsigned int _w4_high)
+DynamicStrings_String FormatStrings_Sprintf4 (DynamicStrings_String fmt, unsigned char *w1_, unsigned int _w1_high, unsigned char *w2_, unsigned int _w2_high, unsigned char *w3_, unsigned int _w3_high, unsigned char *w4_, unsigned int _w4_high)
 {
+  int i;
+  DynamicStrings_String s;
   unsigned char w1[_w1_high+1];
   unsigned char w2[_w2_high+1];
   unsigned char w3[_w3_high+1];
@@ -415,7 +588,13 @@ DynamicStrings_String FormatStrings_Sprintf4 (DynamicStrings_String s, unsigned 
   memcpy (w4, w4_, _w4_high+1);
 
   DSdbEnter ();
-  s = FormatString (FormatString (FormatString (FormatString (HandleEscape (s), (unsigned char *) w1, _w1_high), (unsigned char *) w2, _w2_high), (unsigned char *) w3, _w3_high), (unsigned char *) w4, _w4_high);
+  fmt = HandleEscape (fmt);
+  i = 0;
+  s = FormatString (fmt, &i, DynamicStrings_InitString ((char *) "", 0), (unsigned char *) w1, _w1_high);
+  s = FormatString (fmt, &i, s, (unsigned char *) w2, _w2_high);
+  s = FormatString (fmt, &i, s, (unsigned char *) w3, _w3_high);
+  s = FormatString (fmt, &i, s, (unsigned char *) w4, _w4_high);
+  s = HandlePercent (fmt, s, i);
   DSdbExit (s);
   return s;
 }

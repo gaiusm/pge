@@ -1,4 +1,3 @@
-/* automatically created by mc from ../git-pge/m2/devicePy.def.  */
 
 
 #if !defined (_devicePy_H)

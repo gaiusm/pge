@@ -1,4 +1,3 @@
-/* automatically created by mc from ../git-pge/m2/delay.def.  */
 
 
 #if !defined (_delay_H)

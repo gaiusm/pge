@@ -1,4 +1,19 @@
-/* automatically created by mc from ../git-pge/m2/history.mod.  */
+/* This file is part of GNU Modula-2.
+
+GNU Modula-2 is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free
+Software Foundation; either version 3, or (at your option) any later
+version.
+
+GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License along
+with gm2; see the file COPYING.  If not, write to the Free Software
+Foundation, 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 #   if !defined (PROC_D)
 #      define PROC_D
@@ -284,13 +299,13 @@ static void dumpHlist (hList l)
 
 
             default:
-              CaseException ("../git-pge/m2/history.def", 1, 15);
+              CaseException ("../pge/m2/history.def", 1, 15);
           }
         break;
 
 
       default:
-        CaseException ("../git-pge/m2/history.def", 1, 15);
+        CaseException ("../pge/m2/history.def", 1, 15);
     }
   libc_printf ((char *) "`n", 2);
 }
@@ -362,7 +377,7 @@ static void assert (unsigned int b, unsigned int line)
 {
   if (! b)
     {
-      libc_printf ((char *) "../git-pge/m2/history.mod", 25);
+      libc_printf ((char *) "../pge/m2/history.mod", 21);
       libc_printf ((char *) ":%d:error assert failed\\n", 25, line);
       M2RTS_HALT (-1);
     }

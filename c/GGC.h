@@ -1,4 +1,3 @@
-/* automatically created by mc from ../git-pge/m2/GC.def.  */
 
 
 #if !defined (_GC_H)

@@ -1,4 +1,18 @@
-/* automatically created by mc from /home/gaius/GM2/graft-8.2.0/gcc-8.2.0/gcc/gm2/gm2-libs/FIO.mod.  */
+/* This file is part of GNU Modula-2.
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA  */
 
 #   if !defined (PROC_D)
 #      define PROC_D
@@ -512,7 +526,7 @@ static FIO_File GetNextFreeDescriptor (void)
         return f;  /* create new slot  */
       }
   }
-  ReturnException ("/home/gaius/GM2/graft-8.2.0/gcc-8.2.0/gcc/gm2/gm2-libs/FIO.def", 3, 1);
+  ReturnException ("/home/gaius/GM2/graft-9.1.0/gcc-9.1.0/gcc/gm2/gm2-libs/FIO.def", 19, 1);
 }
 
 
@@ -689,6 +703,7 @@ static int ReadFromBuffer (FIO_File f, void * a, unsigned int nBytes)
           result = libc_read (fd->unixfd, a, (size_t) (int ) (nBytes));
           if (result > 0)
             {
+              /* avoid dangling else.  */
               total += result;
               fd->abspos += result;
               /* now disable the buffer as we read directly into, a.  */
@@ -740,6 +755,7 @@ static int BufferedRead (FIO_File f, unsigned int nBytes, void * a)
 
   if (f != Error)
     {
+      /* avoid dangling else.  */
       fd = Indexing_GetIndice (FileInfo, (unsigned int) f);
       total = 0;  /* how many bytes have we read  */
       if (fd != NULL)  /* how many bytes have we read  */
@@ -778,6 +794,7 @@ static int BufferedRead (FIO_File f, unsigned int nBytes, void * a)
                   n = libc_read (fd->unixfd, fd->buffer->address, (size_t) fd->buffer->size);
                   if (n >= 0)
                     {
+                      /* avoid dangling else.  */
                       fd->buffer->valid = TRUE;
                       fd->buffer->position = 0;
                       fd->buffer->left = n;
@@ -1029,6 +1046,7 @@ static void CheckAccess (FIO_File f, FileUsage use, unsigned int towrite)
 
   if (f != Error)
     {
+      /* avoid dangling else.  */
       fd = Indexing_GetIndice (FileInfo, (unsigned int) f);
       if (fd == NULL)
         {

@@ -1,4 +1,3 @@
-/* automatically created by mc from ../git-pge/m2/polar.def.  */
 
 
 #if !defined (_polar_H)

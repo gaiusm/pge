@@ -1,4 +1,3 @@
-/* automatically created by mc from ../git-pge/m2/PolyMatrix3D.def.  */
 
 
 #if !defined (_PolyMatrix3D_H)

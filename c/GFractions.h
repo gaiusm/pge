@@ -1,4 +1,3 @@
-/* automatically created by mc from ../git-pge/m2/Fractions.def.  */
 
 
 #if !defined (_Fractions_H)

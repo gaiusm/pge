@@ -1,4 +1,3 @@
-/* automatically created by mc from ../git-pge/m2/twoDsim.def.  */
 
 
 #if !defined (_twoDsim_H)

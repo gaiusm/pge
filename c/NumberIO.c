@@ -1,4 +1,18 @@
-/* automatically created by mc from /home/gaius/GM2/graft-8.2.0/gcc-8.2.0/gcc/gm2/gm2-libs/NumberIO.mod.  */
+/* This file is part of GNU Modula-2.
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA  */
 
 #   if !defined (PROC_D)
 #      define PROC_D
@@ -130,21 +144,6 @@ void NumberIO_CardToStr (unsigned int x, unsigned int n, char *a, unsigned int _
   unsigned int Higha;
   _T7 buf;
 
-  /* This file is part of GNU Modula-2.
-
-This library is free software; you can redistribute it and/or
-modify it under the terms of the GNU Lesser General Public
-License as published by the Free Software Foundation; either
-version 2.1 of the License, or (at your option) any later version.
-
-This library is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-Lesser General Public License for more details.
-
-You should have received a copy of the GNU Lesser General Public
-License along with this library; if not, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA  */
   i = 0;
   do {
     i += 1;
@@ -205,6 +204,7 @@ void NumberIO_StrToCard (char *a_, unsigned int _a_high, unsigned int *x)
         (*x) = (10*(*x))+(((unsigned int) (a[i]))-((unsigned int) ('0')));
         if (i < higha)
           {
+            /* avoid dangling else.  */
             i += 1;
             if ((a[i] < '0') || (a[i] > '9'))
               ok = FALSE;
@@ -284,6 +284,7 @@ void NumberIO_IntToStr (int x, unsigned int n, char *a, unsigned int _a_high)
 
   if (x < 0)
     {
+      /* avoid dangling else.  */
       Negative = TRUE;
       c = ((unsigned int ) (abs (x+1)))+1;
       if (n > 0)
@@ -369,6 +370,7 @@ void NumberIO_StrToInt (char *a_, unsigned int _a_high, int *x)
           (*x) = (10*(*x))+((int ) (((unsigned int) (a[i]))-((unsigned int) ('0'))));
         if (i < higha)
           {
+            /* avoid dangling else.  */
             i += 1;
             if ((a[i] < '0') || (a[i] > '9'))
               ok = FALSE;
@@ -557,6 +559,7 @@ void NumberIO_StrToBinInt (char *a_, unsigned int _a_high, int *x)
         (*x) = (2*(*x))+((int ) (((unsigned int) (a[i]))-((unsigned int) ('0'))));
         if (i < higha)
           {
+            /* avoid dangling else.  */
             i += 1;
             if ((a[i] < '0') || (a[i] > '1'))
               ok = FALSE;
@@ -600,6 +603,7 @@ void NumberIO_StrToHexInt (char *a_, unsigned int _a_high, int *x)
           (*x) = (0x010*(*x))+((int ) ((((unsigned int) (a[i]))-((unsigned int) ('A')))+10));
         if (i < higha)
           {
+            /* avoid dangling else.  */
             i += 1;
             if (((a[i] < '0') || (a[i] > '9')) && ((a[i] < 'A') || (a[i] > 'F')))
               ok = FALSE;
@@ -640,6 +644,7 @@ void NumberIO_StrToOctInt (char *a_, unsigned int _a_high, int *x)
         (*x) = (8*(*x))+((int ) (((unsigned int) (a[i]))-((unsigned int) ('0'))));
         if (i < higha)
           {
+            /* avoid dangling else.  */
             i += 1;
             if ((a[i] < '0') || (a[i] > '7'))
               ok = FALSE;

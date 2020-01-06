@@ -1,4 +1,18 @@
-/* automatically created by mc from /home/gaius/GM2/graft-8.2.0/gcc-8.2.0/gcc/gm2/gm2-libs-iso/COROUTINES.mod.  */
+/* This file is part of GNU Modula-2.
+
+GNU Modula-2 is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free
+Software Foundation; either version 3, or (at your option) any later
+version.
+
+GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License along
+with gm2; see the file COPYING.  If not, write to the Free Software
+Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.  */
 
 #   if !defined (PROC_D)
 #      define PROC_D
@@ -197,7 +211,7 @@ static void localMain (void)
       initMain = TRUE;
       Storage_ALLOCATE ((void **) &currentCoRoutine, sizeof (_T1));
       if ((pth_pth_uctx_create (&currentCoRoutine->context)) == 0)
-        M2RTS_Halt ((char *) "/home/gaius/GM2/graft-8.2.0/gcc-8.2.0/gcc/gm2/gm2-libs-iso/COROUTINES.mod", 73, 166, (char *) "localMain", 9, (char *) "unable to create context for main", 33);
+        M2RTS_Halt ((char *) "/home/gaius/GM2/graft-9.1.0/gcc-9.1.0/gcc/gm2/gm2-libs-iso/COROUTINES.mod", 73, 166, (char *) "localMain", 9, (char *) "unable to create context for main", 33);
       currentCoRoutine->ehblock = RTExceptions_GetExceptionBlock ();
       currentCoRoutine->inexcept = RTExceptions_IsInExceptionState ();
       currentCoRoutine->source = RTExceptions_GetExceptionSource ();
@@ -219,7 +233,7 @@ static void localMain (void)
 
 static void Finished (void * p)
 {
-  M2RTS_Halt ((char *) "/home/gaius/GM2/graft-8.2.0/gcc-8.2.0/gcc/gm2/gm2-libs-iso/COROUTINES.mod", 73, 191, (char *) "Finished", 8, (char *) "process terminated illegally", 28);
+  M2RTS_Halt ((char *) "/home/gaius/GM2/graft-9.1.0/gcc-9.1.0/gcc/gm2/gm2-libs-iso/COROUTINES.mod", 73, 191, (char *) "Finished", 8, (char *) "process terminated illegally", 28);
 }
 
 
@@ -232,12 +246,12 @@ static void localInit (void)
   if (! initPthreads)
     {
       if ((pth_pth_init ()) == 0)
-        M2RTS_Halt ((char *) "/home/gaius/GM2/graft-8.2.0/gcc-8.2.0/gcc/gm2/gm2-libs-iso/COROUTINES.mod", 73, 205, (char *) "localInit", 9, (char *) "failed to initialize pthreads", 29);
+        M2RTS_Halt ((char *) "/home/gaius/GM2/graft-9.1.0/gcc-9.1.0/gcc/gm2/gm2-libs-iso/COROUTINES.mod", 73, 205, (char *) "localInit", 9, (char *) "failed to initialize pthreads", 29);
       initPthreads = TRUE;
       if ((pth_pth_uctx_create (&illegalFinish)) == 0)
-        M2RTS_Halt ((char *) "/home/gaius/GM2/graft-8.2.0/gcc-8.2.0/gcc/gm2/gm2-libs-iso/COROUTINES.mod", 73, 211, (char *) "localInit", 9, (char *) "unable to create user context", 29);
+        M2RTS_Halt ((char *) "/home/gaius/GM2/graft-9.1.0/gcc-9.1.0/gcc/gm2/gm2-libs-iso/COROUTINES.mod", 73, 211, (char *) "localInit", 9, (char *) "unable to create user context", 29);
       if ((pth_pth_uctx_make ((pth_pth_uctx_t) illegalFinish, NULL, (pth_size_t) MinStack, NULL, (pth_proc) {(pth_proc_t) Finished}, NULL, (pth_pth_uctx_t) NULL)) == 0)
-        M2RTS_Halt ((char *) "/home/gaius/GM2/graft-8.2.0/gcc-8.2.0/gcc/gm2/gm2-libs-iso/COROUTINES.mod", 73, 216, (char *) "localInit", 9, (char *) "unable to make user context", 27);
+        M2RTS_Halt ((char *) "/home/gaius/GM2/graft-9.1.0/gcc-9.1.0/gcc/gm2/gm2-libs-iso/COROUTINES.mod", 73, 216, (char *) "localInit", 9, (char *) "unable to make user context", 27);
     }
   localMain ();
 }
@@ -345,12 +359,12 @@ static void IOTransferHandler (unsigned int InterruptNo, unsigned int Priority, 
 
   localInit ();
   if (l == NULL)
-    M2RTS_Halt ((char *) "/home/gaius/GM2/graft-8.2.0/gcc-8.2.0/gcc/gm2/gm2-libs-iso/COROUTINES.mod", 73, 454, (char *) "IOTransferHandler", 17, (char *) "no coroutine attached to this interrupt vector which was initiated by IOTRANSFER", 80);
+    M2RTS_Halt ((char *) "/home/gaius/GM2/graft-9.1.0/gcc-9.1.0/gcc/gm2/gm2-libs-iso/COROUTINES.mod", 73, 454, (char *) "IOTransferHandler", 17, (char *) "no coroutine attached to this interrupt vector which was initiated by IOTRANSFER", 80);
   else
     {
       ourself = RTint_AttachVector (InterruptNo, (void *) l->chain);
       if (ourself != l)
-        M2RTS_Halt ((char *) "/home/gaius/GM2/graft-8.2.0/gcc-8.2.0/gcc/gm2/gm2-libs-iso/COROUTINES.mod", 73, 461, (char *) "IOTransferHandler", 17, (char *) "inconsistancy of return result", 30);
+        M2RTS_Halt ((char *) "/home/gaius/GM2/graft-9.1.0/gcc-9.1.0/gcc/gm2/gm2-libs-iso/COROUTINES.mod", 73, 461, (char *) "IOTransferHandler", 17, (char *) "inconsistancy of return result", 30);
       if (l->chain == NULL)
         removeAttached (l->curco);
       else
@@ -412,9 +426,9 @@ void COROUTINES_NEWCOROUTINE (PROC procBody, void * workspace, unsigned int size
   localInit ();
   tp = (ThreadProcess) {(ThreadProcess_t) procBody.proc};
   if ((pth_pth_uctx_create (&ctx)) == 0)
-    M2RTS_Halt ((char *) "/home/gaius/GM2/graft-8.2.0/gcc-8.2.0/gcc/gm2/gm2-libs-iso/COROUTINES.mod", 73, 101, (char *) "NEWCOROUTINE", 12, (char *) "unable to create user context", 29);
+    M2RTS_Halt ((char *) "/home/gaius/GM2/graft-9.1.0/gcc-9.1.0/gcc/gm2/gm2-libs-iso/COROUTINES.mod", 73, 101, (char *) "NEWCOROUTINE", 12, (char *) "unable to create user context", 29);
   if ((pth_pth_uctx_make ((pth_pth_uctx_t) ctx, workspace, (pth_size_t) size, NULL, (pth_proc) {(pth_proc_t) tp.proc}, NULL, (pth_pth_uctx_t) illegalFinish)) == 0)
-    M2RTS_Halt ((char *) "/home/gaius/GM2/graft-8.2.0/gcc-8.2.0/gcc/gm2/gm2-libs-iso/COROUTINES.mod", 73, 105, (char *) "NEWCOROUTINE", 12, (char *) "unable to make user context", 27);
+    M2RTS_Halt ((char *) "/home/gaius/GM2/graft-9.1.0/gcc-9.1.0/gcc/gm2/gm2-libs-iso/COROUTINES.mod", 73, 105, (char *) "NEWCOROUTINE", 12, (char *) "unable to make user context", 27);
   Storage_ALLOCATE ((void **) &(*cr), sizeof (_T1));
   if (initProtection == COROUTINES_UnassignedPriority)
     initProtection = COROUTINES_PROT ();
@@ -439,14 +453,14 @@ void COROUTINES_TRANSFER (COROUTINES_COROUTINE *from, COROUTINES_COROUTINE to)
   localInit ();
   (*from) = currentCoRoutine;
   if (to->context == (*from)->context)
-    M2RTS_Halt ((char *) "/home/gaius/GM2/graft-8.2.0/gcc-8.2.0/gcc/gm2/gm2-libs-iso/COROUTINES.mod", 73, 137, (char *) "TRANSFER", 8, (char *) "error when attempting to context switch to the same process", 59);
+    M2RTS_Halt ((char *) "/home/gaius/GM2/graft-9.1.0/gcc-9.1.0/gcc/gm2/gm2-libs-iso/COROUTINES.mod", 73, 137, (char *) "TRANSFER", 8, (char *) "error when attempting to context switch to the same process", 59);
   (*from)->inexcept = RTExceptions_SetExceptionState (to->inexcept);
   (*from)->source = RTExceptions_GetExceptionSource ();
   currentCoRoutine = to;
   RTExceptions_SetExceptionBlock (currentCoRoutine->ehblock);
   RTExceptions_SetExceptionSource ((void *) currentCoRoutine->source);
   if ((pth_pth_uctx_switch ((pth_pth_uctx_t) (*from)->context, (pth_pth_uctx_t) to->context)) == 0)
-    M2RTS_Halt ((char *) "/home/gaius/GM2/graft-8.2.0/gcc-8.2.0/gcc/gm2/gm2-libs-iso/COROUTINES.mod", 73, 147, (char *) "TRANSFER", 8, (char *) "an error as it was unable to change the user context", 52);
+    M2RTS_Halt ((char *) "/home/gaius/GM2/graft-9.1.0/gcc-9.1.0/gcc/gm2/gm2-libs-iso/COROUTINES.mod", 73, 147, (char *) "TRANSFER", 8, (char *) "an error as it was unable to change the user context", 52);
 }
 
 

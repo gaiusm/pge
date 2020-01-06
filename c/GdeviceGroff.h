@@ -1,4 +1,3 @@
-/* automatically created by mc from ../git-pge/m2/deviceGroff.def.  */
 
 
 #if !defined (_deviceGroff_H)

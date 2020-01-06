@@ -1,4 +1,18 @@
-/* automatically created by mc from /home/gaius/GM2/graft-8.2.0/gcc-8.2.0/gcc/gm2/gm2-libs-iso/EXCEPTIONS.mod.  */
+/* This file is part of GNU Modula-2.
+
+GNU Modula-2 is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free
+Software Foundation; either version 3, or (at your option) any later
+version.
+
+GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License along
+with gm2; see the file COPYING.  If not, write to the Free Software
+Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.  */
 
 #   if !defined (PROC_D)
 #      define PROC_D
@@ -57,9 +71,9 @@ void EXCEPTIONS_RAISE (EXCEPTIONS_ExceptionSource source, EXCEPTIONS_ExceptionNu
   */
   RTExceptions_SetExceptionSource ((void *) source);
   RTExceptions_SetExceptionBlock (source->eh);
-  RTExceptions_Raise ((unsigned int) number, "/home/gaius/GM2/graft-8.2.0/gcc-8.2.0/gcc/gm2/gm2-libs-iso/EXCEPTIONS.mod", 57, 3, "RAISE", &message);
+  RTExceptions_Raise ((unsigned int) number, "/home/gaius/GM2/graft-9.1.0/gcc-9.1.0/gcc/gm2/gm2-libs-iso/EXCEPTIONS.mod", 57, 3, "RAISE", &message);
   /* we should never reach here as Raise should jump to the exception handler  */
-  M2RTS_Halt ((char *) "/home/gaius/GM2/graft-8.2.0/gcc-8.2.0/gcc/gm2/gm2-libs-iso/EXCEPTIONS.mod", 73, 59, (char *) "RAISE", 5, (char *) "should never return from RTException.Raise", 42);
+  M2RTS_Halt ((char *) "/home/gaius/GM2/graft-9.1.0/gcc-9.1.0/gcc/gm2/gm2-libs-iso/EXCEPTIONS.mod", 73, 59, (char *) "RAISE", 5, (char *) "should never return from RTException.Raise", 42);
 }
 
 EXCEPTIONS_ExceptionNumber EXCEPTIONS_CurrentNumber (EXCEPTIONS_ExceptionSource source)
@@ -71,8 +85,8 @@ EXCEPTIONS_ExceptionNumber EXCEPTIONS_CurrentNumber (EXCEPTIONS_ExceptionSource 
   if (RTExceptions_IsInExceptionState ())
     return RTExceptions_GetNumber (source->eh);
   else
-    RTExceptions_Raise ((unsigned int) (M2EXCEPTION_coException), "/home/gaius/GM2/graft-8.2.0/gcc-8.2.0/gcc/gm2/gm2-libs-iso/EXCEPTIONS.mod", 74, 25, "CurrentNumber", "current coroutine is not in the exceptional execution state");
-  ReturnException ("/home/gaius/GM2/graft-8.2.0/gcc-8.2.0/gcc/gm2/gm2-libs-iso/EXCEPTIONS.def", 8, 1);
+    RTExceptions_Raise ((unsigned int) (M2EXCEPTION_coException), "/home/gaius/GM2/graft-9.1.0/gcc-9.1.0/gcc/gm2/gm2-libs-iso/EXCEPTIONS.mod", 74, 25, "CurrentNumber", "current coroutine is not in the exceptional execution state");
+  ReturnException ("/home/gaius/GM2/graft-9.1.0/gcc-9.1.0/gcc/gm2/gm2-libs-iso/EXCEPTIONS.def", 8, 1);
 }
 
 void EXCEPTIONS_GetMessage (char *text, unsigned int _text_high)
@@ -88,6 +102,7 @@ void EXCEPTIONS_GetMessage (char *text, unsigned int _text_high)
   */
   if (RTExceptions_IsInExceptionState ())
     {
+      /* avoid dangling else.  */
       h = _text_high;
       i = 0;
       p = RTExceptions_GetTextBuffer (RTExceptions_GetExceptionBlock ());

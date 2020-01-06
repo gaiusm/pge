@@ -1,4 +1,3 @@
-/* automatically created by mc from ../git-pge/m2/history.def.  */
 
 
 #if !defined (_history_H)

@@ -677,6 +677,17 @@ VAR
    optr: Object ;
 BEGIN
    (* your code goes here... 3rd year and mcomp.  *)
+   down ;
+   optr := GetIndice (objects, id) ;
+   WITH optr^ DO
+      fixed := FALSE ;
+      stationary := FALSE
+   END ;
+   checkMicroInterpen ;
+   Assert (NOT optr^.stationary, __LINE__) ;
+   up ;
+   Assert (NOT optr^.stationary, __LINE__) ;
+   (* end of 3rd year and mcomp.  *)
    RETURN id
 END unfix ;
 

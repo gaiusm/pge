@@ -1,4 +1,7 @@
-/* automatically created by mc from ../git-pge/m2/segment.mod.  */
+/* 
+   projectVector - returns the vector, onto, after it has been
+                   projected by, project.
+  */
 
 #   if !defined (PROC_D)
 #      define PROC_D
