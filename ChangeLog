@@ -44,6 +44,8 @@
 	* python/pgeplayback.py:  changed to Python3.
 	* python/pgepygame.py:  changed to Python3.
 	* version.c:  updated to 4.0.
+	* removed all output.raw files.
+	* removed all *.pyc files.
 
 2019-01-26      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
