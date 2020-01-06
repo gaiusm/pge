@@ -85,9 +85,6 @@ install: _pgeif.so
 	cp $(srcdir)/python/pge.py .
 	cp $(srcdir)/python/pgeplayback.py .
 	PYTHONPATH=.:$(srcdir)/python python $(srcdir)/pgesetup.py build
-	python -m py_compile pge.py
-	python -m py_compile pgeif.py
-	python -m py_compile pgeplayback.py
 	$(INSTALL_PROGRAM) -m 755 $(srcdir)/pgeplayback $(DESTDIR)/usr/bin
 	$(INSTALL_PROGRAM) -m 755 -d $(DESTDIR)/usr/lib/python$(PYTHON_VERSION)
 	$(INSTALL_PROGRAM) -m 644 pge.py $(DESTDIR)/usr/lib/python$(PYTHON_VERSION)

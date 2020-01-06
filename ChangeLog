@@ -197,6 +197,8 @@
 	* python/pge.py:  introduced local_fps.
 	* examples:  use pge.local_fps instead of per file implementation.
 	* Release 4.0.
+	* debian/control:  corrected dependancies for Python3.
+	* Makefile.in:  removed python compile commands.
 
 2019-01-26      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
