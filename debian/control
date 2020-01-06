@@ -1,7 +1,7 @@
 Source: pge
 Section: python
 Priority: optional
-Maintainer: Gaius Mulley <gaius@gnu.org>
+Maintainer: Gaius Mulley <gaius.mulley@southwales.ac.uk>
 Build-Depends:
  debhelper (>= 9),
  automake,
@@ -17,6 +17,7 @@ Build-Depends:
  python-setuptools,
  python-defaults,
  python,
+ python3,
  python-all-dev,
  swig,
  texinfo
@@ -25,7 +26,7 @@ X-Python-Version: >= 2.3
 
 Package: pge
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, python-pygame, gm2
+Depends: ${shlibs:Depends}, ${misc:Depends}, gm2
 Suggests:
 Conflicts:
 Description: Physics Game Engine module for Python/Pygame.
