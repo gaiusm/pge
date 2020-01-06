@@ -1,4 +1,51 @@
-2010-01-26      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+2020-01-06      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* Makefile.am:  changed compiler from 8.2.0 to 9.1.0.
+	* c/Makefile.am:  changed compiler from 8.2.0 to 9.1.0.
+	* examples/bagatelle/bagatelle.py:  changed to Python3.
+	* examples/breakout/breakout.py:  changed to Python3.
+	* examples/cannon/cannon.py:  changed to Python3.
+	* examples/frozenbubble/frozenbubble.py:  changed to Python3.
+	* examples/kong/trapped.py:  changed to Python3.
+	* examples/matchsticks/matchsticks.py:  changed to Python3.
+	* examples/rotation/rotation.py:  changed to Python3.
+	* examples/snooker/snooker.py:  changed to Python3.
+	* examples/springs/bounce.py:  changed to Python3.
+	* examples/springs/boxes-break.py:  changed to Python3.
+	* examples/springs/boxes.py:  changed to Python3.
+	* examples/springs/bridge.py:  changed to Python3.
+	* examples/springs/catapult.py:  changed to Python3.
+	* examples/springs/double.py:  changed to Python3.
+	* examples/springs/gravity.py:  changed to Python3.
+	* examples/springs/madness.py:  changed to Python3.
+	* examples/springs/ramps.py:  changed to Python3.
+	* examples/springs/simple.py:  changed to Python3.
+	* examples/springs/swing.py:  changed to Python3.
+	* examples/springs/tiny.py:  changed to Python3.
+	* examples/springs/tinyfall.py:  changed to Python3.
+	* examples/springs/tinyfall2.py:  changed to Python3.
+	* examples/springs/treble.py:  changed to Python3.
+	* examples/springs/unequal.py:  changed to Python3.
+	* examples/test/test.py:  changed to Python3.
+	* examples/trapped/trapped.py:  changed to Python3.
+	* i/pgeif.i:  strings are returned as bytes for Python3.
+	* localrun.sh.in:  changed to use Python3.
+	* m2/Makefile.am:  changed compiler from 8.2.0 to 9.1.0.
+	* m2/Makefile.in:  regerated.
+	* m2/rotation.mod:  updated dates.
+	* m2/twoDsim.mod:  updated dates.
+	* python/fig.py:  changed to Python3.
+	* python/max2code.py:  changed to Python3.
+	* python/mxmmaxima.py:  changed to Python3.
+	* python/mxmout.py:  changed to Python3.
+	* python/mxmparser.py:  changed to Python3.
+	* python/mxmtree.py:  changed to Python3.
+	* python/pge.py:  changed to Python3.
+	* python/pgeplayback.py:  changed to Python3.
+	* python/pgepygame.py:  changed to Python3.
+	* version.c:  updated to 4.0.
+
+2019-01-26      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* m2/twoDsim.mod:  fixed many polygon/polygon.
 	  (checkFrameInterpenPolygonPolygon)  New procedure.
@@ -6,18 +53,18 @@
 	* m2/rotation.mod:  New file.
 	* examples/rotation/rotation.py:  New file.
 
-2010-01-18      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+2019-01-18      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* m2/twoDsim.mod:  added broadphase hooks and data
 	  structures.  Worked on frame based interpen.
 
-2010-01-17      Gaius Mulley <gaius@gnu.org>
+2019-01-17      Gaius Mulley <gaius@gnu.org>
 
 	* added test code to m2.
 	* examples/frozenbubble/frozenbubble.py:
           New file.
 
-2010-01-06      Gaius Mulley <gaius@gnu.org>
+2019-01-06      Gaius Mulley <gaius@gnu.org>
 
 	* m2/interpen.mod:  New file.
 	* m2/interpen.def:  New file.

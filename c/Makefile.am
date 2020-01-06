@@ -11,7 +11,8 @@ bindir= @bindir@
 INSTALL_PROGRAM = install
 
 TEXI2HTML=python $(srcdir)/www/tools/texi2tr/src/texi2tr.py
-PYTHON_VERSION=$(strip $(shell python -V 2>&1 | cut -b8- | cut -f1-2 -d'.'))
+PYTHON_VERSION=$(strip $(shell python3 -V 2>&1 | cut -b8- | cut -f1-2 -d'.'))
+GM2GCCBASE=9.1.0
 
 GM2=/opt/bin/gm2
 G++=/opt/bin/g++
@@ -20,8 +21,6 @@ CC=/opt/bin/gcc
 TARGET_SUBDIR=/opt/gm2/lib64
 
 ACLOCAL_AMFLAGS=-I m4
-
-GM2GCCBASE=8.2.0
 
 help:  force
 	@echo "knows about:  all, build, clean"

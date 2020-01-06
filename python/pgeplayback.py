@@ -75,7 +75,7 @@ class myfile:
     def rewind_to (self, frameno):
         global seekTable
 
-        if seekTable.has_key (frameno):
+        if frameno in seekTable:
             self.pos = seekTable[frameno]
             return True
         else:
@@ -89,14 +89,14 @@ class myfile:
 #
 
 def printf (format, *args):
-    print str(format) % args,
+    print(str(format) % args, end=' ')
 
 #
 #  error - issues an error message and exits.
 #
 
 def error (format, *args):
-    print str(format) % args,
+    print(str(format) % args, end=' ')
     sys.exit(1)
 
 
@@ -107,7 +107,7 @@ def error (format, *args):
 def debugf (format, *args):
     global debugging
     if debugging:
-        print str(format) % args,
+        print(str(format) % args, end=' ')
 
 
 #
@@ -131,8 +131,8 @@ def load_sound(name):
         return NoneSound ()
     try:
         sound = pygame.mixer.Sound (name)
-    except pygame.error, message:
-        print 'cannot load sound file:', name
+    except pygame.error as message:
+        print('cannot load sound file:', name)
         return NoneSound ()
     return sound
 
@@ -150,11 +150,11 @@ def doPlay (f):
     global sounds, wantedFrame, frameNo
 
     name = getSoundName (f)
-    print "need to play", name
-    if not sounds.has_key (name):
+    print("need to play", name)
+    if name not in sounds:
         sounds[name] = load_sound (name)
     if frameNo == wantedFrame:
-        print "playing", name
+        print("playing", name)
         sounds[name].play ()
     return f
 
@@ -203,7 +203,7 @@ def registerColour (f):
     f, gf = readFract (f)
     f, bf = readFract (f)
     if debugging:
-        print rf, gf, bf
+        print(rf, gf, bf)
     r = toCol (rf)
     g = toCol (gf)
     b = toCol (bf)
@@ -245,7 +245,7 @@ def drawFillCircle (f):
     if frameNo == wantedFrame:
         debugf("circle  x = %d  y = %d,  r = %d\n", x, y, r)
         if debugging:
-            print "  colour =", c
+            print("  colour =", c)
         pygame.draw.circle (screen, c, (x, flip (y)), r, 0)
     return f
 
@@ -260,19 +260,19 @@ def drawPolygon (f):
     f, n = readShort (f)
     l = []
     if debugging:
-        print "drawPolygon", n,
+        print("drawPolygon", n, end=' ')
     for i in range (n):
         f, xf = readFract (f)
         f, yf = readFract (f)
         if debugging:
-            print xf, yf,
+            print(xf, yf, end=' ')
         x = mults (resolution[0], xf)
         y = mults (resolution[1], yf)
         l += [[x, flip(y)]]
 
     f, t = readFract (f)
     if debugging:
-        print "draw polygon", l, "thickness", t
+        print("draw polygon", l, "thickness", t)
     if frameNo == wantedFrame:
         # pygame.draw.polygon(screen, c, l, 0)
         pass
@@ -346,12 +346,12 @@ def drawFillPolygon (f):
     f, n = readShort (f)
     l = []
     if debugging:
-        print "drawFillPolygon", n,
+        print("drawFillPolygon", n, end=' ')
     for i in range (n):
         f, xf = readFract (f)
         f, yf = readFract (f)
         if debugging:
-            print xf, yf,
+            print(xf, yf, end=' ')
         x = mults (resolution[0], xf)
         y = mults (resolution[1], yf)
         l += [[x, flip(y)]]
@@ -359,8 +359,8 @@ def drawFillPolygon (f):
     f, c = readColour (f)
     if frameNo == wantedFrame:
         if debugging:
-            print ""
-            print "drawFillPolygon (colour =", c, " l =", l, ")"
+            print("")
+            print("drawFillPolygon (colour =", c, " l =", l, ")")
         pygame.draw.polygon (screen, c, l, 0)
     return f
 
@@ -505,7 +505,7 @@ def readFile (name):
         header = header[:2]
         # print "readFile", header
         # printf ("(frameNo = %d, wantedFrame = %d)\n", frameNo, wantedFrame)
-        if call.has_key (header):
+        if header in call:
             f = call[header] (f)
             pc = f.pos
             header = struct.unpack ("3s", f.read (3))[0]
@@ -594,9 +594,9 @@ def doSystem (s):
     global verbose
 
     if verbose:
-        print s
+        print(s)
     if os.system (s) != 0:
-        print "shell failed:", s
+        print("shell failed:", s)
         sys.exit (1)
 
 
@@ -693,7 +693,7 @@ def finishMovie ():
     else:
         printf ("generating sound effect file\n")
         commandArgs = ""
-        print soxSound
+        print(soxSound)
         audio = "audio.wav"
         for t, s, n in soxSound:
             frameSound = "%6d-%3d.wav" % (t, n)
@@ -789,7 +789,7 @@ def grRegisterColour (f):
     f, gf = readFract (f)
     f, bf = readFract (f)
     if debugging:
-        print rf, gf, bf
+        print(rf, gf, bf)
     r = toCol (rf)
     g = toCol (gf)
     b = toCol (bf)
@@ -808,7 +808,7 @@ def doMessage (f):
     while int(b) != 0:
         text += b
         b = f.read (1)
-    print "Time:", frameTime, text
+    print("Time:", frameTime, text)
 
 
 def grMessage (f):
@@ -819,7 +819,7 @@ def grMessage (f):
     while int(b) != 0:
         text += b
         b = f.read (1)
-    print "Time:", frameTime, text
+    print("Time:", frameTime, text)
 
 
 def grDrawPolygon (f):
@@ -829,19 +829,19 @@ def grDrawPolygon (f):
     f, n = readShort (f)
     l = []
     if debugging:
-        print "grDrawPolygon", n,
+        print("grDrawPolygon", n, end=' ')
     for i in range (n):
         f, xf = readFract (f)
         f, yf = readFract (f)
         if debugging:
-            print xf, yf,
+            print(xf, yf, end=' ')
         x = mults (1.0, xf)
         y = mults (1.0, yf)
         l += [[x, flip(y)]]
 
     f, t = readFract (f)
     if debugging:
-        print "draw polygon", l, "thickness", t
+        print("draw polygon", l, "thickness", t)
     return f
 
 
@@ -853,12 +853,12 @@ def grDrawFillPolygon (f):
     f, n = readShort (f)
     l = []
     if debugging:
-        print "grDrawFillPolygon", n,
+        print("grDrawFillPolygon", n, end=' ')
     for i in range (n):
         f, xf = readFract (f)
         f, yf = readFract (f)
         if debugging:
-            print xf, yf,
+            print(xf, yf, end=' ')
         x = mults (1.0, xf)
         y = mults (1.0, yf)
         l += [[x, flip(y)]]

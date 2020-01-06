@@ -9,10 +9,10 @@ import math
 from pygame.locals import *
 
 
-colour_t, box_t, circle_t, spring_t, fb_box_t, fb_circle_t, fb_text_t = range (7)
+colour_t, box_t, circle_t, spring_t, fb_box_t, fb_circle_t, fb_text_t = list(range(7))
 id2ob = {}
 ob2id = {}
-batch_d, pyg_d = range (2)
+batch_d, pyg_d = list(range(2))
 device = None
 opened = False
 output = None
@@ -32,7 +32,7 @@ nextFrame = 1
 screen = None
 backcanvas = None
 program_name = 'pge'
-version_number = '2.0'
+version_number = '4.0'
 Black = (0, 0, 0)
 framesPerSecond = 100.0
 frame_no = 0
@@ -50,7 +50,7 @@ font = None
 #
 
 def _printf (format, *args):
-    print str (format) % args,
+    print(str (format) % args, end=' ')
 
 
 #
@@ -61,7 +61,7 @@ def _debugf (format, *args):
     global debugging
 
     if debugging:
-        print str (format) % args,
+        print(str (format) % args, end=' ')
 
 #
 #  _errorf - generate an error associated with pge and raise an exception.
@@ -171,7 +171,7 @@ class object:
 
         self._check_colour ()
         i = pgeif.h2l (self._get_pgeif_colour ())
-        if idTOcol.has_key (i):
+        if i in idTOcol:
             return idTOcol[i]
         _internalf ("3 colour triple should have been defined")
 
@@ -224,7 +224,7 @@ class object:
 
     def _emit_fill_polygon (self):
         output.write (struct.pack ("3s", "dP"))
-        n = (len (self.o)-1)/2
+        n = int ((len (self.o)-1)/2)
         _emit_short (n)
         ier = iter (self.o[:-1])
         # print self.o
@@ -297,7 +297,7 @@ class object:
         self._check_not_deleted (" a fixed position")
         self.fixed = False
         self.o = self._check_same (pgeif.unfix (self.o))
-        print "returning from unfix"
+        print("returning from unfix")
         return self
 
     #
@@ -359,7 +359,7 @@ class object:
     #
     def on_collision_with (self, another, p):
         if debugging:
-            print "ok registering call back", p, another
+            print("ok registering call back", p, another)
         self.collisionp = p
         self.collisionWith = another
         return self
@@ -425,14 +425,14 @@ class object:
 
     def _collision (self, between, e):
         if debugging:
-            print "collision seen, between:", between
+            print("collision seen, between:", between)
         if self.collisionWith == []:
             if self.collisionp != None:
                 if debugging:
-                    print "before collisionp"
+                    print("before collisionp")
                 self.collisionp (self, e)
                 if debugging:
-                    print "after collisionp"
+                    print("after collisionp")
         else:
             found = False
             for c in self.collisionWith:
@@ -623,7 +623,7 @@ class object:
         self._check_not_deleted ("spring no longer exists")
         self._check_type ([spring_t], "expected a spring")
         c._param_colour ("the first parameter to draw is expected to be a colour")
-        print self.o, c._get_pgeif_colour (), w
+        print(self.o, c._get_pgeif_colour (), w)
         pgeif.draw_spring (self.o, c._get_pgeif_colour (), w)
         return self
 
@@ -635,9 +635,9 @@ class object:
         self._check_not_deleted ("spring no longer exists")
         self._check_type ([spring_t], "expected a spring")
         c._param_colour ("the parameter to end is expected to be a colour")
-        print self.o, c._get_pgeif_colour ()
+        print(self.o, c._get_pgeif_colour ())
         pgeif.end_spring (self.o, c._get_pgeif_colour ())
-        print "assigned c", c._get_pgeif_colour ()
+        print("assigned c", c._get_pgeif_colour ())
         return self
 
     #
@@ -648,9 +648,9 @@ class object:
         self._check_not_deleted ("spring no longer exists")
         self._check_type ([spring_t], "expected a spring")
         c._param_colour ("the parameter to mid is expected to be a colour")
-        print self.o, c._get_pgeif_colour ()
+        print(self.o, c._get_pgeif_colour ())
         pgeif.mid_spring (self.o, c._get_pgeif_colour ())
-        print "assigned c", c._get_pgeif_colour ()
+        print("assigned c", c._get_pgeif_colour ())
         return self
 
     #
@@ -831,7 +831,7 @@ def _add (ob, level):
             background += [level]
             background.sort ()
 
-    if levels.has_key (level):
+    if level in levels:
         levels[level] += [ob]
     else:
         levels[level] = [ob]
@@ -844,20 +844,20 @@ def _add (ob, level):
 def _sub (ob, level):
     global foreground, background
 
-    if levels.has_key (level):
+    if level in levels:
         levels[level].remove (ob)
 
     if level > 0:
         f = []
         for l in foreground:
-            if levels.has_key (l):
+            if l in levels:
                 f += [l]
         foreground = f
         foreground.sort ()
     else:
         b = []
         for l in background:
-            if levels.has_key (l):
+            if l in levels:
                 b += [l]
         background = b
         background.sort ()
@@ -881,9 +881,9 @@ def spring (ob1, ob2, k, d, l = None):
     ob2._check_type ([box_t, circle_t], "creating a spring, second parameter")
     if l == None:
         l = -1
-    print "before pgeif.spring"
+    print("before pgeif.spring")
     id = pgeif.spring (ob1.o, ob2.o, k, d, l)
-    print "after pgeif.spring =", id
+    print("after pgeif.spring =", id)
     ob = object (spring_t, id, None, 0)
     _register (id, ob)
     return ob
@@ -1006,7 +1006,7 @@ def _draw ():
     _doFlipBuffer ()
 
 
-no_event, frame_event, collision_event, function_event, spring_event, final_event = range (6)
+no_event, frame_event, collision_event, function_event, spring_event, final_event = list(range(6))
 
 #
 # the event class is used by the user through call back functions.  In particular
@@ -1092,7 +1092,7 @@ class event:
             # print "_process found timer_event", self.__id
             i = self.__id
             p = self.__param
-            if id2func.has_key (i):
+            if i in id2func:
                 # print "function", i, "about to be called with parameter", p
                 if p == 0:
                     id2func[i] (self, None)
@@ -1258,17 +1258,17 @@ pge_event_queue = []
 #
 
 def _display_element (e, t):
-    print "[", e[0], "ms ",
+    print("[", e[0], "ms ", end=' ')
     if e[1]._type == frame_event:
-        print "displayframe",
+        print("displayframe", end=' ')
     elif e[1]._type == collision_event:
-        print "collision",
+        print("collision", end=' ')
     elif e[1]._type == function_event:
-        print "timer",
+        print("timer", end=' ')
     else:
-        print "final",
-    print " at", e[0] + (int) (t * 1000.0), "ms",
-    print "], ",
+        print("final", end=' ')
+    print(" at", e[0] + (int) (t * 1000.0), "ms", end=' ')
+    print("], ", end=' ')
 
 #
 #  _display_event_queue - debugging function to display the entire event queue.
@@ -1276,14 +1276,14 @@ def _display_element (e, t):
 
 def _display_event_queue (q):
     if q == []:
-        print "event queue is empty"
+        print("event queue is empty")
     else:
-        print "event queue: "
+        print("event queue: ")
         t = pgeif.get_time ()
         for e in q:
             _display_element (e, t)
             t += e[1]._get_time ()
-        print ""
+        print("")
 
 prev_event_time = 0.0
 
@@ -1314,7 +1314,7 @@ def _wait_for_event ():
     global pge_event_queue, slow_down_factor, device, _record, debugging
 
     if debugging:
-        print "_wait_for_event, pge_event_queue ="
+        print("_wait_for_event, pge_event_queue =")
         _display_event_queue (pge_event_queue)
     if device == pyg_d:
         pygame.event.set_allowed (None)
@@ -1370,7 +1370,7 @@ def at_time (t, p):
 
 def at_cancel (i):
     global id2func
-    if id2func.has_key (i):
+    if i in id2func:
         del id2func[i]
     else:
         error ("at_cancel cannot delete function %d as it no longer exists\n", i)
@@ -1417,10 +1417,10 @@ def _pyg_draw_frame (cdata, clength, fdata, flength):
     while f.left () >= 3:
         header = struct.unpack ("3s", f.read (3))[0]
         header = header[:2]
-        if call.has_key (header):
+        if header in call:
             f = call[header] (f)
         else:
-            print "not understood header =", header
+            print("not understood header =", header)
             sys.exit (1)
     # _printf ("drawing foreground\n")
     if flength > 0:
@@ -1440,14 +1440,15 @@ def _check_opened ():
 
     if not opened:
         opened = True
-        output = open ("output.raw", "w")
+        output = open ("output.raw", "wb")
 
 
 def _begin_record_frame (cdata, clength, fdata, flength):
     global opened, output, nextFrame
 
     _check_opened ()
-    output.write (struct.pack ("3s", "fn")) # frame note
+    # output.write (struct.pack ("3s", "fn"))
+    output.write (struct.pack("3s", "fn".encode('ascii')))  # frame note
     _emit_card (nextFrame)
     if clength > 0:
         _debugf ("writing colour data length = %d bytes\n", clength)
@@ -1456,6 +1457,9 @@ def _begin_record_frame (cdata, clength, fdata, flength):
         _draw_background ()
         _debugf ("writing frame data length = %d bytes\n", flength)
         output.write (fdata)
+        # c.sendall(b'Thank you for connecting')
+        # output = 'Thank you for connecting'
+        # c.sendall(output.encode('utf-8'))
     else:
         pass
         # _printf ("length of zero!!\n")
@@ -1463,7 +1467,7 @@ def _begin_record_frame (cdata, clength, fdata, flength):
 
 
 def _end_record_frame ():
-    output.write (struct.pack ("3s", "fb")) # flip buffer
+    output.write (struct.pack ("3s", "fb".encode ("utf-8"))) # flip buffer
 
 
 #
@@ -1474,7 +1478,7 @@ def _record_time (ms):
     global output, slow_down_factor
     ms = ((float) (ms)) * slow_down_factor / 1000.0
     # print "recording time", ms
-    output.write (struct.pack ("3s", "sl")) # sleep
+    output.write (struct.pack ("3s", "sl".encode ("utf-8"))) # sleep
     _emit_double (ms)
 
 #
@@ -1490,7 +1494,7 @@ def _batch_draw_frame (cdata, clength, fdata, flength):
         sys.exit (1)
     if not opened:
         opened = True
-        output = open ("output.raw", "w")
+        output = open ("output.raw", "wb")
         nextFrame = 1
     _begin_record_frame (cdata, clength, fdata, flength)
     _end_record_frame ()
@@ -1602,7 +1606,7 @@ def runpy (t=-1):
                 _process (pe)
                 ev = _get_next_event ()
                 nev = _post_event (ev, ev._get_time ())
-            elif pyevent2func.has_key (e.type):
+            elif e.type in pyevent2func:
                 pyevent2func[e.type] (e)
 
 
@@ -1751,8 +1755,8 @@ def _load_sound (name):
         return _NoneSound()
     try:
         sound = pygame.mixer.Sound(name)
-    except pygame.error, message:
-        print 'cannot load sound file:', name
+    except pygame.error as message:
+        print('cannot load sound file:', name)
         return _NoneSound()
     return sound
 
@@ -1765,7 +1769,7 @@ def play (name):
         s = _load_sound (name)
         s.play ()
     else:
-        output.write (struct.pack ("3s", "ps"))
+        output.write (struct.pack ("3s", "ps".encode ("utf-8")))
         output.write (name)
         output.write ('\0')
 
@@ -1775,7 +1779,7 @@ def play (name):
 #
 
 def message (text):
-    output.write (struct.pack ("3s", "ms"))
+    output.write (struct.pack ("3s", "ms".encode ("utf-8")))
     output.write (text)
 
 
@@ -1825,7 +1829,7 @@ def _flush_delay ():
         if device == pyg_d:
             time.sleep (lastDelay)
         else:
-            output.write (struct.pack ("3s", "sl"))
+            output.write (struct.pack ("3s", "sl".encode ("utf-8")))
             output.write (struct.pack ("d", lastDelay))
         lastDelay = 0.0
 
@@ -1886,8 +1890,8 @@ def _mults (s, f):
     if s == 0:
         return 0
     if f[1] == 0 or f[2] == 0:
-        return f[0]*s
-    return f[0]+f[1]*s/f[2]
+        return int (f[0]*s)
+    return int (f[0]+f[1]*s/f[2])
 
 
 def toFloat (f):
@@ -1904,7 +1908,7 @@ def _doRegisterColour (f):
     f, gf = _readFract (f)
     f, bf = _readFract (f)
     if debugging:
-        print rf, gf, bf
+        print(rf, gf, bf)
     r = _toCol (rf)
     g = _toCol (gf)
     b = _toCol (bf)
@@ -1950,14 +1954,14 @@ def _doDrawFillPolygon (f):
         f, xf = _readFract (f)
         f, yf = _readFract (f)
         if debugging:
-            print xf, yf,
+            print(xf, yf, end=' ')
         x = _mults (resolution[0], xf)
         y = _mults (resolution[1], yf)
         l += [[x, flip (y)]]
 
     f, c = _readColour (f)
     if debugging:
-        print "drawFillPolygon (colour =", c, " l =", l, ")"
+        print("drawFillPolygon (colour =", c, " l =", l, ")")
     pygame.draw.polygon (screen, c, l, 0)
     return f
 
@@ -1988,7 +1992,7 @@ def _doDrawFillCircle (f):
     f, c = _readColour (f)
     _debugf("circle  x = %d  y = %d,  r = %d\n", x, y, r)
     if debugging:
-        print "  colour =", c
+        print("  colour =", c)
     pygame.draw.circle (screen, c, (x, flip (y)), r, 0)
     return f
 
@@ -2041,14 +2045,14 @@ def _doDrawPolygon (f):
         f, xf = _readFract (f)
         f, yf = _readFract (f)
         if debugging:
-            print xf, yf,
+            print(xf, yf, end=' ')
         x = _mults (resolution[0], xf)
         y = _mults (resolution[1], yf)
         l += [[x, flip(y)]]
 
     f, t = _readFract (f)
     if debugging:
-        print "draw polygon", l, "thickness", t
+        print("draw polygon", l, "thickness", t)
     # pygame.draw.polygon (screen, c, l, 0)
     return f
 
@@ -2068,18 +2072,18 @@ def _doPass (f):
     return f
 
 
-call['rc'] = _doRegisterColour
-call['dp'] = _doDrawPolygon
-call['dP'] = _doDrawFillPolygon
+call[b'rc'] = _doRegisterColour
+call[b'dp'] = _doDrawPolygon
+call[b'dP'] = _doDrawFillPolygon
 # call['dc'] = doDrawCircle
-call['dC'] = _doDrawFillCircle
-call['fb'] = _doPass
+call[b'dC'] = _doDrawFillCircle
+call[b'fb'] = _doPass
 # call['fr'] = doFramesPerSecond
-call['ex'] = _doExit
-call['sl'] = _doSleep
+call[b'ex'] = _doExit
+call[b'sl'] = _doSleep
 # call['ps'] = doPlay
 # call['fn'] = doFrameNote
-call['ms'] = _doMessage
+call[b'ms'] = _doMessage
 
 
 #

@@ -4,7 +4,7 @@ import pge, sys, time
 from pygame.locals import *
 
 
-print "starting matchsticks"
+print("starting matchsticks")
 # pge.batch ()
 pge.interactive ()
 pge.record ()
@@ -33,7 +33,7 @@ simulatedtime = 6
 
 
 def myquit (e):
-    print "goodbye"
+    print("goodbye")
     sys.exit (0)
 
 def finish_game (e = None, o = None):
@@ -44,7 +44,7 @@ def key_pressed (e):
         myquit (e)
 
 def placeBoarders (thickness, color):
-    print "placeBoarders"
+    print("placeBoarders")
     e1 = pge.box (0.0, 0.0, 1.0, thickness, color).fix ()
     e2 = pge.box (0.0, 0.0, thickness, 1.0, color).fix ()
     e3 = pge.box (1.0-thickness, 0.0, thickness, 1.0, color).fix ()
@@ -149,7 +149,7 @@ def main ():
     cb = placeBall (copper, 0.81, 0.7, 0.05).mass (.75).on_collision_with (sides, delete_it)
     placeSilos ()
 
-    print "before run"
+    print("before run")
     pge.gravity ()
     # pge.dump_world ()
     pge.draw_collision (True, False)
@@ -169,5 +169,5 @@ def main ():
     pge.run (4.0)
     pge.finish_record ()
 
-print "before main()"
+print("before main()")
 main ()

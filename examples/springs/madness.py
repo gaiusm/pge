@@ -4,7 +4,7 @@ import pge, sys
 from pygame.locals import *
 
 
-print "starting exampleBoxes"
+print("starting exampleBoxes")
 # pge.batch ()
 pge.interactive ()
 
@@ -28,7 +28,7 @@ sides = []
 
 
 def myquit (e):
-    print "goodbye"
+    print("goodbye")
     sys.exit (0)
 
 def key_pressed (e):
@@ -36,7 +36,7 @@ def key_pressed (e):
         myquit (e)
 
 def placeBoarders (thickness, color):
-    print "placeBoarders"
+    print("placeBoarders")
     e1 = pge.box (0.0, 0.0, 1.0, thickness, color).fix ()
     e2 = pge.box (0.0, 0.0, thickness, 1.0, color).fix ()
     e3 = pge.box (1.0-thickness, 0.0, thickness, 1.0, color).fix ()
@@ -85,7 +85,7 @@ def placeSilos ():
 
 
 def callMe (p):
-    print "box has collided!"
+    print("box has collided!")
 
 def play_wood (o, e):
     pass
@@ -150,7 +150,7 @@ def main ():
     cb = placeBall (copper, 0.81, 0.8, 0.025).mass (.75).on_collision_with (sides, delete_it)
     placeSilos ()
 
-    print "before run"
+    print("before run")
     pge.gravity ()
     pge.dump_world ()
     pge.draw_collision (True, False)
@@ -162,5 +162,5 @@ def main ():
     pge.run (18.0)
     pge.finish_record ()
 
-print "before main()"
+print("before main()")
 main ()

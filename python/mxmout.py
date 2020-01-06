@@ -8,7 +8,7 @@
 #
 
 def printf (format, *args):
-    print str(format) % args,
+    print(str(format) % args, end=' ')
 
 
 #

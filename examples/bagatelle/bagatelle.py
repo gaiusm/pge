@@ -4,14 +4,14 @@ import pge, sys
 from pygame.locals import *
 
 
-print "starting bagatelle"
+print("starting bagatelle")
 pge.interactive ()
 # pge.batch ()
 pge.record ()
 
-print "defining white"
+print("defining white")
 white = pge.rgb (1.0, 1.0, 1.0)
-print "completed definition"
+print("completed definition")
 t = pge.rgb (1.0/2.0, 2.0/3.0, 3.0/4.0)
 wood_light = pge.rgb (166.0/256.0, 124.0/256.0, 54.0/256.0)
 wood_dark = pge.rgb (76.0/256.0, 47.0/256.0, 0.0)
@@ -37,14 +37,14 @@ simulatedtime = 6
 
 
 def myquit (e):
-    print "goodbye"
+    print("goodbye")
     sys.exit (0)
 
 def finish_game (event, param):
     sys.exit (0)
 
 def placeBoarders (thickness, color):
-    print "placeBoarders"
+    print("placeBoarders")
     n = pge.box (0.0, 1.0-thickness, 1.0, thickness, color).fix ()
     e = pge.box (1.0-thickness, 0.0, thickness, 1.0, color).fix ()
     s = pge.box (0.0, 0.0, 1.0, thickness, color).fix ()
@@ -55,7 +55,7 @@ def placeBall (kind, x, y, r):
     return pge.circle (x, y, r, kind)
 
 def callMe (p):
-    print "box has collided!"
+    print("box has collided!")
 
 def play_wood (o, e):
     pass
@@ -67,16 +67,16 @@ def key_pressed (e):
     if e.key == K_ESCAPE:
         myquit (e)
     elif e.key == K_UP:
-        print "K_UP"
+        print("K_UP")
         moveit ([0, 1])
     elif e.key == K_DOWN:
-        print "K_DOWN"
+        print("K_DOWN")
         moveit ([0, -1])
     elif e.key == K_LEFT:
-        print "K_LEFT"
+        print("K_LEFT")
         moveit ([-1, 0])
     elif e.key == K_RIGHT:
-        print "K_RIGHT"
+        print("K_RIGHT")
         moveit ([1, 0])
 
 def mouse_press (e):
@@ -87,7 +87,7 @@ def mouse_press (e):
         balli = (balli + 1) % len (balllist)
         mouse = pge.pyg_to_unit_coord (e.pos)
         b = placeBall (c, 0.92, 0.21, 0.05).mass (w)
-        print mouse, 0.5-mouse[0], 6*mouse[1]
+        print(mouse, 0.5-mouse[0], 6*mouse[1])
         b.put_yvel (6*mouse[1])
         b.put_xvel (0.5-mouse[0])
 
@@ -95,15 +95,15 @@ def moveit (vec):
     global g
     if vec[0] != 0:
         x = g.get_xvel ()
-        print "xvel =", x, vec[0],
+        print("xvel =", x, vec[0], end=' ')
         # x = x + (float) (vec[0]) * 0.2
-        print " new x =", x
+        print(" new x =", x)
         # g.put_xvel (x)
     if vec[1] != 0:
         y = g.get_yvel ()
-        print "yvel =", y, vec[1],
+        print("yvel =", y, vec[1], end=' ')
         y = y + (float) (vec[1]) * 0.2
-        print " new y =", y
+        print(" new y =", y)
         g.put_yvel (y)
 
 def push_it (o, e):
@@ -124,10 +124,10 @@ def boost (o, e):
 
 
 def extra ():
-    print "hello at some time in the future"
+    print("hello at some time in the future")
 
 def myquit (e):
-    print "goodbye"
+    print("goodbye")
     sys.exit (0)
 
 def placeShoot ():
@@ -137,7 +137,7 @@ def placeTriangle (p0, p1, p2, colour):
     t = pge.poly3 (p0[0], p0[1], p1[0], p1[1], p2[0], p2[1], colour).on_collision (push_it).fix ()
 
 def delete_ball (o, e):
-    print "delete_ball called"
+    print("delete_ball called")
     p = e.collision_between ()
     if p != None and p != []:
         for i in p:
@@ -168,7 +168,7 @@ def timer (a = None, b = None):
 def main ():
     global g, blue, steel, slowdown, seconds_left
 
-    print "about to create white text"
+    print("about to create white text")
     t1 = placeTriangle ([0.2, 0.4], [0.4, 0.4], [0.3, 0.5], white)
     t2 = placeTriangle ([0.6, 0.4], [0.8, 0.4], [0.7, 0.5], white)
 
@@ -177,12 +177,12 @@ def main ():
     for b in range (4):
         placeBall (steel, b*2/10.0+0.1, 0.25, 0.01).fix ()
     placeSilos ()
-    print "completed white text"
+    print("completed white text")
     n, e, s, w = placeBoarders (boarder, wood_dark)
     s.on_collision (delete_ball)
     placeShoot ()
 
-    print "before run"
+    print("before run")
     pge.gravity ()
     pge.dump_world ()
     pge.draw_collision (True, False)
@@ -204,5 +204,5 @@ def main ():
     pge.run (4.0)
     pge.finish_record ()
 
-print "before main()"
+print("before main()")
 main ()

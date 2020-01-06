@@ -33,14 +33,14 @@ maxColour         = 0
 #
 
 def printf (format, *args):
-    print str(format) % args,
+    print(str(format) % args, end=' ')
 
 #
 #  error - issues an error message and exits.
 #
 
 def error (format, *args):
-    print str(format) % args,
+    print(str(format) % args, end=' ')
     sys.exit(1)
 
 
@@ -51,7 +51,7 @@ def error (format, *args):
 def debugf (format, *args):
     global debugging
     if debugging:
-        print str(format) % args,
+        print(str(format) % args, end=' ')
 
 
 #
@@ -96,7 +96,7 @@ def registerColour (connection):
     connection, bytes = get(connection, 3)
     r, g, b = struct.unpack('BBB', bytes)
     debugf("colour %d, %d, %d\n", r, g, b)
-    if not colTOid.has_key((r, g, b)):
+    if (r, g, b) not in colTOid:
         maxColour += 1
         colTOid[(r, g, b)] = maxColour
         idTOcol[maxColour] = (r, g, b)
@@ -200,7 +200,7 @@ def serveRPC ():
         data = connection.recv(1)
         debugf("received packet %c\n", data)
         if data:
-            if call.has_key(data):
+            if data in call:
                 connection = call[data](connection)
             else:
                 printf("error unexpected packet %c\n", data)

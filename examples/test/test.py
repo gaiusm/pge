@@ -4,7 +4,7 @@ import pge, sys, time
 from pygame.locals import *
 
 
-print "starting breakout"
+print("starting breakout")
 # pge.batch ()
 pge.interactive ()
 pge.record ()
@@ -40,7 +40,7 @@ def finish_game (i = None):
 
 
 def myquit (e):
-    print "goodbye"
+    print("goodbye")
     finish_game ()
 
 
@@ -50,7 +50,7 @@ def key_pressed (e):
 
 
 def placeBoarders (thickness, color):
-    print "placeBoarders"
+    print("placeBoarders")
     e1 = pge.box (0.0, 0.0, 1.0, thickness, color).fix ()
     e2 = pge.box (0.0, 0.0, thickness, 1.0, color).fix ()
     e3 = pge.box (1.0-thickness, 0.0, thickness, 1.0, color).fix ()
@@ -76,7 +76,7 @@ def main ():
     pge.register_handler (myquit, [QUIT])
     pge.register_handler (key_pressed, [KEYDOWN])
 
-    print "before run"
+    print("before run")
     pge.gravity ()
     pge.dump_world ()
     pge.draw_collision (True, False)
@@ -88,5 +88,5 @@ def main ():
     pge.finish_record ()
 
 
-print "before main()"
+print("before main()")
 main ()

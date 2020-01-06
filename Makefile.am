@@ -9,9 +9,10 @@ mandir= @mandir@
 exec_prefix=@exec_prefix@
 bindir= @bindir@
 INSTALL_PROGRAM = install
+GCCVERSION=9.1.0
 
 TEXI2HTML=python $(srcdir)/www/tools/texi2tr/src/texi2tr.py
-PYTHON_VERSION=$(strip $(shell python -V 2>&1 | cut -b8- | cut -f1-2 -d'.'))
+PYTHON_VERSION=$(strip $(shell python3 -V 2>&1 | cut -b8- | cut -f1-2 -d'.'))
 
 DISTFILES = Makefile.in configure.ac configure \
             README version.c COPYING examples \
@@ -143,7 +144,6 @@ clear: force
 force:
 
 if MAINTAINER
-GCCVERSION=8.2.0
 MC=$(HOME)/GM2/graft-svn-trunc/build-svn-trunc/gcc/gm2/boot-bin/mc --h-file-prefix=G
 PIMLIBS=$(HOME)/GM2/graft-$(GCCVERSION)/gcc-$(GCCVERSION)/gcc/gm2/gm2-libs
 ISOLIBS=$(HOME)/GM2/graft-$(GCCVERSION)/gcc-$(GCCVERSION)/gcc/gm2/gm2-libs-iso

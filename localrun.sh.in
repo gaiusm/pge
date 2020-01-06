@@ -2,4 +2,4 @@
 
 srcdir=@srcdir@
 
-PYTHONPATH=.:${srcdir}/python python $*
+PYTHONPATH=.:${srcdir}/python python3 $*

@@ -4,11 +4,11 @@ import sys
 import getopt
 
 # object codes
-fig_o_customColor, fig_o_ellipse, fig_o_polygon, fig_o_spline, fig_o_text, fig_o_arc, fig_o_compound_begin = range(7)
+fig_o_customColor, fig_o_ellipse, fig_o_polygon, fig_o_spline, fig_o_text, fig_o_arc, fig_o_compound_begin = list(range(7))
 fig_o_compound_end = -6
 
 # polygon type constants
-fig_pt_polyline, fig_pt_box, fig_pt_polygon, fig_pt_arcbox, fig_pt_picturebbox = range(1, 6)
+fig_pt_polyline, fig_pt_box, fig_pt_polygon, fig_pt_arcbox, fig_pt_picturebbox = list(range(1, 6))
 
 
 #
@@ -16,7 +16,7 @@ fig_pt_polyline, fig_pt_box, fig_pt_polygon, fig_pt_arcbox, fig_pt_picturebbox =
 #
 
 def printf (format, *args):
-    print str(format) % args,
+    print(str(format) % args, end=' ')
 
 colorNo = 0
 
@@ -54,7 +54,7 @@ class fig:
     #
     def readContents (self):
         self.contents = open(self.filename, 'r').readlines()
-        print self.contents
+        print(self.contents)
 
     def error (self, message):
         printf("%s:%d:%s\n", self.filename, self.lineno, message)
@@ -133,19 +133,19 @@ class fig:
         self.skipLine ()
         if characteristics[-1] == "2":
             points = self.contents[0].split()
-            print "force points are", points
+            print("force points are", points)
             if characteristics[-3] == "0" and characteristics[-2] == "1":
-                print "found force backward"
+                print("found force backward")
                 self.forces += [["force", "backward", points]]
             elif characteristics[-3] == "1" and characteristics[-2] == "0":
-                print "found force forward"
+                print("found force forward")
                 self.forces += [["force", "forward", points]]
         elif characteristics[2] == "0":
             # solid, we treat as fixed
-            print "found fixed polygon", points
+            print("found fixed polygon", points)
             self.objects += [["fixed", "polygon", points]]
         else:
-            print "found non fixed polygon", points
+            print("found non fixed polygon", points)
             self.objects += [["nonfixed", "polygon", points]]
 
 
@@ -156,12 +156,12 @@ class fig:
     def parseEllipse32 (self):
         ellipse = self.contents[0].split ()
         if ellipse[2] == "0":
-            print "found fixed circle", ellipse[-8:-4]
+            print("found fixed circle", ellipse[-8:-4])
             # solid (ellipse) treat as a fixed circle
             self.objects += [["fixed", "circle", ellipse[-8:-4]]]
         else:
             # treat as a nonfixed circle
-            print "found non fixed circle", ellipse[-8:-4]
+            print("found non fixed circle", ellipse[-8:-4])
             self.objects += [["nonfixed", "circle", ellipse[-8:-4]]]
         self.skipLine ()
 
@@ -260,7 +260,7 @@ class fig:
     def findExtents (self):
         self.minp, self.maxp = -1, -1
         for o in self.objects:
-            print "finding extent of", o
+            print("finding extent of", o)
             self.minp, self.maxp = self.examineExtent(o)
         return self.minp, self.maxp
 
@@ -276,7 +276,7 @@ class fig:
 
     def doFract (self, n):
         if (n<-100) or (n>100):
-            print n, "error"
+            print(n, "error")
             # self.error("incorrect position calculated")
         if n == 0:
             self.fo.write("zero()")
@@ -336,7 +336,7 @@ class fig:
    popWorld.mass(cardinal(1)) ;
 """)
             if self.forces != []:
-                print self.forces[0]
+                print(self.forces[0])
                 self.doForce (self.forces[0])
             self.fo.write("""
    popWorld.populate(m, FALSE, TRUE) ;
@@ -345,16 +345,16 @@ class fig:
 
     def checkVectorSum (self, x0, x1, x2):
         ox = x0
-        print "x:", x0, x1, x2,
+        print("x:", x0, x1, x2, end=' ')
         tx = x0 + x1 + x2
         if tx<0:
             x0 += (-tx)
         elif tx>100:
             x0 -= (tx-100)
         if ox == x0:
-            print
+            print()
         else:
-            print "  ->", x0, x1, x2
+            print("  ->", x0, x1, x2)
         return x0, x1, x2
 
 
@@ -429,9 +429,9 @@ class fig:
 
     def generateModula2 (self):
         if self.objects != []:
-            print "objects are: ", self.objects
+            print("objects are: ", self.objects)
             self.minp, self.maxp = self.findExtents()
-            print "max extents are:", self.minp, self.maxp
+            print("max extents are:", self.minp, self.maxp)
             self.createModule()
 
     def doStyle (self, style):
@@ -547,7 +547,7 @@ BEGIN
 #
 
 def usage (value):
-    print "fig [-h] inputfile outputfile"
+    print("fig [-h] inputfile outputfile")
     sys.exit(value)
 
 

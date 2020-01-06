@@ -3,7 +3,7 @@
 import pge, sys
 from pygame.locals import *
 
-print "starting boxes"
+print("starting boxes")
 # pge.batch ()
 pge.interactive ()
 
@@ -21,7 +21,7 @@ def finish_game (event = None, unused = None):
 
 
 def myquit (e):
-    print "goodbye"
+    print("goodbye")
     finish_game ()
 
 def key_pressed (e):
@@ -29,7 +29,7 @@ def key_pressed (e):
         myquit (e)
 
 def placeBoarders (thickness, color):
-    print "placeBoarders"
+    print("placeBoarders")
     pge.box (0.0, 0.0, 1.0, thickness, color).fix ()
     pge.box (0.0, 0.0, thickness, 1.0, color).fix ()
     pge.box (1.0-thickness, 0.0, thickness, 1.0, color).fix ()
@@ -57,5 +57,5 @@ def main ():
     pge.run (1.65)
     pge.finish_record ()
 
-print "before main()"
+print("before main()")
 main ()

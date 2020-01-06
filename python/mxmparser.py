@@ -25,7 +25,7 @@ commentLeader = '//'
 
 def internalError (message):
     stop()
-    print message
+    print(message)
     sys.exit(1)
 
 
@@ -116,8 +116,8 @@ class parse:
             o = "outfile.m"
             m = open(o, 'r').readlines()
             if verbose:
-                print "output from maxima is:"
-                print string.join(m, '')
+                print("output from maxima is:")
+                print(string.join(m, ''))
             c = "rm %s\n" % i
             os.system(c)
             c = "rm %s\n" % o
@@ -238,7 +238,7 @@ class parse:
         else:
             printf(alternative)
         printf("\n")
-        print self.contents
+        print(self.contents)
 
 
     #

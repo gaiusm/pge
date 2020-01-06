@@ -15,6 +15,7 @@
 %cstring_output_allocate_size(char **s, int *slen, );
 
 %{
+#define SWIG_PYTHON_STRICT_BYTE_CHAR
 
 extern "C" void get_cbuf (char **s, int *slen);
 extern "C" void get_ebuf (char **s, int *slen);
@@ -48,7 +49,7 @@ extern "C" unsigned int spring (unsigned int id1, unsigned int id2, double k, do
 extern "C" unsigned int circle (double x0, double y0, double radius, unsigned int c);
 extern "C" unsigned int fix (unsigned int id);
 extern "C" unsigned int unfix (unsigned int id);
-extern "C" unsigned int is_fixed (unsigned int id); 
+extern "C" unsigned int is_fixed (unsigned int id);
 extern "C" unsigned int mass (unsigned int id, double m);
 extern "C" double get_mass (unsigned int id);
 extern "C" double get_gravity (unsigned int id);
@@ -123,7 +124,7 @@ extern "C" unsigned int spring (unsigned int id1, unsigned int id2, double k, do
 extern "C" unsigned int circle (double x0, double y0, double radius, unsigned int c);
 extern "C" unsigned int fix (unsigned int id);
 extern "C" unsigned int unfix (unsigned int id);
-extern "C" unsigned int is_fixed (unsigned int id); 
+extern "C" unsigned int is_fixed (unsigned int id);
 extern "C" unsigned int mass (unsigned int id, double m);
 extern "C" double get_mass (unsigned int id);
 extern "C" double get_gravity (unsigned int id);

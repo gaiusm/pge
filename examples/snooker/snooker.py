@@ -4,7 +4,7 @@ import pge, sys, time
 from pygame.locals import *
 
 
-print "starting snooker"
+print("starting snooker")
 # pge.batch ()
 pge.interactive ()
 pge.record ()
@@ -27,7 +27,7 @@ simulatedtime = 6
 
 
 def myquit (e):
-    print "goodbye"
+    print("goodbye")
     sys.exit (0)
 
 def finish_game (e = None):
@@ -38,7 +38,7 @@ def key_pressed (e):
         myquit (e)
 
 def placeBoarders (thickness, color):
-    print "placeBoarders"
+    print("placeBoarders")
     e1 = pge.box (0.0, 0.0, 1.0, thickness, color).fix ()
     e2 = pge.box (0.0, 0.0, thickness, 1.0, color).fix ()
     e3 = pge.box (1.0-thickness, 0.0, thickness, 1.0, color).fix ()
@@ -119,7 +119,7 @@ def main ():
 
     gb = placeBall (green, 0.19, 0.8, 0.05).mass (1.25).on_collision_with (sides, delete_it)
 
-    print "before run"
+    print("before run")
     pge.draw_collision (True, False)
     pge.slow_down (slowdown)  # slows down real time by a factor of
     pge.register_handler (myquit, [QUIT])
@@ -132,5 +132,5 @@ def main ():
     pge.run (4.0)
     pge.finish_record ()
 
-print "before main()"
+print("before main()")
 main ()

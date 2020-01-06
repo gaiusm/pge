@@ -40,7 +40,7 @@ currentColour = None
 
 def printColour (c):
     global colourNames
-    print colourNames[c],
+    print(colourNames[c], end=' ')
 
 
 #
@@ -48,28 +48,28 @@ def printColour (c):
 #
 
 def dumpData (message):
-    print "dumpData", message
-    print "bubbleDict", bubbleDict
-    for c in bubbleDict.keys ():
-        print "pge circle",
-        print " is in a list with: ",
+    print("dumpData", message)
+    print("bubbleDict", bubbleDict)
+    for c in list(bubbleDict.keys ()):
+        print("pge circle", end=' ')
+        print(" is in a list with: ", end=' ')
         for l in bubbleDict[c]:
             printColour (l.colour)
             if l.children != []:
-                print " [ children: ",
+                print(" [ children: ", end=' ')
                 for c in l.children:
                     printColour (c.colour)
-                    print ", ",
-                print "]",
-            print ", ",
-        print " "
+                    print(", ", end=' ')
+                print("]", end=' ')
+            print(", ", end=' ')
+        print(" ")
 
 #
 #  removeChildren - remove all bubbles in blist from all children in all bubbles.
 #
 
 def removeChildren (blist):
-    for circle in bubbleDict.keys ():
+    for circle in list(bubbleDict.keys ()):
         for b in bubbleDict[circle]:
             b.removeChild (blist)
 
@@ -82,9 +82,9 @@ def removeChildren (blist):
 def unfreezeList (blist):
     todo = []
     for b in blist:
-        print "bubble", b, "should be unfixed"
+        print("bubble", b, "should be unfixed")
         b.circle.unfix ()
-        if bubbleDict.has_key (b.circle):
+        if b.circle in bubbleDict:
             todo += bubbleDict[b.circle]
             del bubbleDict[b.circle]
         todo += b.children
@@ -98,7 +98,7 @@ def unfreezeList (blist):
 
 def unfreezeAll (circle):
     global bubbleDict
-    print "unfreezeAll", circle
+    print("unfreezeAll", circle)
     dumpData ("unfreezeAll")
     blist = bubbleDict[circle]
     while blist != []:
@@ -112,10 +112,10 @@ def unfreezeAll (circle):
 
 def bubble_hits_bar (o, e):
     global bubbleDict, currentCircle
-    print "bubble_hits_bar", currentCircle
+    print("bubble_hits_bar", currentCircle)
     if currentCircle != None:
-        if bubbleDict.has_key (currentCircle):
-            print "odd the bubble is already registered"
+        if currentCircle in bubbleDict:
+            print("odd the bubble is already registered")
         else:
             initChain (currentCircle, currentColour)
     currentCircle = None
@@ -137,11 +137,11 @@ def initChain (circle, colour):
 
 def updateChains (circle):
     global bubbleDict
-    print "updateChains"
+    print("updateChains")
     blist = bubbleDict[circle]
-    print "blist", blist, "len (blist) =", len (blist)
+    print("blist", blist, "len (blist) =", len (blist))
     blist += [bubble (currentCircle, currentColour)]
-    print "blistis now", blist, "len (blist) =", len (blist)
+    print("blistis now", blist, "len (blist) =", len (blist))
     # and update all circle -> chain entries
     for b in blist:
         bubbleDict[b.circle] = blist
@@ -159,26 +159,26 @@ def updateChains (circle):
 
 def addBubble (circle):
     global bubbleDict
-    print "addBubble"
-    if bubbleDict.has_key (circle):
+    print("addBubble")
+    if circle in bubbleDict:
         blist = bubbleDict[circle]
-        print blist, len (blist)
+        print(blist, len (blist))
         if blist[0].colour == currentColour:
-            print "same colour", blist
+            print("same colour", blist)
             if len (blist) == 2:
                 unfreezeAll (circle)
                 return
             else:
-                print "not enough of the same colour bubbles to unfreeze them"
+                print("not enough of the same colour bubbles to unfreeze them")
                 updateChains (circle)
         else:
-            print "bubble hit is a different colour"
+            print("bubble hit is a different colour")
             b = bubble (currentCircle, currentColour)
             blist[-1].addChild (b)
             bubbleDict[currentCircle] = [b]
         dumpData ("end of addBubble")
     else:
-        print "addBubble - does not know about circle", circle
+        print("addBubble - does not know about circle", circle)
 
 #
 #  bubble_hits_bubble - call back for a circle hitting a frozen bubble.
@@ -186,21 +186,21 @@ def addBubble (circle):
 
 def bubble_hits_bubble (o, e):
     global currentCircle
-    print "bubble hits bubble, currentCircle =", currentCircle
+    print("bubble hits bubble, currentCircle =", currentCircle)
     if currentCircle != None:
         b = e.collision_between ()
         for o in b:
             if o.is_fixed ():
-                print "object, o, is fixed", o
+                print("object, o, is fixed", o)
             else:
-                print "object, o, is not fixed", o
+                print("object, o, is not fixed", o)
             if not currentCircle.is_fixed ():
                 addBubble (o)
         currentCircle = None
     dumpData ("end of bubble_hits_bubble")
 
 
-print "starting frozenbubble"
+print("starting frozenbubble")
 pge.interactive ()
 # pge.batch ()
 pge.record ()
@@ -233,7 +233,7 @@ def finish_game (event, param):
     sys.exit (0)
 
 def placeBoarders (thickness, color):
-    print "placeBoarders"
+    print("placeBoarders")
     n = pge.box (0.0, 1.0-thickness, 1.0, thickness, color).fix ()
     e = pge.box (1.0-thickness, 0.0, thickness, 1.0, color).fix ()
     s = pge.box (0.0, 0.0, 1.0, thickness, color).fix ()
@@ -265,12 +265,12 @@ def mouse_press (e):
 
 
 def myquit (e):
-    print "goodbye, dumping world"
+    print("goodbye, dumping world")
     pge.dump_world ()
     sys.exit (0)
 
 def delete_ball (o, e):
-    print "delete_ball called"
+    print("delete_ball called")
     p = e.collision_between ()
     if p != None and p != []:
         for i in p:
@@ -340,7 +340,7 @@ def main ():
     s.on_collision (delete_ball)
     n.on_collision (bubble_hits_bar)
 
-    print "before run"
+    print("before run")
     pge.gravity ()
     pge.dump_world ()
     pge.draw_collision (False, False)
@@ -359,5 +359,5 @@ def main ():
     pge.run (10.0)
     pge.finish_record ()
 
-print "before main()"
+print("before main()")
 main ()
