@@ -51,23 +51,9 @@ def placeBall (kind, x, y, r):
 def snap_it (e, o):
     o.rm ()
 
-def update_fps (e, o):
-    global last_fps, fps_text
-
-    fn = pge.get_frame_no ()
-    s = "fps %d" % (fn - last_fps)
-    if fps_text != None:
-        fps_text.rm ()
-    fps_text = pge.text (0.8, 0.1, s, white, 50, 1)
-    last_fps = fn
-    local_fps ()
-
 def drop_gb (e, o):
     gb = placeBall (steel, 0.7, 0.92, 0.03).mass (2.0)
     # pge.at_time (3.0, drop_gb)
-
-def local_fps ():
-    f = pge.at_time (1.0, update_fps)
 
 def main ():
     global gb, sides, springs
@@ -104,7 +90,7 @@ def main ():
     pge.register_handler (myquit, [QUIT])
     pge.register_handler (key_pressed, [KEYDOWN])
     pge.display_set_mode ([1000, 1000])
-    local_fps ()
+    pge.local_fps ()
     pge.run (10.0)
     pge.finish_record ()
 

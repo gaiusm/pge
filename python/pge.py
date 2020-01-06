@@ -43,6 +43,8 @@ idcount = 0
 _record = False
 font_size = None
 font = None
+fps_text = None
+last_fps = 0
 
 
 #
@@ -708,6 +710,30 @@ def white ():
     c = pgeif.h2l (c)
     idTOcol[c] = (255, 255, 255)
     return o
+
+#
+#  update_fps - default call back used by local_fps.
+#               e is the event and o is the object which will be None.
+#
+
+def update_fps (e, o):
+    global last_fps, fps_text
+
+    fn = get_frame_no ()
+    s = "fps %d" % (fn - last_fps)
+    if fps_text != None:
+        fps_text.rm ()
+    fps_text = text (0.8, 0.1, s, white (), 50, 1)
+    last_fps = fn
+    local_fps ()
+
+#
+#  local_fps - generate a simple frames per second on the screen.
+#
+
+def local_fps ():
+    f = at_time (1.0, update_fps)
+
 
 #
 #  _register - register a colour pair id:ob in two dictoraries

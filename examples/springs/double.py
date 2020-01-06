@@ -48,21 +48,6 @@ def placeBoarders (thickness, color):
 def placeBall (kind, x, y, r):
     return pge.circle (x, y, r, kind)
 
-def update_fps (e, o):
-    global last_fps, fps_text
-
-    fn = pge.get_frame_no ()
-    s = "fps %d" % (fn - last_fps)
-    if fps_text != None:
-        fps_text.rm ()
-    fps_text = pge.text (0.8, 0.1, s, white, 50, 1)
-    last_fps = fn
-    local_fps ()
-
-
-def local_fps ():
-    f = pge.at_time (1.0, update_fps)
-
 def main ():
     global gb, sides
 
@@ -83,7 +68,7 @@ def main ():
     pge.register_handler (myquit, [QUIT])
     pge.register_handler (key_pressed, [KEYDOWN])
     pge.display_set_mode ([800, 800])
-    local_fps ()
+    pge.local_fps ()
     pge.run (10.0)
     pge.finish_record ()
 
