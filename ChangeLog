@@ -46,6 +46,7 @@
 	* version.c:  updated to 4.0.
 	* removed all output.raw files.
 	* removed all *.pyc files.
+	* Makefile.am:  do not install pyc files.
 
 2019-01-26      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 

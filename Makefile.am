@@ -91,11 +91,8 @@ install: _pgeif.so
 	$(INSTALL_PROGRAM) -m 755 $(srcdir)/pgeplayback $(DESTDIR)/usr/bin
 	$(INSTALL_PROGRAM) -m 755 -d $(DESTDIR)/usr/lib/python$(PYTHON_VERSION)
 	$(INSTALL_PROGRAM) -m 644 pge.py $(DESTDIR)/usr/lib/python$(PYTHON_VERSION)
-	$(INSTALL_PROGRAM) -m 644 pge.pyc $(DESTDIR)/usr/lib/python$(PYTHON_VERSION)
 	$(INSTALL_PROGRAM) -m 644 pgeif.py $(DESTDIR)/usr/lib/python$(PYTHON_VERSION)
-	$(INSTALL_PROGRAM) -m 644 pgeif.pyc $(DESTDIR)/usr/lib/python$(PYTHON_VERSION)
 	$(INSTALL_PROGRAM) -m 644 pgeplayback.py $(DESTDIR)/usr/lib/python$(PYTHON_VERSION)
-	$(INSTALL_PROGRAM) -m 644 pgeplayback.pyc $(DESTDIR)/usr/lib/python$(PYTHON_VERSION)
 	$(INSTALL_PROGRAM) -m 644 _pgeif.so $(DESTDIR)/usr/lib/python$(PYTHON_VERSION)
 
 _pgeif.so: all
