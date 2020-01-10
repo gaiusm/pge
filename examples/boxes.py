@@ -2,7 +2,7 @@
 
 import pge, sys
 
-print "starting boxes"
+print("starting boxes")
 pge.batch ()
 
 wood_light = pge.rgb (166.0/256.0, 124.0/256.0, 54.0/256.0)
@@ -14,7 +14,7 @@ boarder = 0.01
 
 
 def placeBoarders (thickness, color):
-    print "placeBoarders"
+    print("placeBoarders")
     pge.box (0.0, 0.0, 1.0, thickness, color).fix ()
     pge.box (0.0, 0.0, thickness, 1.0, color).fix ()
     pge.box (1.0-thickness, 0.0, thickness, 1.0, color).fix ()
@@ -32,5 +32,5 @@ def main ():
     pge.run (3.0)
     pge.finish_record ()
 
-print "before main()"
+print("before main()")
 main ()

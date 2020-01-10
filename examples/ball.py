@@ -2,7 +2,7 @@
 
 import pge, sys
 
-print "starting triangle"
+print("starting triangle")
 pge.batch ()  # this works
 # pge.interactive () # and this fails (the code is incomplete)
 
@@ -18,7 +18,7 @@ gap = 0.01
 
 
 def placeBoarders (thickness, color):
-    print "placeBoarders"
+    print("placeBoarders")
     e1 = pge.box (0.0, 0.0, 1.0, thickness, color).fix ()
     e2 = pge.box (0.0, 0.0, thickness, 1.0, color).fix ()
     e3 = pge.box (1.0-thickness, 0.0, thickness, 1.0, color).fix ()
@@ -36,17 +36,17 @@ def placeBox (p0, p1, p2, p3):
     t.fix ()
 
 def callMe (p):
-    print "box has collided!"
+    print("box has collided!")
 
 def main ():
     c = placeBall (0.55, 0.8, 0.1).mass (1).on_collision (callMe)
     l = placeBox ([0.3, 0.3], [0.3, 0.5], [0.5, 0.5], [0.5, 0.3])
     b1, b2, b3, b4 = placeBoarders (boarder, wood_dark)
-    print "before run"
+    print("before run")
     pge.gravity ()
     pge.dump_world ()
     pge.run (3.0)
     pge.finish ()
 
-print "before main()"
+print("before main()")
 main ()

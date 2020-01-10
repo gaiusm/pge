@@ -1,3 +1,8 @@
+2020-01-10      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* changed all examples to Python3.
+	* changed documentation to Python3.
+
 2020-01-06      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* Makefile.am:  changed compiler from 8.2.0 to 9.1.0.

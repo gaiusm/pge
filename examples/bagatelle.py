@@ -4,7 +4,7 @@ import pge, sys
 from pygame.locals import *
 
 
-print "starting bagatelle"
+print("starting bagatelle")
 pge.interactive ()
 # pge.batch ()
 
@@ -24,7 +24,7 @@ g = None
 
 
 def placeBoarders (thickness, color):
-    print "placeBoarders"
+    print("placeBoarders")
     e1 = pge.box (0.0, 0.0, 1.0, thickness, color).fix ()
     e2 = pge.box (0.0, 0.0, thickness, 1.0, color).fix ()
     e3 = pge.box (1.0-thickness, 0.0, thickness, 1.0, color).fix ()
@@ -42,7 +42,7 @@ def placeBox (p0, p1, p2, p3):
     t.fix ()
 
 def callMe (p):
-    print "box has collided!"
+    print("box has collided!")
 
 def play_wood (o, e):
     pge.play ("/home/gaius/Sandpit/cluedo/sounds/bounce.wav")
@@ -59,7 +59,7 @@ def key_pressed (e):
 
 def mouse_hit (e):
     global g
-    print "mouse down", e.pos
+    print("mouse down", e.pos)
     mouse = pge.pyg_to_unit_coord (e.pos)
     ball = g.get_unit_coord ()
     g.apply_impulse (pge.normalise (pge.sub_coord (mouse, ball)),
@@ -68,7 +68,7 @@ def mouse_hit (e):
     # pge.magnitude (pge.sub_coord (mouse, ball)))
 
 def myquit (e):
-    print "goodbye"
+    print("goodbye")
     sys.exit (0)
 
 def main ():
@@ -82,7 +82,7 @@ def main ():
     for b in [b1, b2, b3, b4]:
         b.on_collision (play_crack)
 
-    print "before run"
+    print("before run")
     pge.gravity ()
     pge.dump_world ()
     pge.draw_collision (True, False)
@@ -95,5 +95,5 @@ def main ():
     pge.run (30.0)
     pge.finish ()
 
-print "before main()"
+print("before main()")
 main ()

@@ -1,8 +1,8 @@
 \input texinfo   @c -*-texinfo-*-
 @c %**start of header
 @setfilename pge.info
-@set version-pge     3.0
-@set version-update  2018-09-11
+@set version-pge     4.0
+@set version-update  2020-01-10
 @settitle GNU PGE @value{version-pge}
 @c %**end of header
 
@@ -21,7 +21,7 @@
 @center Last updated @value{version-update}
 
 @vskip 0pt plus 1filll
-Copyright @copyright{} 2016, 2017, 2018 Free Software Foundation, Inc.
+Copyright @copyright{} 2016-2020 Free Software Foundation, Inc.
 
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.1 or
@@ -244,12 +244,12 @@ gravity would allow frozen bubble to be completed using PGE.
 Here is the declaration section of breakout code.
 
 @example
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import pge, sys, time
 from pygame.locals import *
 
-print "starting breakout"
+print ("starting breakout")
 pge.interactive ()
 pge.record ()
 
@@ -286,7 +286,7 @@ def finish_game (e = None, f = None):
 
 
 def myquit (e):
-    print "goodbye"
+    print ("goodbye")
     finish_game ()
 
 
@@ -296,7 +296,7 @@ def key_pressed (e):
 
 
 def placeBorders (thickness, color):
-    print "placeBorders"
+    print ("placeBorders")
     e1 = pge.box (0.0, 0.0, 1.0, thickness, color).fix ()
     e2 = pge.box (0.0, 0.0, thickness, 1.0, color).fix ()
     e3 = pge.box (1.0-thickness, 0.0, thickness, 1.0, color).fix ()
@@ -351,7 +351,7 @@ def mouse_hit (e):
         gb.put_xvel (gb.get_xvel ()+0.3)
     elif gb.moving_towards (mouse[0], mouse[1]):
         ball = gb.get_unit_coord ()
-        # print "mouse =", mouse, "ball =", ball
+        # print ("mouse =", mouse, "ball =", ball)
         gb.apply_impulse (pge.sub_coord (mouse, ball), 0.4)
     else:
         gb.put_yvel (gb.get_yvel ()+0.4)
@@ -394,7 +394,7 @@ def main ():
     place_boxes ()
     gb = placeBall (gold, 0.19, 0.8, 0.05).mass (1.25)
 
-    print "before run"
+    print ("before run")
     pge.gravity ()
     pge.dump_world ()
     pge.draw_collision (True, False)
@@ -411,7 +411,7 @@ def main ():
     pge.finish ()
 
 
-print "before main()"
+print ("before main()")
 main ()
 @end example
 

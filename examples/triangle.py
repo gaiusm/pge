@@ -1,8 +1,8 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import pge, sys
 
-print "starting triangle"
+print("starting triangle")
 pge.batch ()
 
 t = pge.rgb (1.0/2.0, 2.0/3.0, 3.0/4.0)
@@ -17,7 +17,7 @@ gap = 0.01
 
 
 def placeBoarders (thickness, color):
-    print "placeBoarders"
+    print("placeBoarders")
     e1 = pge.box (0.0, 0.0, 1.0, thickness, color).fix ()
     e2 = pge.box (0.0, 0.0, thickness, 1.0, color).fix ()
     e3 = pge.box (1.0-thickness, 0.0, thickness, 1.0, color).fix ()
@@ -38,11 +38,11 @@ def main ():
     c = placeBall (0.41, 0.89, 0.05).mass (1)
     l = placeTriangle ([0.3, 0.3], [0.5, 0.3], [0.4, 0.4])
     b1, b2, b3, b4 = placeBoarders (boarder, wood_dark)
-    print "before run"
+    print("before run")
     pge.gravity ()
     pge.dump_world ()
     pge.run (3.0)
     pge.finish ()
 
-print "before main()"
+print("before main()")
 main ()

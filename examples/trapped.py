@@ -1,9 +1,9 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import pge, sys
 # import pgemacro
 
-print "starting exampleBoxes"
+print("starting exampleBoxes")
 pge.batch ()
 
 t = pge.rgb (1.0/2.0, 2.0/3.0, 3.0/4.0)
@@ -23,7 +23,7 @@ captured = None
 
 
 def placeBoarders (thickness, color):
-    print "placeBoarders"
+    print("placeBoarders")
     e1 = pge.box (0.0, 0.0, 1.0, thickness, color).fix ()
     e2 = pge.box (0.0, 0.0, thickness, 1.0, color).fix ()
     e3 = pge.box (1.0-thickness, 0.0, thickness, 1.0, color).fix ()
@@ -41,16 +41,16 @@ def placeBox (p0, p1, p2, p3, colour):
     t.fix ()
 
 def double_it (o, e):
-    print "double_it", o._name()
+    print("double_it", o._name())
     return
     p = e.collision_between ()
-    print "after between ->", p
+    print("after between ->", p)
     if p != None and p != []:
         for i in p:
             if i != o:
                 x = i.get_xvel ()
                 y = i.get_yvel ()
-                print "x velocity of", i, "is", x, "y velocity is", y
+                print("x velocity of", i, "is", x, "y velocity is", y)
                 i.put_xvel (x*1.1)
                 # i.put_yvel (y*1.1)
 
@@ -64,7 +64,7 @@ def placeRamps ():
                     0.75, 0.57,
                     0.15, 0.59, wood_dark).fix ()
 
-                
+
 def placeTriangle (p0, p1, p2, colour):
     t = pge.poly3 (p0[0], p0[1], p1[0], p1[1], p2[0], p2[1], colour).on_collision (double_it)
     t.fix ()
@@ -75,10 +75,10 @@ def placeSilos ():
                        x, 0.07,
                        x+0.01, 0.07,
                        x+0.01, 0.0, wood_dark).fix ()
-                       
+
 
 def callMe (p):
-    print "box has collided!"
+    print("box has collided!")
 
 def play_wood (o, e):
     pge.play ("/home/gaius/Sandpit/cluedo/sounds/bounce.wav")
@@ -93,9 +93,9 @@ def delete_it (o, e):
     global captured
 
     if o==captured:
-        print "no need to delete this ball"
+        print("no need to delete this ball")
     else:
-        print "yes need to delete", o
+        print("yes need to delete", o)
 
 def box_of (thickness, pos, width, color):
     global captured
@@ -122,11 +122,11 @@ def main ():
     box_of (boarder, [0.0, 0.8], 0.2, wood_dark)
     placeSilos ()
 
-    print "before run"
+    print("before run")
     pge.gravity ()
     pge.dump_world ()
     pge.run (18.0)
     pge.finish ()
 
-print "before main()"
+print("before main()")
 main ()
