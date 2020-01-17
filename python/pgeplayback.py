@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import os, pygame, string, sys, getopt, math, struct, time
 from pygame.locals import *
@@ -54,7 +54,7 @@ class myfile:
         self.name = name
         if not os.path.isfile (name):
             error ("cannot find file: " + name)
-        self.contents = open (name, 'r').read ()
+        self.contents = open (name, 'rb').read ()
         self.pos = 0
         self.length = len (self.contents)
     def read (self, n):
@@ -327,7 +327,7 @@ def mults (s, f):
         return 0
     if f[1] == 0 or f[2] == 0:
         return f[0]*s
-    return f[0]+f[1]*s/f[2]
+    return f[0]+int (f[1]*s/f[2])
 
 
 def toFloat (f):
@@ -661,9 +661,9 @@ def writeColour (c):
         writtenColours += [c]
         s = ".defcolor col%d rgb " % c
         r, g, b = idTOcol[c]
-        r = r / 255.0
-        g = g / 255.0
-        b = b / 255.0
+        r = int (r / 255.0)
+        g = int (g / 255.0)
+        b = int (b / 255.0)
         s += "%gf %gf %gf\n" % (r, g, b)
         outf.write (s)
 
@@ -706,7 +706,7 @@ def finishMovie ():
         doSystem ("sox -m " + commandArgs + " " + audio)
         command = "mencoder -audiofile %s \"mf://" + f + "\" -mf w=600:h=600:fps=%d:type=png -ovc lavc -lavcopts vcodec=mpeg4 -oac copy -o %s"
         s = command % (audio, fps, outputName)
-    printf ("generated %d frames, movie will run for %d seconds\n", frameNo, frameNo / fps)
+    printf ("generated %d frames, movie will run for %d seconds\n", frameNo, int (frameNo / fps))
     doSystem (s)
 
 
@@ -916,31 +916,31 @@ def main ():
     filename = handleOptions ()
     configDevice ()
     if movie:
-        call['rc'] = grRegisterColour
-        call['dp'] = grDrawPolygon
-        call['dP'] = grDrawFillPolygon
-        call['dc'] = grDrawCircle
-        call['dC'] = grDrawFillCircle
-        call['fb'] = grFlipBuffer
-        call['fr'] = grFramesPerSecond
-        call['ex'] = grExit
-        call['sl'] = grSleep
-        call['ps'] = grPlay
-        call['fn'] = grFrameNote
-        call['ms'] = grMessage
+        call[b'rc'] = grRegisterColour
+        call[b'dp'] = grDrawPolygon
+        call[b'dP'] = grDrawFillPolygon
+        call[b'dc'] = grDrawCircle
+        call[b'dC'] = grDrawFillCircle
+        call[b'fb'] = grFlipBuffer
+        call[b'fr'] = grFramesPerSecond
+        call[b'ex'] = grExit
+        call[b'sl'] = grSleep
+        call[b'ps'] = grPlay
+        call[b'fn'] = grFrameNote
+        call[b'ms'] = grMessage
     else:
-        call['rc'] = registerColour
-        call['dp'] = drawPolygon
-        call['dP'] = drawFillPolygon
-        call['dc'] = drawCircle
-        call['dC'] = drawFillCircle
-        call['fb'] = flipBuffer
-        call['fr'] = framesPerSecond
-        call['ex'] = doExit
-        call['sl'] = doSleep
-        call['ps'] = doPlay
-        call['fn'] = doFrameNote
-        call['ms'] = doMessage
+        call[b'rc'] = registerColour
+        call[b'dp'] = drawPolygon
+        call[b'dP'] = drawFillPolygon
+        call[b'dc'] = drawCircle
+        call[b'dC'] = drawFillCircle
+        call[b'fb'] = flipBuffer
+        call[b'fr'] = framesPerSecond
+        call[b'ex'] = doExit
+        call[b'sl'] = doSleep
+        call[b'ps'] = doPlay
+        call[b'fn'] = doFrameNote
+        call[b'ms'] = doMessage
     readFile (filename)
     finish (0)
 

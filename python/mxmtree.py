@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 #
 #  mxmtree - handle all the tree creation and walking
 #

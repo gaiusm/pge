@@ -1,3 +1,17 @@
+2020-01-17      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* pgeplayback:  changed to Python3.
+	* python/fig.py:  changed to Python3.
+	* python/max2code.py:  changed to Python3.
+	* python/mxmmaxima.py:  changed to Python3.
+	* python/mxmout.py:  changed to Python3.
+	* python/mxmparser.py:  changed to Python3.
+	* python/mxmstack.py:  changed to Python3.
+	* python/mxmtree.py:  changed to Python3.
+	* python/pge.py:  changed to Python3.
+	* python/pgeplayback.py:  changed to Python3.
+	* python/pgepygame.py:  changed to Python3.
+
 2020-01-10      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* changed all examples to Python3.

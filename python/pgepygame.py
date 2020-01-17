@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import os, pygame, string, sys, getopt, math, struct
 from pygame.locals import *
