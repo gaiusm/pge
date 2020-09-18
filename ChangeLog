@@ -1,3 +1,12 @@
+2020-09-18      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* regenerated all C files.
+	* use gm2-10.2.1
+	* m2/Makefile.am:  tidied up and detect Python path.  Use gm2-10.2.1
+	* c/Makefile.am:  tidied up and detect Python path.  Use
+	gm2-10.2.1
+	* no longer use pth and as coroutines now uses gcc -lpthreads.
+
 2020-01-17      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* pgeplayback:  changed to Python3.

@@ -12,7 +12,8 @@ INSTALL_PROGRAM = install
 
 TEXI2HTML=python $(srcdir)/www/tools/texi2tr/src/texi2tr.py
 PYTHON_VERSION=$(strip $(shell python3 -V 2>&1 | cut -b8- | cut -f1-2 -d'.'))
-GM2GCCBASE=9.1.0
+# GM2GCCBASE=11.0.0
+GM2GCCBASE=10.2.1
 
 GM2=/opt/bin/gm2
 G++=/opt/bin/g++
@@ -40,7 +41,7 @@ libpgeif_la_SOURCES = macroObjects.c Points.c Fractions.c PolyMatrix3D.c \
                       RTgenif.c Strings.c CharClass.c RawIO.c \
                       Gmcrts.c Glibc.c Gdtoa.c Gerrno.c Gldtoa.c \
                       GSelective.c GSysExceptions.c GSYSTEM.c Gtermios.c \
-                      GUnixArgs.c Gwrapc.c gdbif.c network.c Glibm.c Gpth.c \
+                      GUnixArgs.c Gwrapc.c gdbif.c network.c Glibm.c \
                       Gcbuiltin.c GBuiltins.c Gwrapsock.c
 
 
@@ -58,7 +59,7 @@ MY_DEPS = macroObjects.lo Points.lo Fractions.lo PolyMatrix3D.lo \
           RTgenif.lo Strings.lo CharClass.lo RawIO.lo \
           Gmcrts.lo Glibc.lo Gdtoa.lo Gerrno.lo Gldtoa.lo \
           GSelective.lo GSysExceptions.lo GSYSTEM.lo Gtermios.lo \
-          GUnixArgs.lo Gwrapc.lo gdbif.lo network.lo Glibm.lo Gpth.lo \
+          GUnixArgs.lo Gwrapc.lo gdbif.lo network.lo Glibm.lo \
           Gcbuiltin.lo GBuiltins.lo Gwrapsock.lo
 
 BUILT_SOURCES = springs.m circles.m rotating-line.m rotating-circles.m
@@ -67,15 +68,16 @@ BUILT_SOURCES = springs.m circles.m rotating-line.m rotating-circles.m
 # PYTHON_VERSION=2.7
 
 # GM2_LIB_DIR=/home/gaius/opt/lib/gcc/x86_64-unknown-linux-gnu/$(GM2GCCBASE)/m2
-GM2_LIB_DIR=/opt/gm2/lib/gcc/x86_64-linux-gnu/$(GM2GCCBASE)/m2
+GM2_LIB_DIR=$(shell gm2 -print-file-name=)
+# GCC_DEFAULT_LIB=/opt/gm2/lib      # for arm
+GCC_DEFAULT_LIB=/opt/gm2/lib64    # for amd64
 
-SRC_PATH_PIM=-I$(srcdir)/pge-m2 -I$(GM2_LIB_DIR)/libgm2/pim -I$(GM2_LIB_DIR)/iso
+SRC_PATH_PIM=-I$(srcdir)/pge-m2 -I$(GM2_LIB_DIR)m2/m2pim -I$(GM2_LIB_DIR)m2/m2iso
 
 PROFILE =
 CHECK = -fsoft-check-all
 
 GM2FLAGS = $(PROFILE) $(CHECK) -g -fiso -fextended-opaque -I$(srcdir)/src-m2 -g
-GM2LIBDIR = /opt/gm2
 
 EXAMPLES = elc
 
@@ -142,10 +144,12 @@ libpgeif.la:  $(MY_DEPS)
 	$(LIBTOOL) --tag=CC --mode=compile g++ -g -c _m2_pgeif.cpp -o _m2_pgeif.lo
 	$(LIBTOOL) --tag=CC --mode=link gcc -g _m2_pgeif.lo $(MY_DEPS) \
             pgeif_wrap.lo \
-           -L$(GM2LIBDIR)/lib64 \
-           -rpath `pwd` -liso -lgcc -lstdc++ -lpth -lc -lm -o libpgeif.la
+           -L$(GCC_DEFAULT_LIB) \
+           -rpath `pwd` -lm2pim -lm2iso -lgcc -lstdc++ -lc -lm -o libpgeif.la
 	cp .libs/libpgeif.so ../_pgeif.so
 	cp pgeif.py ../pgeif.py
+
+#	$(LIBTOOL) --tag=CC --mode=compile g++ -g -c pgeif_m2.cpp -o _m2_pgeif.lo
 
 transforms: rotating-circles.asc rotating-line.asc
 

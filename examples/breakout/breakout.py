@@ -150,6 +150,7 @@ def main ():
     pge.register_handler (mouse_hit, [MOUSEBUTTONDOWN])
     pge.display_set_mode ([800, 800])
     # pge.display_fullscreen (True)
+    pge.local_fps ()
     seconds_left = 10*slowdown
     timer ()
     pge.run (10.0)

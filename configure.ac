@@ -59,7 +59,6 @@ else
    AC_MSG_ERROR([you must specify either --enable-langc or --enable-langm2])
 fi
 
-AC_HAVE_LIBRARY(-lpth)
 AC_SUBST([langm2])
 AC_SUBST([langc])
 AC_SUBST([maintainer])

@@ -1,20 +1,28 @@
-(* Copyright (C) 2008, 2009, 2010
-                 Free Software Foundation, Inc. *)
-(* This file is part of GNU Modula-2.
+(* RTExceptions.mod runtime exception handler routines.
 
-This library is free software; you can redistribute it and/or
-modify it under the terms of the GNU Lesser General Public
-License as published by the Free Software Foundation; either
-version 2.1 of the License, or (at your option) any later version.
+Copyright (C) 2008-2020 Free Software Foundation, Inc.
+Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.
 
-This library is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
+This file is part of GNU Modula-2.
+
+GNU Modula-2 is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 3, or (at your option)
+any later version.
+
+GNU Modula-2 is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-Lesser General Public License for more details.
+General Public License for more details.
 
-You should have received a copy of the GNU Lesser General Public
-License along with this library; if not, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA *)
+Under Section 7 of GPL version 3, you are granted additional
+permissions described in the GCC Runtime Library Exception, version
+3.1, as published by the Free Software Foundation.
+
+You should have received a copy of the GNU General Public License and
+a copy of the GCC Runtime Library Exception along with this program;
+see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see
+<http://www.gnu.org/licenses/>.  *)
 
 IMPLEMENTATION MODULE RTExceptions ;
 
@@ -22,7 +30,7 @@ FROM ASCII IMPORT nul, nl ;
 FROM StrLib IMPORT StrLen ;
 FROM Storage IMPORT ALLOCATE, DEALLOCATE ;
 FROM SYSTEM IMPORT ADR, THROW ;
-FROM libc IMPORT write, strlen ;
+FROM libc IMPORT write, strlen, printf ;
 FROM M2RTS IMPORT HALT, Halt ;
 FROM SysExceptions IMPORT InitExceptionHandlers ;
 
@@ -34,8 +42,7 @@ CONST
    MaxBuffer = 4096 ;
 
 TYPE
-   Handler = POINTER TO handler ;  (* to help p2c *)
-   handler =            RECORD
+   Handler = POINTER TO RECORD
                            p    : ProcedureHandler ;
                            n    : CARDINAL ;
                            right,
@@ -43,8 +50,7 @@ TYPE
                            stack: Handler ;
                         END ;
 
-   EHBlock = POINTER TO ehblock ;  (* to help p2c *)
-   ehblock =            RECORD
+   EHBlock = POINTER TO RECORD
                            buffer  : ARRAY [0..MaxBuffer] OF CHAR ;
                            number  : CARDINAL ;
                            handlers: Handler ;
@@ -53,10 +59,6 @@ TYPE
 
    PtrToChar = POINTER TO CHAR ;
 
-(* %%%FORWARD%%%
-PROCEDURE NewHandler () : Handler ; FORWARD ;
-PROCEDURE KillHandlers (h: Handler) : Handler ; FORWARD ;
-   %%%FORWARD%%% *)
 
 VAR
    inException  : BOOLEAN ;
@@ -131,6 +133,7 @@ BEGIN
    h := findHandler(currentEHB, currentEHB^.number) ;
    IF h=NIL
    THEN
+      printf ("runtime exception called invoking gdb\n");
       gdbif.sleepSpin ;
       THROW(GetNumber(GetExceptionBlock()))
    ELSE
@@ -296,10 +299,12 @@ BEGIN
    addChar(':', i) ;
    addStr(message, i) ;
    addChar(' ', i) ;
+   addChar('(', i) ;
    addChar('i', i) ;
    addChar('n', i) ;
    addChar(' ', i) ;
    addStr(function, i) ;
+   addChar(')', i) ;
    addChar(nl, i) ;
    addChar(nul, i) ;
    InvokeHandler

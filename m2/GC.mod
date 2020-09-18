@@ -30,7 +30,7 @@ IMPORT gdbif ;
 CONST
    EnableChecking = TRUE ;
    PoisonOn  = TRUE ;
-   GGCPOISON = 0A5A5A5A5H ;   (* poisoned memory contains this code *)
+   GGCPOISON = 05A5A5A5AH ;    (* poisoned memory contains this code *)
    TraceOn   = FALSE ;
    StatsOn   = FALSE ;
 

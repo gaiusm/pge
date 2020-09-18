@@ -9,7 +9,7 @@ mandir= @mandir@
 exec_prefix=@exec_prefix@
 bindir= @bindir@
 INSTALL_PROGRAM = install
-GCCVERSION=9.1.0
+GCCVERSION=11.0.0
 
 TEXI2HTML=python $(srcdir)/www/tools/texi2tr/src/texi2tr.py
 PYTHON_VERSION=$(strip $(shell python3 -V 2>&1 | cut -b8- | cut -f1-2 -d'.'))
@@ -138,10 +138,10 @@ clear: force
 force:
 
 if MAINTAINER
-MC=$(HOME)/GM2/graft-svn-trunc/build-svn-trunc/gcc/gm2/boot-bin/mc --h-file-prefix=G
-PIMLIBS=$(HOME)/GM2/graft-$(GCCVERSION)/gcc-$(GCCVERSION)/gcc/gm2/gm2-libs
-ISOLIBS=$(HOME)/GM2/graft-$(GCCVERSION)/gcc-$(GCCVERSION)/gcc/gm2/gm2-libs-iso
-MCLIBS=$(HOME)/GM2/graft-$(GCCVERSION)/gcc-$(GCCVERSION)/gcc/gm2/mc-boot-ch
+MC=$(HOME)/GM2/graft-combine/build-gm2-master/gcc/m2/boot-bin/mc --h-file-prefix=G
+PIMLIBS=$(HOME)/GM2/graft-combine/gm2-floppsie/gcc/m2/gm2-libs
+ISOLIBS=$(HOME)/GM2/graft-combine/gm2-floppsie/gcc/m2/gm2-libs-iso
+MCLIBS=$(HOME)/GM2/graft-combine/gm2-floppsie/gcc/m2/mc-boot-ch
 
 M2DEFS = coord.def delay.def deviceGroff.def \
          deviceIf.def devicePy.def Fractions.def GC.def \
@@ -186,14 +186,16 @@ M2PIMLIBMODS = Storage.mod Indexing.mod \
 
 M2ISOLIBDEFS = MemStream.def STextIO.def SWholeIO.def SeqFile.def \
                ClientSocket.def RawIO.def IOChan.def IOConsts.def \
-               ChanConsts.def M2EXCEPTION.def pth.def COROUTINES.def \
+               ChanConsts.def M2EXCEPTION.def COROUTINES.def \
+               RTco.def Processes.def \
                RTentity.def EXCEPTIONS.def \
                RTgenif.def Strings.def CharClass.def RawIO.def
 
-M2ISOLIBMODS =               STextIO.mod SWholeIO.mod SeqFile.mod \
+M2ISOLIBMODS = STextIO.mod SWholeIO.mod SeqFile.mod \
                ClientSocket.mod IOChan.mod IOConsts.mod \
                ChanConsts.mod M2EXCEPTION.mod \
                RTentity.mod EXCEPTIONS.mod COROUTINES.mod \
+               Processes.mod \
                RTgenif.mod Strings.mod CharClass.mod RawIO.mod
 
 pge-c-clean: force

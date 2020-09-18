@@ -1,6 +1,6 @@
 /* Gdtoa.c provides access to double string conversion.
 
-Copyright (C) 2016-2018 Free Software Foundation, Inc.
+Copyright (C) 2016-2020 Free Software Foundation, Inc.
 Contributed by Gaius Mulley <gaius@glam.ac.uk>.
 
 This file is part of GNU Modula-2.
@@ -16,9 +16,8 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Modula-2; see the file COPYING.  If not, write to the
-Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
-02110-1301, USA.  */
+along with GNU Modula-2; see the file COPYING3.  If not see
+<http://www.gnu.org/licenses/>.  */
 
 #define GM2
 
@@ -100,7 +99,7 @@ dtoa_calcmaxsig (char *p, int ndigits)
     return strlen (p) + x;
   else
     {
-      strncpy (o, o + 1, ndigits - (o - p));
+      memmove (o, o + 1, ndigits - (o - p));
       return o - p + x;
     }
 }
@@ -149,7 +148,7 @@ dtoa_calcsign (char *p, int str_size)
 {
   if (p[0] == '-')
     {
-      strncpy (p, p + 1, str_size - 1);
+      memmove (p, p + 1, str_size - 1);
       return TRUE;
     }
   else
