@@ -35,6 +35,62 @@ currentColour = None
 
 
 #
+#  printf - keeps C programmers happy :-)
+#
+
+def printf (format, *args):
+    sys.stdout.write (str (format) % args)
+    sys.stdout.flush ()
+
+
+#
+#  hit_chair - chair callback which destroys an object gradually.
+#              param is expected to be a list of two values.
+#              the first value is the current hit count and the second
+#              is the value at construction.
+#
+
+def hit_chair (pge_object, pge_event):
+    hit_value = pge_object.get_param ()
+    if hit_value == 1:
+        pge_object.rm ()
+    else:
+        hit_value -= 1
+        pge_object.set_colour (hit_colour[hit_value])
+        pge_object.set_param (hit_value)
+
+
+#
+#     |
+#     |
+#     +----+
+#     |    |
+#    x,y
+
+def chair (x, y, width, height, facing_left, thickness, hits):
+    if facing_left:
+        printf ("about to create leg of chair\n")
+        leg = pge.box (x, y, thickness, height/2, hit_colour[-1]).fix ()
+        printf ("about to create back of chair\n")
+        back = pge.box (x+width-thickness, y, thickness, height, hit_colour[-1]).fix ()
+        printf ("about to create back of chair\n")
+        seat = pge.box (x, y + height /2, width, thickness, hit_colour[-1]).fix ()
+    else:
+        printf ("about to create leg of chair\n")
+        leg = pge.box (x+width-thickness, y, thickness, height/2, hit_colour[-1]).fix ()
+        printf ("about to create back of chair\n")
+        back = pge.box (x, y, thickness, height, hit_colour[-1]).fix ()
+        printf ("about to create back of chair\n")
+        seat = pge.box (x, y + height /2, width, thickness, hit_colour[-1]).fix ()
+    seat.on_collision (hit_chair)
+    seat.set_param (hits)
+    leg.on_collision (hit_chair)
+    leg.set_param (hits)
+    back.on_collision (hit_chair)
+    back.set_param (hits)
+
+
+#
 #  printColour - print the colour string.
 #
 
@@ -221,6 +277,7 @@ blue = pge.rgb (0.0, 100.0/255.0, 1.0)
 gap = 0.01
 previous = None
 seconds_left = None
+hit_colour = [gold, copper, steel, wood_dark, wood_light, white]
 
 slowdown = 5
 simulatedtime = 60
@@ -339,7 +396,12 @@ def main ():
     n, e, s, w = placeBoarders (boarder, wood_dark)
     s.on_collision (delete_ball)
     n.on_collision (bubble_hits_bar)
-
+    # platform = pge.box (0.1, 0.1, 0.2, 0.05, steel).fix ()
+    # platform.set_visible (False)
+    chair (0.1, 0.1, 0.1, 0.1, False, 0.01, 2)  # left chair
+    chair (0.3, 0.1, 0.1, 0.1, False, 0.01, 3)  # left chair
+    chair (0.6, 0.1, 0.1, 0.1, True, 0.01, 4)  # right chair
+    chair (0.8, 0.1, 0.1, 0.1, True, 0.01, 5)  # right chair
     print("before run")
     pge.gravity ()
     pge.dump_world ()
@@ -350,7 +412,6 @@ def main ():
     pge.register_handler (mouse_press, [MOUSEBUTTONDOWN])
     pge.register_handler (myquit, [QUIT])
     pge.register_handler (key_pressed, [KEYDOWN])
-
     createLevel ()
 
     seconds_left = 10 * slowdown
@@ -358,6 +419,7 @@ def main ():
     pge.run (simulatedtime)
     pge.run (10.0)
     pge.finish_record ()
+
 
 print("before main()")
 main ()

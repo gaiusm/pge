@@ -126,6 +126,7 @@ TYPE
                           fixed,
                           stationary      : BOOLEAN ;
 			  gravity         : REAL ;  (* per object grav *)
+                          visible         : BOOLEAN ;  (* Is the object visible?  *)
 			  saccel,       (* spring acceleration vector which is accumulated from all attached springs.  *)
 			  forceVec        : Coord ; (* force vector. *)
                           vx, vy, ax, ay  : REAL ;
@@ -458,6 +459,7 @@ BEGIN
       stationary       := FALSE ;
       saccel           := initCoord (0.0, 0.0) ;
       gravity          := 0.0 ;
+      visible          := TRUE ;
       forceVec         := initCoord (0.0, 0.0) ;
       object           := type ;
       vx               := 0.0 ;
@@ -1946,6 +1948,46 @@ END get_gravity ;
 
 
 (*
+   get_visible - returns the visibility of an object id.
+*)
+
+PROCEDURE get_visible (id: CARDINAL) : BOOLEAN ;
+VAR
+   optr: Object ;
+BEGIN
+   optr := GetIndice (objects, id) ;
+   CASE optr^.object OF
+
+   polygonOb,
+   circleOb:  RETURN optr^.visible
+
+   ELSE
+      printf ("cannot get the visibility of this object\n");
+   END
+END get_visible ;
+
+
+(*
+   set_visible - sets the visibility of an object id.
+*)
+
+PROCEDURE set_visible (id: CARDINAL; value: BOOLEAN) ;
+VAR
+   optr: Object ;
+BEGIN
+   optr := GetIndice (objects, id) ;
+   CASE optr^.object OF
+
+   polygonOb,
+   circleOb:  optr^.visible := value
+
+   ELSE
+      printf ("cannot set the visibility of this object\n");
+   END
+END set_visible ;
+
+
+(*
    getCofG - returns the CofG of an object.
 *)
 
@@ -3342,9 +3384,12 @@ BEGIN
          THEN
             dumpObject (optr)
          END ;
-         (* printf ("before doDrawFrame\n"); *)
-         doDrawFrame (optr, dt, getEventObjectColour (e, optr)) ;
-         (* printf ("after doDrawFrame\n"); *)
+         IF optr^.visible
+         THEN
+            (* printf ("before doDrawFrame\n"); *)
+            doDrawFrame (optr, dt, getEventObjectColour (e, optr)) ;
+            (* printf ("after doDrawFrame\n"); *)
+         END
       END ;
       INC (i)
    END ;

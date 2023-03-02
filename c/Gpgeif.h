@@ -155,6 +155,18 @@ EXTERN double get_gravity (unsigned int id);
 EXTERN void set_gravity (unsigned int id, double g);
 
 /*
+   get_visible - returns the visibility of an object id.
+*/
+
+EXTERN int get_visible (unsigned int id);
+
+/*
+   set_visible - sets the visibility of an object id.
+*/
+
+EXTERN void set_visible (unsigned int id, int value);
+
+/*
    fix - fix the object to the world.
 */
 

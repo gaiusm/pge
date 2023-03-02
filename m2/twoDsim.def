@@ -197,6 +197,20 @@ PROCEDURE get_gravity (id: CARDINAL) : REAL ;
 
 
 (*
+   get_visible - returns the visibility of an object id.
+*)
+
+PROCEDURE get_visible (id: CARDINAL) : BOOLEAN ;
+
+
+(*
+   set_visible - sets the visibility of an object id.
+*)
+
+PROCEDURE set_visible (id: CARDINAL; value: BOOLEAN) ;
+
+
+(*
    get_mass - returns the mass of object, id.
 *)
 

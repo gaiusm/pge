@@ -35,6 +35,7 @@ EXPORT UNQUALIFIED ExceptionKind,
                    rgb, white, black, red, green, blue, purple, gravity,
                    box, poly3, poly4, poly5, poly6, mass, fix, unfix, is_fixed,
 		   get_mass, set_gravity, get_gravity,
+                   set_visible, get_visible,
 		   circle, spring,
                    velocity, accel, rotate, process_event,
                    is_collision, is_frame, is_function, is_spring,
@@ -188,6 +189,20 @@ PROCEDURE get_gravity (id: CARDINAL) : REAL ;
 *)
 
 PROCEDURE set_gravity (id: CARDINAL; g: REAL) ;
+
+
+(*
+   get_visible - returns the visibility of an object id.
+*)
+
+PROCEDURE get_visible (id: CARDINAL) : BOOLEAN ;
+
+
+(*
+   set_visible - sets the visibility of an object id.
+*)
+
+PROCEDURE set_visible (id: CARDINAL; value: BOOLEAN) ;
 
 
 (*

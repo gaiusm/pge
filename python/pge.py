@@ -507,6 +507,17 @@ class object:
         return self
 
     #
+    #  set_alpha - Pre-condition:  self is a polygon or circle object.
+    #              Post-condition:  this object will be displayed with
+    #              its colour having an alpha value.
+    #
+
+    def set_alpha (self, value):
+        self._check_type ([box_t, circle_t], "set_alpha")
+        pgeif.set_alpha (self.o, value)
+        return self
+
+    #
     #  get_unit_coord - Pre-condition:  object must be a circle.
     #                   Post-condition:  return a list [x, y] representing the
     #                   coordinate center of this object.  Each x, y
@@ -670,6 +681,16 @@ class object:
         id2func[idcount] = p
         pgeif.when_spring (self.o, l, idcount)
         return self
+    #
+    #  set_visible - turns on/off the visibility of an object.
+    #                value is a boolean, True for visible and
+    #                False for invisible.
+    #
+    def set_visible (self, value):
+        self._check_type ([box_t, circle_t], "set the visibility")
+        pgeif.set_visible (self.o, value)
+        return self
+
 
 
 #

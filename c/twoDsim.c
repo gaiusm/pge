@@ -231,6 +231,7 @@ struct _T2_r {
                unsigned int fixed;
                unsigned int stationary;
                double gravity;
+               int visible;
                coord_Coord saccel;
                coord_Coord forceVec;
                double vx;
@@ -2502,7 +2503,7 @@ static void Assert (unsigned int b, unsigned int line)
     {
       libc_printf ((char *) "twoDsim.mod:%d:error assert failed\\n", 36, line);
     }
-  /* 
+  /*
       exit (1);
       HALT
   */
@@ -2747,6 +2748,7 @@ static unsigned int newObject (ObjectType type)
   optr->stationary = FALSE;
   optr->saccel = coord_initCoord (0.0, 0.0);
   optr->gravity = 0.0;
+  optr->visible = TRUE;
   optr->forceVec = coord_initCoord (0.0, 0.0);
   optr->object = type;
   optr->vx = 0.0;
@@ -2864,7 +2866,7 @@ static void apply_impulse_to_circle (Object movable, double x, double y, double 
         }
     }
   c = coord_initCoord (movable->c.pos.x-impulsePos.x, movable->c.pos.y-impulsePos.y);
-  /* 
+  /*
    frameNote ;
    drawFrame (NIL) ;
    debugCircle (impulsePos, 0.02, white ()) ;
@@ -2872,7 +2874,7 @@ static void apply_impulse_to_circle (Object movable, double x, double y, double 
   r = libm_sqrt ((c.x*c.x)+(c.y*c.y));
   unitCollision = coord_initCoord (c.x/r, c.y/r);
   relativeVelocity = coord_initCoord (movable->vx, movable->vy);
-  /* 
+  /*
    debugLine (impulsePos, addCoord (impulsePos, c), yellow ()) ;
    flipBuffer ;
   */
@@ -3106,7 +3108,7 @@ static unsigned int doCheckInterpenCirclePolygon (Object iptr, Object jptr)
               if (roots_nearZero (d))
                 {
                   /* avoid dangling else.  */
-                  /* 
+                  /*
                v := subCoord (jptr^.p.cOfG, p3) ;
 	       d := lengthCoord (v) ;
                v := scaleCoord (v, (r+d)/d) ;
@@ -3119,7 +3121,7 @@ static unsigned int doCheckInterpenCirclePolygon (Object iptr, Object jptr)
                 }
               else
                 {
-                  /* 
+                  /*
                printf ("line p1 = %g, %g -> %g, %g and point %g, %g nearest point %g, %g
                   ",
                        p1.x, p1.y, p2.x, p2.y, c.x, c.y, p3.x, p3.y) ;
@@ -3134,23 +3136,23 @@ static unsigned int doCheckInterpenCirclePolygon (Object iptr, Object jptr)
   */
                   v = coord_subCoord (c, p3);
                   v = checkZeroCoord (coord_scaleCoord (v, r/d));
-                  /* 
+                  /*
                printf ("v = %g, %g   p3 = %g, %g
                   ", v.x, v.y, p3.x, p3.y) ;
   */
                   iptr->c.pos = checkZeroCoord (coord_addCoord (p3, v));
                 }
-              /* 
+              /*
                IF iptr^.stationary
                THEN
                   printf ("seen collision between circle and line, new position %g, %g  (now stationary)
               ",
                            iptr^.c.pos.x, iptr^.c.pos.y)
                ELSE
-                  
+
                   iptr^.vx := iptr^.vx - v.x ;
-                  iptr^.vy := iptr^.vy - v.y ;   give it a little push as well.  
-		  
+                  iptr^.vy := iptr^.vy - v.y ;   give it a little push as well.
+
                   printf ("seen collision between circle and line, new position %g, %g, velocity %g, %g  (pushing it by: %g, %g)
               ",
                            iptr^.c.pos.x, iptr^.c.pos.y, iptr^.vx, iptr^.vy, v.x, v.y)
@@ -3634,7 +3636,7 @@ static void checkFrameInterpenPolygonPolygon (Object polygon0, Object polygon1)
                       printQueue ();
                     }
                 }
-              /* 
+              /*
                RETURN
   */
             }
@@ -5088,7 +5090,8 @@ static void drawFrame (eventQueue e)
             }
           /* printf ("before doDrawFrame
           ");  */
-          doDrawFrame (optr, dt, getEventObjectColour (e, optr));
+	  if (optr->visible)
+	    doDrawFrame (optr, dt, getEventObjectColour (e, optr));
         }
       /* printf ("after doDrawFrame
       ");  */
@@ -5623,15 +5626,15 @@ static void checkStationary (Object o)
           inElastic (&o->vx);
           inElastic (&o->vy);
         }
-      /* 
+      /*
             stationary := nearZeroVelocity (vx) AND nearZeroVelocity (vy) AND
                           nearZero (ax) AND nearZero (ay) ;
             IF stationary
             THEN
-               
+
                vx := 0.0 ;
                vy := 0.0 ;
-               
+
                IF Debugging
                THEN
                   dumpObject (o)
@@ -6468,11 +6471,11 @@ static void doCollision (eventQueue e)
       drawFrame (e);
       deviceIf_flipBuffer ();
     }
-  /* 
+  /*
       collectAll
   */
   physicsCollision (e);
-  /* 
+  /*
    printf ("near end of doCollision
   ");
    printQueue ;
@@ -6744,14 +6747,14 @@ static unsigned int earlierCircleCollision (eventDesc edesc, unsigned int id1, u
   double W;
   double gap;
 
-  /* 
+  /*
    IF (bestTimeOfCollision >= 0.0) AND (t >= 0.0)
    THEN
       gap := 0.5 ;
       T := 1.0 / framesPerSecond ;
       S := sqr ((d - c) * T + 0.5 * (e - f) * sqr (T)) +
-           sqr ((k - l) * T + 0.5 * (m - n) * sqr (T)) ;    estimated distance travelled in next time frame.  
-      W := sqr (a - b) + sqr (g - h) - sqr (o + p) ;   current distance between the two circles.  
+           sqr ((k - l) * T + 0.5 * (m - n) * sqr (T)) ;    estimated distance travelled in next time frame.
+      W := sqr (a - b) + sqr (g - h) - sqr (o + p) ;   current distance between the two circles.
       IF S + gap < W
       THEN
          INC (noOfCulledCollisions) ;
@@ -6825,7 +6828,7 @@ static unsigned int doEarlierCircleCollision (eventDesc edesc, unsigned int id1,
   C = (((((((((((4.0*h)-(4.0*g))*n)+(((4.0*g)-(4.0*h))*m))+(4.0*(sqr (l))))-((8.0*k)*l))+(4.0*(sqr (k))))+(((4.0*b)-(4.0*a))*f))+(((4.0*a)-(4.0*b))*e))+(4.0*(sqr (d))))-((8.0*c)*d))+(4.0*(sqr (c)));
   D = (((((8.0*h)-(8.0*g))*l)+(((8.0*g)-(8.0*h))*k))+(((8.0*b)-(8.0*a))*d))+(((8.0*a)-(8.0*b))*c);
   E = ((((((4.0*(sqr (h)))-((8.0*g)*h))+(4.0*(sqr (g))))+(4.0*(sqr (b))))-((8.0*a)*b))+(4.0*(sqr (a))))-(sqr (2.0*(p+o)));
-  /* 
+  /*
    maximaCircleCollision (array,
                           a, b, c, d, e, f, g, h, k, l, m, n, o, p) ;
   */
@@ -6858,7 +6861,7 @@ static unsigned int doEarlierCircleCollision (eventDesc edesc, unsigned int id1,
           if (roots_nearSame (coord_lengthCoord (v12), o+p))
             {
               /* avoid dangling else.  */
-              /* 
+              /*
             printf ("
               c1 = %g, %g
               ", c1.x, c1.y) ;
@@ -7005,7 +7008,7 @@ static void findCollisionCircles (Object iptr, Object jptr, eventDesc *edesc, do
   double T;
   coord_Coord cp;
 
-  /* 
+  /*
         a        xi
         g        yi
         o        ri
@@ -7015,7 +7018,7 @@ static void findCollisionCircles (Object iptr, Object jptr, eventDesc *edesc, do
         m        ayi
   */
   getCircleValues (iptr, &a, &g, &o, &c, &k, &e, &m);
-  /* 
+  /*
         b         xj
         h         yj
         p         rj
@@ -7401,7 +7404,7 @@ static unsigned int earlierPointLineCollision (double *timeOfCollision, coord_Co
       hPoint (c1, (deviceIf_Colour) deviceIf_purple ());
       hFlush ();
     }
-  /* 
+  /*
       now solve for, t, when y=0, use S = UT + 1/2 AT^2
       at y = 0 we have:
 
@@ -8667,7 +8670,7 @@ static void calcSpringLengthEvents (unsigned int i)
   t = -1.0;
   getSpringEndValues (id1, &c1, &v1, &a1);
   getSpringEndValues (id2, &c2, &v2, &a2);
-  /* 
+  /*
    test := -1.0 ;
    IF earlierCircleCollision (edesc, i, i,
                               t, ts, cp,
@@ -8686,7 +8689,7 @@ static void calcSpringLengthEvents (unsigned int i)
    id2ptr := GetIndice (objects, id2) ;
    getCircleValues (id1ptr, a, g, o, c, k, e, m) ;
 
-   
+
         b         xj
         h         yj
         p         rj
@@ -8694,7 +8697,7 @@ static void calcSpringLengthEvents (unsigned int i)
         l         vyj
         f         ajx
         n         ajy
-   
+
 
    getCircleValues (id2ptr, b, h, p, d, l, f, n) ;
    o := 0.0 ;
@@ -8713,7 +8716,7 @@ static void calcSpringLengthEvents (unsigned int i)
   */
   if (earlierSpringLength (edesc, i, &t, ts, c1, v1, a1, c2, v2, a2, iptr->s.l0, (history_springPoint) history_midPoint))
     {
-      /* 
+      /*
       printf ("actually found a mid point value of %g
       ", t) ;
       AssertRFail (test, t) ;
@@ -8891,7 +8894,7 @@ static void calcSpringEventTime (unsigned int i)
     {
       printQueue ();
     }
-  /* 
+  /*
    calcSpringEndEventsKE (ts, i, edesc) ;
   */
 }
@@ -9034,7 +9037,7 @@ static void doSpringMidPoint (eventQueue e)
       doDrawFrame (id2ptr, 0.0, (deviceIf_Colour) idptr->s.midColour);
       deviceIf_flipBuffer ();
     }
-  /* 
+  /*
    IF NOT id1ptr^.fixed
    THEN
       inElasticSpring (id1ptr^.vx) ;
@@ -9279,7 +9282,7 @@ static void addNextCollisionEvent (void)
   edesc = NULL;
   tc = -1.0;
   list = optPredictiveBroadphase (initBroadphase ());
-  /* 
+  /*
    IF list # NIL
    THEN
       gdbif.sleepSpin
@@ -10619,6 +10622,55 @@ double twoDsim_get_gravity (unsigned int id)
 
 
 /*
+   set_visible - sets the visibility of an object id.
+*/
+
+void twoDsim_set_visible (unsigned int id, int value)
+{
+  Object optr;
+
+  optr = Indexing_GetIndice (objects, id);
+  switch (optr->object)
+    {
+      case polygonOb:
+      case circleOb:
+        optr->visible = value;
+        break;
+
+      default:
+        libc_printf ((char *) "cannot set the visibility of this object\\n", 39);
+        break;
+    }
+}
+
+
+/*
+   get_visible - returns the visibility of an object id.
+*/
+
+int twoDsim_get_visible (unsigned int id)
+{
+  Object optr;
+
+  optr = Indexing_GetIndice (objects, id);
+  switch (optr->object)
+    {
+      case polygonOb:
+      case circleOb:
+        return optr->visible;
+        break;
+
+      default:
+        libc_printf ((char *) "cannot get the visibility of this object\\n", 39);
+        break;
+    }
+  ReturnException ("../git-pge/m2/twoDsim.def", 2, 1);
+  __builtin_unreachable ();
+}
+
+
+
+/*
    get_mass - returns the mass of object, id.
 */
 
@@ -11025,7 +11077,7 @@ void twoDsim_simulateFor (double t)
   double s;
   double dt;
 
-  /* 
+  /*
    gdbif.sleepSpin ;
   */
   startedRunning = TRUE;

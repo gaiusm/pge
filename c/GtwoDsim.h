@@ -181,6 +181,20 @@ EXTERN void twoDsim_set_gravity (unsigned int id, double g);
 
 EXTERN double twoDsim_get_gravity (unsigned int id);
 
+
+/*
+   set_visible - sets the visibility of an object id.
+*/
+
+EXTERN void twoDsim_set_visible (unsigned int id, int value);
+
+/*
+   get_visible - returns the visibility of an object id.
+*/
+
+EXTERN int twoDsim_get_visible (unsigned int id);
+
+
 /*
    get_mass - returns the mass of object, id.
 */

@@ -12,8 +12,6 @@ INSTALL_PROGRAM = install
 
 TEXI2HTML=python $(srcdir)/www/tools/texi2tr/src/texi2tr.py
 PYTHON_VERSION=$(strip $(shell python3 -V 2>&1 | cut -b8- | cut -f1-2 -d'.'))
-# GM2GCCBASE=11.0.0
-GM2GCCBASE=10.2.1
 
 ACLOCAL_AMFLAGS=-I m4
 
@@ -26,7 +24,7 @@ libpgeif_la_SOURCES = macroObjects.mod Points.mod Fractions.mod PolyMatrix3D.mod
                       Transform3D.mod delay.mod GC.mod popWorld.mod \
                       twoDsim.mod roots.mod coord.mod polar.mod history.mod \
                       deviceIf.mod rpc.mod pgeif.mod NetworkOrder.mod \
-                      RTExceptions.mod interpen.mod segment.mod \
+                      interpen.mod segment.mod \
                       gdbif.mod \
                       buffers.c
 
@@ -35,29 +33,21 @@ MY_DEPS = macroObjects.lo Points.lo Fractions.lo PolyMatrix3D.lo \
           twoDsim.lo roots.lo coord.lo polar.lo \
           history.lo deviceIf.lo rpc.lo \
           pgeif.lo NetworkOrder.lo \
-          RTExceptions.lo interpen.lo segment.lo \
+          interpen.lo segment.lo \
           gdbif.lo \
           buffers.lo
 
 BUILT_SOURCES = springs.m circles.m rotating-line.m rotating-circles.m
 
-# PYTHON_VERSION=$(shell python --version 2>&1 | cut -f2 -d' ')
-# PYTHON_VERSION=2.7
-
-# GM2_LIB_DIR=/home/gaius/opt/lib/gcc/x86_64-unknown-linux-gnu/$(GM2GCCBASE)/m2
-# GM2_LIB_DIR=/opt/gm2/lib/gcc/x86_64-unknown-linux-gnu/$(GM2GCCBASE)/m2
-# GM2_LIB_DIR=/opt/gm2/lib/gcc/x86_64-linux-gnu/$(GM2GCCBASE)
-# GM2_LIB_DIR=/opt/gm2/lib/gcc/x86_64-unknown-linux-gnu/$(GM2GCCBASE)/m2
-# GM2_LIB_DIR=/opt/gm2/lib/gcc/x86_64-linux-gnu/$(GM2GCCBASE)
-# GM2_LIB_DIR=/home/gaius/opt/lib/gcc/x86_64-pc-linux-gnu/$(GM2GCCBASE)
 GM2_LIB_DIR=$(shell gm2 -print-file-name=)
 # GCC_DEFAULT_LIB=/opt/gm2/lib      # for arm
-GCC_DEFAULT_LIB=/opt/gm2/lib64    # for amd64
+GCC_DEFAULT_LIB=$(HOME)/opt/lib64
 
-SRC_PATH_PIM=-I$(srcdir)/pge-m2 -I$(GM2_LIB_DIR)/m2/m2pim -I$(GM2_LIB_DIR)/m2/m2iso
+SRC_PATH_PIM=-I$(srcdir)/pge-m2 -fm2-pathname=m2pim -I$(GM2_LIB_DIR)/m2/m2pim -fm2-pathname=m2iso -I$(GM2_LIB_DIR)/m2/m2iso -fno-m2-pathname=-
 
 PROFILE =
 CHECK = -fsoft-check-all
+# CHECK =
 OPT = -O0
 
 GM2FLAGS = $(OPT) $(PROFILE) $(CHECK) -g -fm2-g -fiso -fextended-opaque -I$(srcdir)/src-m2 -g
@@ -118,16 +108,20 @@ endif
 .c.lo:
 	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile gcc -c $(CFLAGS_FOR_TARGET) $(LIBCFLAGS) $(libgm2_la_M2FLAGS) $< -o $@
 
+pgeif.lo: pgeif.mod
+	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+               --mode=compile gm2 -c $(CFLAGS_FOR_TARGET) $(LIBCFLAGS) $(libgm2_la_M2FLAGS) $(CHECK) -g -fm2-g -fno-m2-pathname=- -I$(srcdir) $(SRC_PATH_PIM) \
+               -fruntime-modules=- \
+               -fgen-module-list=pgeif.lst -fscaffold-main -fscaffold-static -fshared \
+               $(srcdir)/pgeif.mod -o $@
+	cat pgeif.lst
+
 libpgeif.la:  $(MY_DEPS)
 	swig -outdir . -o pgeif_wrap.cxx -c++ -python $(top_srcdir)/i/pgeif.i
-	$(LIBTOOL) --tag=CC --mode=compile g++ -g -c pgeif_wrap.cxx -I/usr/include/python$(PYTHON_VERSION) -o pgeif_wrap.lo
-	gm2 $(CHECK) -c -g -fm2-g $(SRC_PATH_PIM) -fmakelist -I$(srcdir) $(srcdir)/pgeif.mod
-	gm2 $(CHECK) -c -g -fm2-g $(SRC_PATH_PIM) -fmakeinit -fshared -I$(srcdir) $(srcdir)/pgeif.mod
-	$(LIBTOOL) --tag=CC --mode=compile g++ -g -c _m2_pgeif.cpp -o _m2_pgeif.lo
-	$(LIBTOOL) --tag=CC --mode=link gcc -g _m2_pgeif.lo $(MY_DEPS) \
-            pgeif_wrap.lo \
+	$(LIBTOOL) --tag=CC --mode=compile g++ -g -c pgeif_wrap.cxx -I/usr/include/python$(PYTHON_VERSION) $(CFLAGS_FOR_TARGET) -o pgeif_wrap.lo
+	$(LIBTOOL) --tag=CC --mode=link gcc -g $(MY_DEPS) pgeif_wrap.lo \
            -L$(GCC_DEFAULT_LIB) \
-           -rpath `pwd` -lm2pim -lm2iso -lgcc -lstdc++ -lc -lm -o libpgeif.la
+           -rpath `pwd` -lm2iso -lm2pim -lgcc -lstdc++ -lc -lm -o libpgeif.la
 	cp .libs/libpgeif.so ../_pgeif.so
 	cp pgeif.py ../pgeif.py
 

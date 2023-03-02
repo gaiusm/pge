@@ -141,15 +141,13 @@ libpgeif.la:  $(MY_DEPS)
 	gm2 -c -g $(SRC_PATH_PIM) -fcpp -fmakelist -I$(top_srcdir)/m2 $(top_srcdir)/m2/pgeif.mod
 	gm2 -c -g $(SRC_PATH_PIM) -fcpp -fmakeinit -fshared -I$(top_srcdir) $(top_srcdir)/m2/pgeif.mod
 	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile gcc -c $(CFLAGS_FOR_TARGET) $(LIBCFLAGS) $(libgm2_la_M2FLAGS) $(srcdir)/pgeif.c -o pgeif.lo
-	$(LIBTOOL) --tag=CC --mode=compile g++ -g -c _m2_pgeif.cpp -o _m2_pgeif.lo
+	$(LIBTOOL) --tag=CC --mode=compile g++ -g -c pgeif_m2.cpp -o _m2_pgeif.lo
 	$(LIBTOOL) --tag=CC --mode=link gcc -g _m2_pgeif.lo $(MY_DEPS) \
             pgeif_wrap.lo \
            -L$(GCC_DEFAULT_LIB) \
            -rpath `pwd` -lm2pim -lm2iso -lgcc -lstdc++ -lc -lm -o libpgeif.la
 	cp .libs/libpgeif.so ../_pgeif.so
 	cp pgeif.py ../pgeif.py
-
-#	$(LIBTOOL) --tag=CC --mode=compile g++ -g -c pgeif_m2.cpp -o _m2_pgeif.lo
 
 transforms: rotating-circles.asc rotating-line.asc
 

@@ -81,6 +81,7 @@ END Assert ;
 
 PROCEDURE init ;
 BEGIN
+   printf ("hello from pge\n");
    listOfDefs := InitIndex (1)
 END init ;
 
@@ -630,6 +631,26 @@ PROCEDURE set_gravity (id: CARDINAL; g: REAL) ;
 BEGIN
    twoDsim.set_gravity (lookupDef (object, id), g)
 END set_gravity ;
+
+
+(*
+   get_visible - returns the visibility of an object id.
+*)
+
+PROCEDURE get_visible (id: CARDINAL) : BOOLEAN ;
+BEGIN
+   RETURN twoDsim.get_visible (lookupDef (object, id))
+END get_visible ;
+
+
+(*
+   set_visible - sets the visibility of an object id.
+*)
+
+PROCEDURE set_visible (id: CARDINAL; value: BOOLEAN) ;
+BEGIN
+   twoDsim.set_visible (lookupDef (object, id), value)
+END set_visible ;
 
 
 (*

@@ -175,6 +175,18 @@ double get_gravity (unsigned int id);
 void set_gravity (unsigned int id, double g);
 
 /*
+   get_visible - returns the visibility of an object id.
+*/
+
+int get_visible (unsigned int id);
+
+/*
+   set_visible - sets the visibility of an object id.
+*/
+
+void set_visible (unsigned int id, int value);
+
+/*
    fix - fix the object to the world.
 */
 
@@ -986,6 +998,28 @@ double get_gravity (unsigned int id)
 void set_gravity (unsigned int id, double g)
 {
   twoDsim_set_gravity (lookupDef ((TypeOfDef) object, id), g);
+}
+
+
+/*
+   get_visible - returns the visibility of an object id.
+*/
+
+int get_visible (unsigned int id)
+{
+  return twoDsim_get_visible (lookupDef ((TypeOfDef) object, id));
+  /* static analysis guarentees a RETURN statement will be used before here.  */
+  __builtin_unreachable ();
+}
+
+
+/*
+   set_visible - sets the visibility of an object id.
+*/
+
+void set_visible (unsigned int id, int value)
+{
+  twoDsim_set_visible (lookupDef ((TypeOfDef) object, id), value);
 }
 
 

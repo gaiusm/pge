@@ -55,6 +55,9 @@ extern "C" double get_mass (unsigned int id);
 extern "C" double get_gravity (unsigned int id);
 extern "C" double set_gravity (unsigned int id, double g);
 
+extern "C" int get_visible (unsigned int id);
+extern "C" int set_visible (unsigned int id, int value);
+
 extern "C" unsigned int poly6 (double x0, double y0, double x1, double y1, double x2, double y2, double x3, double y3, double x4, double y4, double x5, double y5, unsigned int c);
 extern "C" unsigned int poly5 (double x0, double y0, double x1, double y1, double x2, double y2, double x3, double y3, double x4, double y4, unsigned int c);
 extern "C" unsigned int poly4 (double x0, double y0, double x1, double y1, double x2, double y2, double x3, double y3, unsigned int c);
@@ -129,6 +132,9 @@ extern "C" unsigned int mass (unsigned int id, double m);
 extern "C" double get_mass (unsigned int id);
 extern "C" double get_gravity (unsigned int id);
 extern "C" double set_gravity (unsigned int id, double g);
+
+extern "C" int get_visible (unsigned int id);
+extern "C" int set_visible (unsigned int id, int value);
 
 extern "C" unsigned int poly6 (double x0, double y0, double x1, double y1, double x2, double y2, double x3, double y3, double x4, double y4, double x5, double y5, unsigned int c);
 extern "C" unsigned int poly5 (double x0, double y0, double x1, double y1, double x2, double y2, double x3, double y3, double x4, double y4, unsigned int c);
