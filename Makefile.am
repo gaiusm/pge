@@ -11,7 +11,7 @@ bindir= @bindir@
 INSTALL_PROGRAM = install
 GCCVERSION=11.0.0
 
-TEXI2HTML=python $(srcdir)/www/tools/texi2tr/src/texi2tr.py
+TEXI2HTML=python3 $(srcdir)/www/tools/texi2tr/src/texi2tr.py
 PYTHON_VERSION=$(strip $(shell python3 -V 2>&1 | cut -b8- | cut -f1-2 -d'.'))
 
 DISTFILES = Makefile.in configure.ac configure \
@@ -37,16 +37,16 @@ endif
 
 if MAINTAINER
 springs.m: $(srcdir)/mxm/springs.mxm
-	python $(srcdir)/python/max2code.py -v -o $@ $<
+	python3 $(srcdir)/python/max2code.py -v -o $@ $<
 
 circles.m: $(srcdir)/mxm/circles.mxm
-	python $(srcdir)/python/max2code.py -v -o $@ $<
+	python3 $(srcdir)/python/max2code.py -v -o $@ $<
 
 rotating-circles.m: $(srcdir)/mxm/rotating-circles.mxm
-	python $(srcdir)/python/max2code.py -v -o $@ $<
+	python3 $(srcdir)/python/max2code.py -v -o $@ $<
 
 rotating-line.m: $(srcdir)/mxm/rotating-line.mxm
-	python $(srcdir)/python/max2code.py -v -o $@ $<
+	python3 $(srcdir)/python/max2code.py -v -o $@ $<
 else
 springs.m: $(srcdir)/mxm/springs.mxm
 	cp $(srcdir)/m/springs.m $@
@@ -71,20 +71,20 @@ springs: force
 	./localrun.sh $(srcdir)/examples/springs/bridge.py
 
 trapped: force
-	PYTHONPATH=.:$(srcdir)/python python $(srcdir)/examples/trapped/trapped.py
+	PYTHONPATH=.:$(srcdir)/python python3 $(srcdir)/examples/trapped/trapped.py
 
 output.raw: _pgeif.so
-	PYTHONPATH=.:$(srcdir)/src python $(srcdir)/examples/exampleBoxes.py
+	PYTHONPATH=.:$(srcdir)/src python3 $(srcdir)/examples/exampleBoxes.py
 
 playback: force
-	PYTHONPATH=.:$(srcdir)/src python $(srcdir)/src/pgeplayback.py
+	PYTHONPATH=.:$(srcdir)/src python3 $(srcdir)/src/pgeplayback.py
 
 transforms: rotating-circles.asc rotating-line.asc
 
 install: _pgeif.so
 	cp $(srcdir)/python/pge.py .
 	cp $(srcdir)/python/pgeplayback.py .
-	PYTHONPATH=.:$(srcdir)/python python $(srcdir)/pgesetup.py build
+	PYTHONPATH=.:$(srcdir)/python python3 $(srcdir)/pgesetup.py build
 	$(INSTALL_PROGRAM) -m 755 $(srcdir)/pgeplayback $(DESTDIR)/usr/bin
 	$(INSTALL_PROGRAM) -m 755 -d $(DESTDIR)/usr/lib/python$(PYTHON_VERSION)
 	$(INSTALL_PROGRAM) -m 644 pge.py $(DESTDIR)/usr/lib/python$(PYTHON_VERSION)
@@ -106,7 +106,7 @@ pge.dvi: pge-api.texi $(srcdir)/doc/pge.texi
 	texi2dvi -I $(srcdir)/ $(srcdir)/doc/pge.texi
 
 pge-api.texi:  force
-	python $(srcdir)/tools/py2texi.py -f$(srcdir)/python/pge.py > pge-api.texi
+	python3 $(srcdir)/tools/py2texi.py -f$(srcdir)/python/pge.py > pge-api.texi
 
 texi2tr.css: $(srcdir)/www/tools/texi2tr/html/texi2tr.css
 	cp $< $@

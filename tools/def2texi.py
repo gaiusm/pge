@@ -59,12 +59,12 @@ def displayLibraryClass():
     l = libraryClassifications[i]
 
     while True:
-        print "@node " + l[1] + ", " + next + ", " + previous + ", " + up
-        print "@section " + l[1]
-        print ""
+        print("@node " + l[1] + ", " + next + ", " + previous + ", " + up)
+        print("@section " + l[1])
+        print("")
         displayModules(l[1], l[0], buildDir, sourceDir)
-        print ""
-        print "@c ---------------------------------------------------------------------"
+        print("")
+        print("@c ---------------------------------------------------------------------")
         previous = l[1]
         i += 1
         if i == len(libraryClassifications):
@@ -80,14 +80,14 @@ def displayLibraryClass():
 #
 
 def displayMenu():
-    print "@menu"
+    print("@menu")
     for l in libraryClassifications:
-        print "* " + l[1] + "::" + l[2]
-    print "@end menu"
+        print("* " + l[1] + "::" + l[2])
+    print("@end menu")
 
-    print "\n"
-    print "@c ====================================================================="
-    print "\n"
+    print("\n")
+    print("@c =====================================================================")
+    print("\n")
 
 
 #
@@ -124,10 +124,10 @@ def removeFields (file, line):
         elif (string.find(line, "SYSTEM") != -1) and (string.find(line, ":") != -1) and (string.find(line, "Description:") == -1):
             line = file.readline()
         else:
-	    print string.replace(string.replace(string.rstrip(line),
-                                            "{", "@{"), "}", "@}")
+	    print(string.replace(string.replace(string.rstrip(line),
+                                            "{", "@{"), "}", "@}"))
             line = file.readline()
-    print string.rstrip(line)
+    print(string.rstrip(line))
 
 
 #
@@ -173,24 +173,24 @@ def checkIndex (line):
             word = string.lstrip(word)
             if word != "":
                 if string.find(word, ':') == -1:
-                    print "@findex " + word + " (var)"
+                    print("@findex " + word + " (var)")
                 elif len(word)>0:
                     var = string.split(word, ':')
                     if len(var)>0:
-                        print "@findex " + var[0] + " (var)"
+                        print("@findex " + var[0] + " (var)")
 
     if inType:
         words = string.lstrip(line)
         if string.find(words, '=') != -1:
             word = string.split(words, "=")
             if (len(word[0])>0) and (word[0][0] != '_'):
-                print "@findex " + string.rstrip(word[0]) + " (type)"
+                print("@findex " + string.rstrip(word[0]) + " (type)")
         else:
             word = string.split(words)
             if (len(word)>1) and (word[1] == ';'):
                 # hidden type
                 if (len(word[0])>0) and (word[0][0] != '_'):
-                    print "@findex " + string.rstrip(word[0]) + " (type)"
+                    print("@findex " + string.rstrip(word[0]) + " (type)")
 
     if inConst:
         words = string.split(line, ';')
@@ -200,7 +200,7 @@ def checkIndex (line):
                 if string.find(word, '=') != -1:
                     var = string.split(word, '=')
                     if len(var)>0:
-                        print "@findex " + var[0] + " (const)"
+                        print("@findex " + var[0] + " (const)")
 
     if procedure != "":
         name = string.split(procedure, "(")
@@ -209,7 +209,7 @@ def checkIndex (line):
             if proc[-1] == ";":
                 proc = proc[:-1]
             if proc != "":
-                print "@findex " + proc
+                print("@findex " + proc)
 
 
 #
@@ -217,7 +217,7 @@ def checkIndex (line):
 #
 
 def parseDefinition (dir, source, build, file, needPage):
-    print ""
+    print("")
     f = open(findFile(dir, build, source, file), 'r')
     initState()
     line = f.readline()
@@ -228,29 +228,29 @@ def parseDefinition (dir, source, build, file, needPage):
     while (string.find(line, "DEFINITION") == -1):
         line = f.readline()
 
-    print "@example"
-    print string.rstrip(line)
+    print("@example")
+    print(string.rstrip(line))
     line = f.readline()
     if len(string.rstrip(line)) == 0:
-        print string.replace(string.replace(string.rstrip(line),
-                                            "{", "@{"), "}", "@}")
+        print(string.replace(string.replace(string.rstrip(line),
+                                            "{", "@{"), "}", "@}"))
         line = f.readline()
         if (string.find(line, "(*") != -1):
             removeFields(f, line)
         else:
-            print string.rstrip(line)
+            print(string.rstrip(line))
     else:
-        print string.rstrip(line)
+        print(string.rstrip(line))
 
     line = f.readline()
     while line:
 	line = string.rstrip(line)
 	checkIndex(line)
-        print string.replace(string.replace(line, "{", "@{"), "}", "@}")
+        print(string.replace(string.replace(line, "{", "@{"), "}", "@}"))
         line = f.readline()
-    print "@end example"
+    print("@end example")
     if needPage:
-        print "@page"
+        print("@page")
     f.close()
 
 def parseModules (up, dir, build, source, listOfModules):
@@ -262,10 +262,10 @@ def parseModules (up, dir, build, source, listOfModules):
         next = ""
 
     while i<len(listOfModules):
-       print "@node " + dir + "/" + listOfModules[i][:-4] + ", " + next + ", " + previous + ", " + up
-       print "@subsection " + dir + "/" + listOfModules[i][:-4]
+       print("@node " + dir + "/" + listOfModules[i][:-4] + ", " + next + ", " + previous + ", " + up)
+       print("@subsection " + dir + "/" + listOfModules[i][:-4])
        parseDefinition(dir, source, build, listOfModules[i], True)
-       print "\n"
+       print("\n")
        previous = dir + "/" + listOfModules[i][:-4]
        i = i + 1
        if i+1<len(listOfModules):
@@ -282,7 +282,7 @@ def doCat (name):
     file = open(name, 'r')
     line = file.readline()
     while line:
-        print string.rstrip(line)
+        print(string.rstrip(line))
         line = file.readline()
     file.close()
 
@@ -293,20 +293,20 @@ def doCat (name):
 #
 
 def moduleMenu (dir, build, source):
-    print "@menu"
+    print("@menu")
     listOfFiles = []
     if os.path.exists(os.path.join(source, dir)):
         listOfFiles += os.listdir(os.path.join(source, dir))
     if os.path.exists(os.path.join(source, dir)):
         listOfFiles += os.listdir(os.path.join(build, dir))
-    listOfFiles = dict.fromkeys(listOfFiles).keys()
+    listOfFiles = list(dict.fromkeys(listOfFiles).keys())
     listOfFiles.sort()
     for file in listOfFiles:
         if foundFile(dir, build, source, file):
             if (len(file)>4) and (file[-4:] == '.def'):
-                print "* " + dir + "/" + file[:-4] + "::" + file
-    print "@end menu"
-    print "\n"
+                print("* " + dir + "/" + file[:-4] + "::" + file)
+    print("@end menu")
+    print("\n")
 
 
 #
@@ -347,7 +347,7 @@ def findFile (dir, build, source, file):
     name2 = os.path.join(os.path.join(source, dir), file)
     if os.path.exists(name2):
         return name2
-    print "file cannot be found in either " + name1 + " or " + name2
+    print("file cannot be found in either " + name1 + " or " + name2)
     os.sys.exit(1)
 
 
@@ -367,7 +367,7 @@ def displayModules(up, dir, build, source):
             listOfFiles += os.listdir(os.path.join(source, dir))
         if os.path.exists(os.path.join(source, dir)):
             listOfFiles += os.listdir(os.path.join(build, dir))
-        listOfFiles = dict.fromkeys(listOfFiles).keys()
+        listOfFiles = list(dict.fromkeys(listOfFiles).keys())
         listOfFiles.sort()
         listOfModules = []
         for file in listOfFiles:
@@ -377,20 +377,20 @@ def displayModules(up, dir, build, source):
         listOfModules.sort()
         parseModules(up, dir, build, source, listOfModules)
     else:
-        print "directory " + dir + " not found in either " + build + " or " + source
+        print("directory " + dir + " not found in either " + build + " or " + source)
 
 
 def displayCopyright ():
-    print "@c Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008"
-    print "@c Free Software Foundation, Inc."
-    print """
+    print("@c Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008")
+    print("@c Free Software Foundation, Inc.")
+    print("""
 @c Permission is granted to copy, distribute and/or modify this document
 @c under the terms of the GNU Free Documentation License, Version 1.2 or
 @c any later version published by the Free Software Foundation.
-"""
+""")
 
 def Usage():
-    print "def2texi.py [-h][-bbuilddir][-uupnode][-ffilename]"
+    print("def2texi.py [-h][-bbuilddir][-uupnode][-ffilename]")
     
 def collectArgs():
     buildDir="."

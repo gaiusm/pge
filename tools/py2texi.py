@@ -39,7 +39,7 @@ indentation = 0
 #
 
 def printf (format, *args):
-    print str(format) % args,
+    print(str(format) % args, end=' ')
 
 
 def isBlank (l):
@@ -127,10 +127,10 @@ def outputComment ():
             l = l.strip ()
             if l == "":
                 if not blank:
-                    print
+                    print()
                 blank = True
             else:
-                print l
+                print(l)
         printf ("\n")
 
 def outputClass ():
@@ -185,16 +185,16 @@ def parsePy (filename):
 
 
 def displayCopyright ():
-    print "@c Copyright (C) 2016"
-    print "@c Free Software Foundation, Inc."
-    print """
+    print("@c Copyright (C) 2016")
+    print("@c Free Software Foundation, Inc.")
+    print("""
 @c Permission is granted to copy, distribute and/or modify this document
 @c under the terms of the GNU Free Documentation License, Version 1.2 or
 @c any later version published by the Free Software Foundation.
-"""
+""")
 
 def usage (code):
-    print "py2texi.py [-h][-uupnode][-ffilename]"
+    print("py2texi.py [-h][-uupnode][-ffilename]")
     sys.exit (code)
 
 def collectArgs ():

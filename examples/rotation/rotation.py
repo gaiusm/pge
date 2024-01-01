@@ -13,8 +13,8 @@ red = pge.rgb (1.0, 0.0, 0.0)
 blue = pge.rgb (0.0, 0.0, 1.0)
 green = pge.rgb (0.0, 1.0, 0.0)
 
-boarder = 0.09
-slowdown = 6
+border = 0.01
+slowdown = 12
 
 def finish_game (event = None, unused = None):
     sys.exit (0)
@@ -28,8 +28,8 @@ def key_pressed (e):
     if e.key == K_ESCAPE:
         myquit (e)
 
-def placeBoarders (thickness, color):
-    print("placeBoarders")
+def placeBorders (thickness, color):
+    print("placeBorders")
     pge.box (0.0, 0.0, 1.0, thickness, color).fix ()
     pge.box (0.0, 0.0, thickness, 1.0, color).fix ()
     pge.box (1.0-thickness, 0.0, thickness, 1.0, color).fix ()
@@ -48,13 +48,14 @@ def main ():
     pge.display_set_mode ([800, 800])
     pge.draw_collision (False, False)
     pge.record ()
-    placeBox ([0.4, 0.3], 0.1, red).fix ()
-    placeBoarders (boarder, wood_dark)
+    placeBox ([0.39, 0.3], 0.1, red).fix ()
+    placeBorders (border, wood_dark)
     placeBox ([0.47, 0.7], 0.1, blue).mass (1.0)
     # placeBox ([0.35, 0.7], 0.1, green).mass (1.0)
     # placeBall ([0.25, 0.85], 0.03, green).mass (1.0)
     pge.gravity ()
-    pge.run (1.65)
+    # pge.run (1.65)
+    pge.run (2.5)
     pge.finish_record ()
 
 print("before main()")

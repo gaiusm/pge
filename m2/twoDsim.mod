@@ -1,4 +1,4 @@
-(* Copyright (C) 2008-2020
+(* Copyright (C) 2008-2023
                  Free Software Foundation, Inc.  *)
 (* This file is part of GNU Modula-2.
 
@@ -2889,10 +2889,10 @@ END doPolygon ;
 
 
 (*
-   drawBoarder -
+   drawBorder -
 *)
 
-PROCEDURE drawBoarder (c: Colour) ;
+PROCEDURE drawBorder (c: Colour) ;
 VAR
    p: ARRAY [0..3] OF Point ;
 BEGIN
@@ -2901,7 +2901,7 @@ BEGIN
    p[2] := initPoint(one(), one ()) ;
    p[3] := initPoint(zero(), one ()) ;
    glyphPolygon(4, p, FALSE, initFract (0, 1, 100), c)
-END drawBoarder ;
+END drawBorder ;
 
 
 (*
@@ -3367,12 +3367,12 @@ BEGIN
    dt := currentTime-lastUpdateTime ;
    IF DebugTrace
    THEN
-      printf ("before drawBoarder\n")
+      printf ("before drawBorder\n")
    END ;
-   drawBoarder (black()) ;
+   drawBorder (black()) ;
    IF DebugTrace
    THEN
-      printf ("after drawBoarder\n")
+      printf ("after drawBorder\n")
    END ;
    n := HighIndice (objects) ;
    i := 1 ;
@@ -5541,7 +5541,7 @@ END hVec ;
 PROCEDURE hFlush ;
 BEGIN
    frameNote ;
-   drawBoarder (black ()) ;
+   drawBorder (black ()) ;
    flipBuffer ;
    collectAll
 END hFlush ;

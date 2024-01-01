@@ -333,7 +333,7 @@ class parse:
     def syntaxError (self, message):
         mystop ()
         printHeader(self.inputFile, self.lineNo)
-        print(self.contents)
+        print((self.contents))
 
         j = self.columnNo-len(self.tok)
         s = " " * j
@@ -351,7 +351,7 @@ class parse:
 
     def printToken (self, token):
         printHeader(self.inputFile, self.lineNo-1)
-        print(self.contents)
+        print((self.contents))
 
         j = self.columnNo-len(token)
         s = " " * j

@@ -6,7 +6,7 @@ from mxmutils import *
 
 
 defaultLang = "c"
-atom, node = range(2)
+atom, node = list(range(2))
 output = ""
 
 
@@ -15,7 +15,7 @@ output = ""
 #
 
 def printf (format, *args):
-    print str(format) % args,
+    print(str(format) % args, end=' ')
 
 
 #

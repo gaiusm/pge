@@ -25,7 +25,7 @@ commentLeader = '//'
 
 def internalError (message):
     stop()
-    print message
+    print(message)
     sys.exit(1)
 
 
@@ -56,7 +56,7 @@ class parse:
     #
 
     def parseMaximaOutput (self, lines):
-        l = string.join(lines, '')
+        l = ''.join(lines)
         # print "maxima produced:", l
         p = mxmmaxima.parse(self.filename, self.lineno, self.language, l)
         m = p.getPolynomials(self.nTerms)
@@ -122,8 +122,8 @@ class parse:
                 internalError ("maxima has not generated the file output.m")
             m = open(o, 'r').readlines()
             if verbose:
-                print "output from maxima is:"
-                print string.join(m, '')
+                print("output from maxima is:")
+                print("\n".join(m))
             c = "rm %s\n" % i
             os.system(c)
             c = "rm %s\n" % o
@@ -190,7 +190,7 @@ class parse:
         try:
             contents = ""
             for line in open(filename, 'r').readlines():
-                i = string.rfind(line, commentLeader)
+                i = line.rfind(commentLeader)
                 if i == -1:
                     contents += line
                 else:
@@ -244,7 +244,7 @@ class parse:
         else:
             printf(alternative)
         printf("\n")
-        print self.contents
+        print(self.contents)
 
 
     #

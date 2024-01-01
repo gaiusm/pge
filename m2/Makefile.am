@@ -1,4 +1,5 @@
 SUFFIXES = .c .mod .def .o .obj .lo .a .m .mxm
+DEPFLAGS=-MMD -MT $@ -MP -MF .deps/$*.d
 
 SHELL=/bin/bash
 
@@ -77,16 +78,16 @@ matchsticks2: _pgeif.so
 
 if MAINTAINER
 springs.m: $(top_srcdir)/mxm/springs.mxm
-	python $(top_srcdir)/mxmtool/max2code.py -v -o $@ $<
+	python3 $(top_srcdir)/mxmtool/max2code.py -v -o $@ $<
 
 circles.m: $(top_srcdir)/mxm/circles.mxm
-	python $(top_srcdir)/mxmtool/max2code.py -v -o $@ $<
+	python3 $(top_srcdir)/mxmtool/max2code.py -v -o $@ $<
 
 rotating-circles.m: $(top_srcdir)/mxm/rotating-circles.mxm
-	python $(top_srcdir)/mxmtool/max2code.py -v -o $@ $<
+	python3 $(top_srcdir)/mxmtool/max2code.py -v -o $@ $<
 
 rotating-line.m: $(top_srcdir)/mxm/rotating-line.mxm
-	python $(top_srcdir)/mxmtool/max2code.py -v -o $@ $<
+	python3 $(top_srcdir)/mxmtool/max2code.py -v -o $@ $<
 else
 springs.m: $(top_srcdir)/mxm/springs.mxm
 	cp $(top_srcdir)/m/springs.m $@
@@ -101,12 +102,6 @@ rotating-line.m: $(top_srcdir)/mxm/rotating-line.mxm
 	cp $(top_srcdir)/m/rotating-line.m $@
 endif
 
-
-.mod.lo:
-	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile gm2 -g -fm2-g -fiso $(OPT) $(CHECK) -fextended-opaque -I. -I$(srcdir) -c $< -o $@
-
-.c.lo:
-	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile gcc -c $(CFLAGS_FOR_TARGET) $(LIBCFLAGS) $(libgm2_la_M2FLAGS) $< -o $@
 
 pgeif.lo: pgeif.mod
 	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
@@ -129,82 +124,82 @@ if MAINTAINER
 OBJECTS = $(SOURCES:%.mod=%.o)
 
 bounce: $(OBJECTS)
-	gm2 -fcpp -I. $(GM2FLAGS) -fonlylink $(srcdir)/bounce.mod
+	gm2 -fcpp -I. $(GM2FLAGS) $(srcdir)/bounce.mod
 
 bounce2: $(OBJECTS)
-	gm2 -fcpp -I. $(GM2FLAGS) -fonlylink $(srcdir)/bounce2.mod
+	gm2 -fcpp -I. $(GM2FLAGS) $(srcdir)/bounce2.mod
 
 bounce3: $(OBJECTS)
-	gm2 -fcpp -I. $(GM2FLAGS) -fonlylink $(srcdir)/bounce3.mod
+	gm2 -fcpp -I. $(GM2FLAGS) $(srcdir)/bounce3.mod
 
 bounce4: $(OBJECTS)
-	gm2 -fcpp -I. $(GM2FLAGS) -fonlylink $(srcdir)/bounce4.mod
+	gm2 -fcpp -I. $(GM2FLAGS) $(srcdir)/bounce4.mod
 
 bounce5: $(OBJECTS)
-	gm2 -fcpp -I. $(GM2FLAGS) -fonlylink $(srcdir)/bounce5.mod
+	gm2 -fcpp -I. $(GM2FLAGS) $(srcdir)/bounce5.mod
 
 elc: $(OBJECTS)
-	gm2 -fcpp -I. $(GM2FLAGS) -fonlylink $(srcdir)/elc.mod
+	gm2 -fcpp -I. $(GM2FLAGS) $(srcdir)/elc.mod
 
 elc2: $(OBJECTS)
-	gm2 -fcpp -I. $(GM2FLAGS) -fonlylink $(srcdir)/elc2.mod
+	gm2 -fcpp -I. $(GM2FLAGS) $(srcdir)/elc2.mod
 
 line: $(OBJECTS)
-	gm2 -fcpp -I. $(GM2FLAGS) -fonlylink $(srcdir)/line.mod
+	gm2 -fcpp -I. $(GM2FLAGS) $(srcdir)/line.mod
 
 wallh: $(OBJECTS)
-	gm2 -fcpp -I. $(GM2FLAGS) -fonlylink $(srcdir)/wallh.mod
+	gm2 -fcpp -I. $(GM2FLAGS) $(srcdir)/wallh.mod
 
 rboxes: $(OBJECTS)
-	gm2 -fcpp -I. $(GM2FLAGS) -fonlylink $(srcdir)/rboxes.mod
+	gm2 -fcpp -I. $(GM2FLAGS) $(srcdir)/rboxes.mod
 
 circle: $(OBJECTS)
-	gm2 -fcpp -I. $(GM2FLAGS) -fonlylink $(srcdir)/circle.mod
+	gm2 -fcpp -I. $(GM2FLAGS) $(srcdir)/circle.mod
 
 boxes: $(OBJECTS)
-	gm2 -fcpp -I. $(GM2FLAGS) -fonlylink $(srcdir)/boxes.mod
+	gm2 -fcpp -I. $(GM2FLAGS) $(srcdir)/boxes.mod
 
 ramps: $(OBJECTS)
-	gm2 -fcpp -I. $(GM2FLAGS) -fonlylink $(srcdir)/ramps.mod
+	gm2 -fcpp -I. $(GM2FLAGS) $(srcdir)/ramps.mod
 
 ramps2: $(OBJECTS)
-	gm2 -fcpp -I. $(GM2FLAGS) -fonlylink $(srcdir)/ramps2.mod
+	gm2 -fcpp -I. $(GM2FLAGS) $(srcdir)/ramps2.mod
 
 slope: $(OBJECTS)
 	$(RM) *.ms *.png
-	gm2 -fcpp -I. $(GM2FLAGS) -fonlylink $(srcdir)/slope.mod
+	gm2 -fcpp -I. $(GM2FLAGS) $(srcdir)/slope.mod
 
 stairs: $(OBJECTS)
 	$(RM) *.ms *.png
-	gm2 -fcpp -I. $(GM2FLAGS) -fonlylink $(srcdir)/stairs.mod
+	gm2 -fcpp -I. $(GM2FLAGS) $(srcdir)/stairs.mod
 
 py: $(OBJECTS)
 	$(RM) *.ms *.png
-	gm2 -pg -g -fiso -fextended-opaque -fonlylink testpy.mod
+	gm2 -pg -g -fiso -fextended-opaque testpy.mod
 
 para: $(OBJECTS)
 	$(RM) *.ms *.png
-	gm2 -fcpp -I. $(GM2FLAGS) -fonlylink para.mod && ./a.out
+	gm2 -fcpp -I. $(GM2FLAGS) para.mod && ./a.out
 	./produce-avi
 
 wallv: $(OBJECTS)
 	$(RM) *.ms *.png
-	gm2 $(GM2FLAGS) -fonlylink wallv.mod
+	gm2 $(GM2FLAGS) wallv.mod
 
 wall: $(OBJECTS)
 	$(RM) *.ms *.png
-	gm2 $(GM2FLAGS) -fonlylink wall.mod
+	gm2 $(GM2FLAGS) wall.mod
 
 snooker: $(OBJECTS)
 	$(RM) *.ms *.png
-	gm2 -fcpp -I. $(GM2FLAGS) -fonlylink $(srcdir)/snooker.mod
+	gm2 -fcpp -I. $(GM2FLAGS) $(srcdir)/snooker.mod
 
 npn: $(OBJECTS)
 	$(RM) *.ms *.png
-	gm2 -fcpp -I. $(GM2FLAGS) -fonlylink $(srcdir)/npn.mod && ./a.out
+	gm2 -fcpp -I. $(GM2FLAGS) $(srcdir)/npn.mod && ./a.out
 
 test: $(OBJECTS)
-	gm2 -fcpp -I. $(GM2FLAGS) -fonlylink $(srcdir)/test.mod && ./a.out
+	gm2 -fcpp -I. $(GM2FLAGS) $(srcdir)/test.mod && ./a.out
 
 rotation: $(OBJECTS)
 	gm2 -fiso -g -fsoft-check-all -O0 -fm2-g -I$(srcdir) $(srcdir)/rotation.mod
@@ -227,3 +222,17 @@ clear: force
 	$(RM) *.png *.ms *.cpp
 
 force:
+
+%.lo: %.mod .deps/%.d
+	@test -z .deps || mkdir -p .deps
+	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile gm2 -g -fm2-g -fiso $(DEPFLAGS) $(OPT) $(CHECK) -fextended-opaque -I. -I$(srcdir) -c $< -o $@
+
+.c.lo:
+	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile gcc -c $(DEPFLAGS) $(CFLAGS_FOR_TARGET) $(LIBCFLAGS) $(libgm2_la_M2FLAGS) $< -o $@
+
+
+DEPFILES=$(libpgeif_la_SOURCES:%.mod=.deps/%.d)
+
+$(DEPFILES):
+
+include $(wildcard $(DEPFILES))

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import sys, getopt
 
@@ -20,7 +20,7 @@ verbose     = False
 #
 
 def usage (value):
-    print "max2code [-h][-v][-o outputfile][-l c][-l m2][--lang=m2][--lang=c] inputfile"
+    print("max2code [-h][-v][-o outputfile][-l c][-l m2][--lang=m2][--lang=c] inputfile")
     sys.exit(value)
 
 
@@ -60,10 +60,10 @@ def main ():
 
     parseArgs()
     if outputFile == "":
-        print "no output file specified"
+        print("no output file specified")
         usage(1)
     if inputFile == "":
-        print "no input file specified"
+        print("no input file specified")
         usage(1)
     else:
         p = parse(inputFile, outputFile, defaultLang, verbose)

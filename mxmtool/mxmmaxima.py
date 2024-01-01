@@ -38,7 +38,7 @@ class parse:
     def getPolynomials (self, nTerms):
         if self.expression():
             e = self.expressionStack.pop()
-            for n in reversed(range(nTerms)):
+            for n in reversed(list(range(nTerms))):
                 self.terms += [e.collectPolynomial(n, 't')]
             self.terms.reverse()
             return self.terms
@@ -331,7 +331,7 @@ class parse:
     def syntaxError (self, message):
         mystop ()
         printHeader(self.inputFile, self.lineNo)
-        print self.contents
+        print(self.contents)
 
         j = self.columnNo-len(self.tok)
         s = " " * j
@@ -339,7 +339,7 @@ class parse:
         s += " "
         s += message
         printHeader(self.inputFile, self.lineNo)
-        print s
+        print(s)
         sys.exit(1)
 
 
@@ -349,10 +349,10 @@ class parse:
 
     def printToken (self, token):
         printHeader(self.inputFile, self.lineNo-1)
-        print self.contents
+        print(self.contents)
 
         j = self.columnNo-len(token)
         s = " " * j
         s += "^" * len(token)
         printHeader(self.inputFile, self.lineNo)
-        print s
+        print(s)

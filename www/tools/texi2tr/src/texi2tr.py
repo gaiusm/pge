@@ -8,16 +8,16 @@
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 3, or (at your option)
 # any later version.
-# 
+#
 # GNU Modula-2 is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with GNU Modula-2; see the file COPYING.  If not, write to the
 # Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
-# 02110-1301, USA. 
+# 02110-1301, USA.
 
 import sys
 import os
@@ -65,7 +65,7 @@ currentMenu = navigation.menuInfo(True)
 #
 
 def printf (format, *args):
-    print str(format) % args,
+    print (str(format) % args, end="")
 
 
 #
@@ -75,7 +75,7 @@ def printf (format, *args):
 def debugf (format, *args):
     global debugging
     if debugging:
-        print str(format) % args,
+        print (str(format) % args, end="")
 
 
 #
@@ -85,7 +85,7 @@ def debugf (format, *args):
 def verbosef (format, *args):
     global verbose
     if verbose:
-        print str(format) % args,
+        print (str(format) % args, end="")
 
 
 #
@@ -93,10 +93,10 @@ def verbosef (format, *args):
 #
 
 def Usage ():
-    print "texi2tr [-h] [-v] [-Iincludepath] [-Ttemplatepath] [-r rootname.html] [-b basename-%d.html] filename.texi"
-    print "  produces html from the texinfo filename.texi"
-    print "  -h help"
-    print "  -v verbose"
+    printf ("texi2tr [-h] [-v] [-Iincludepath] [-Ttemplatepath] [-r rootname.html] [-b basename-%d.html] filename.texi\n")
+    printf ("  produces html from the texinfo filename.texi\n")
+    printf ("  -h help\n")
+    printf ("  -v verbose\n")
     sys.exit(0)
 
 
@@ -206,7 +206,7 @@ def pushArg (init):
     global argStack, debugging
     argStack = [init] + argStack
     if debugging:
-        print "pushArg:  argStack", argStack
+        printf ("pushArg:  argStack %s\n", argStack)
 
 
 #
@@ -222,7 +222,7 @@ def popArg ():
     else:
         argStack = []
     if debugging:
-        print "popArg:  argStack", argStack
+        printf ("popArg:  argStack: %s\n", argStack)
     return value
 
 
@@ -279,7 +279,7 @@ def parseArgs (contents, i, delim):
 def call (command, args, state):
     global functions
 
-    if functions.has_key(command):
+    if command in functions:
         return functions[command](args, state)
     else:
         error("unknown command '" + command + "'")
@@ -393,7 +393,7 @@ def scanFor (contents, state):
 
 
 #
-#  parseFile - 
+#  parseFile -
 #
 
 def parseFile (contents, state):
@@ -428,7 +428,7 @@ def doSet (content, state):
 
 def doValue (content, state):
     global values
-    if values.has_key(content):
+    if content in values:
         return values[content], state
     else:
         error('unknown value ' + content)
@@ -450,7 +450,7 @@ def doTitlepageEnd (state):
 
 def doCenter (content, state):
     global html, title, inTitlePage
-    
+
     if inTitlePage:
         return content, state
     elif state == ignore:
@@ -548,7 +548,7 @@ def doIgnore (content, state):
 
 def pushState (keyword, state):
     global statementStack
-    if statementStack.has_key(keyword):
+    if keyword in statementStack:
         statementStack[keyword] = [state] + statementStack[keyword]
     else:
         statementStack[keyword] = [state]
@@ -568,11 +568,11 @@ def doConsume (content, state, keyword):
 def doEnd (content, state):
     global statementStack, endFunctions
     keyword = content.split()[0]
-    if statementStack.has_key(keyword):
+    if keyword in statementStack:
         if len(statementStack[keyword]) == 0:
             error("unexpected end '" + keyword + "'")
         else:
-            if endFunctions.has_key(keyword):
+            if keyword in endFunctions:
                 endFunctions[keyword](state)
             state = popState(keyword)
     else:
@@ -597,25 +597,25 @@ def doCopyright (content, state):
 #
 
 def safeName (name):
-    name = string.replace(name, "%", "")
-    name = string.replace(name, "^", "")
-    name = string.replace(name, ")", "")
-    name = string.replace(name, "(", "")
-    name = string.replace(name, "[", "")
-    name = string.replace(name, "]", "")
-    name = string.replace(name, "{", "")
-    name = string.replace(name, "}", "")
-    name = string.replace(name, "<", "")
-    name = string.replace(name, ">", "")
-    name = string.replace(name, "'", "")
-    name = string.replace(name, "?", "")
-    name = string.replace(name, "*", "")
-    name = string.replace(name, "/", "")
-    name = string.replace(name, '"', "")
-    name = string.replace(name, "'", "")
-    name = string.replace(name, "`", "")
-    name = string.replace(name, "~", "")
-    name = string.replace(name, " ", "_")
+    name = name.replace ("%", "")
+    name = name.replace ("^", "")
+    name = name.replace (")", "")
+    name = name.replace ("(", "")
+    name = name.replace ("[", "")
+    name = name.replace ("]", "")
+    name = name.replace ("{", "")
+    name = name.replace ("}", "")
+    name = name.replace ("<", "")
+    name = name.replace (">", "")
+    name = name.replace ("'", "")
+    name = name.replace ("?", "")
+    name = name.replace ("*", "")
+    name = name.replace ("/", "")
+    name = name.replace ('"', "")
+    name = name.replace ("'", "")
+    name = name.replace ("`", "")
+    name = name.replace ("~", "")
+    name = name.replace (" ", "_")
     return name.lower()
 
 def doNode (content, state):
@@ -627,7 +627,7 @@ def doNode (content, state):
         return "", state
     frags += [['text', html.collectFragment('node')]]
     html.setFilename(safeName(label) + '.html')
-    frags += [['text', html.collectFragment('node')]]    
+    frags += [['text', html.collectFragment('node')]]
     frags += [['node', navigation.addNode(html, content)]]
     return "", state
 
@@ -666,7 +666,7 @@ def doChapter (content, state):
 
 def addSectionAnchor (content):
     global html, indexSections
-    if indexSections.has_key(content):
+    if content in indexSections:
         error('section name "' + content + '" already exists')
     else:
         indexSections[content] = html.sectionAnchor(content)
@@ -692,7 +692,7 @@ def doSubSection (content, state):
     html.h4End()
     html.paraBegin()
     return "", state
-    
+
 def doUref (content, state):
     global html
     if state != ignore:
@@ -831,7 +831,7 @@ def doTableEnd (state):
         html.paraBegin()
 
 #
-#  doItem - 
+#  doItem -
 #
 
 def doItem (content, state):
@@ -986,7 +986,7 @@ def doFindex (content, state):
 
     if state == ignore:
         return skipLine (content, state)
-    if indexFunc.has_key(content):
+    if content in indexFunc:
         indexFunc[content] += [html.getLink()]
     else:
         indexFunc[content] = [html.getLink()]

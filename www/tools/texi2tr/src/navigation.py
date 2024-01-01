@@ -8,16 +8,16 @@
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 3, or (at your option)
 # any later version.
-# 
+#
 # GNU Modula-2 is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with GNU Modula-2; see the file COPYING.  If not, write to the
 # Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
-# 02110-1301, USA. 
+# 02110-1301, USA.
 
 import sys
 import os
@@ -28,6 +28,15 @@ nodes = {}
 
 maxNoOfShortLabels = 10    # only allow this many different short tabs
 maxLabelLength     = 90    # total character length of all menus
+
+
+#
+#  printf - keeps C programmers happy :-)
+#
+
+def printf (format, *args):
+    print (str(format) % args, end="")
+
 
 class nodeInfo:
     #
@@ -51,7 +60,7 @@ class nodeInfo:
         html.emitNodeHeading()
         self.emitPrevNext(html)
         if root is None:
-            print "unknown root in menu, problem in node ", self.name, selected
+            printf ("unknown root in menu, problem in node ", self.name, selected)
         else:
             selected = self.selectTab(root, selected)
             root.emitTab(html, selected)
@@ -77,12 +86,12 @@ class nodeInfo:
       <table width="100%" cellpadding="2" cellspacing="2">
 	<tr valign="middle">
 """)
-        if (self.prev != "") and (self.prev != "Top") and anchors.has_key(self.prev):
+        if (self.prev != "") and (self.prev != "Top") and (self.prev in anchors):
             html.raw('''
 	  <td><a accesskey="p" href="''')
             html.raw(anchors[self.prev])
             html.raw('"><img width="48" alt="Prev" src="prev.png" border="0" height="48"></img></a></td>')
-        if (self.next != "") and (self.next != "Top") and anchors.has_key(self.next):
+        if (self.next != "") and (self.next != "Top") and (self.next in anchors):
             html.raw('''
 	  <td align="right"><a accesskey="n" href="''')
             html.raw(anchors[self.next])
@@ -140,7 +149,7 @@ class menuInfo:
     #
     def debugMenu (self):
         for m in self.list:
-            print m[0], m[1]
+            printf ("%s %s\n", m[0], m[1])
     #
     #  generateMenu - issues the menu
     #
@@ -178,15 +187,15 @@ class menuInfo:
         html.raw('<div id="tabmenu">\n')
         html.raw('<ul id="tab">\n')
         for m in self.list:
-            if anchors.has_key(m[0]):
+            if m[0] in anchors:
                 active = litab(html, anchors[m[0]], m[0], active)
             else:
-                if (len(m[1]) > 1) and (m[1][-1] == '.') and (anchors.has_key(m[1][:-1])):
+                if (len(m[1]) > 1) and (m[1][-1] == '.') and (m[1][:-1] in anchors):
                     active = litab(html, anchors[m[1][:-1]], m[0], active)
-                elif anchors.has_key(m[1]):
+                elif m[1] in anchors:
                     active = litab(html, anchors[m[1]], m[0], active)
                 else:
-                    print "cannot find anchor for section", m[0], "or", m[1]
+                    printf ("cannot find anchor for section %s or %s\n", m[0], m[1])
         html.raw('\n</ul>\n')
         html.raw('</div>\n')
     #
@@ -195,15 +204,15 @@ class menuInfo:
     def _genLong (self, html):
         html.raw('\n<ul>\n')
         for m in self.list:
-            if anchors.has_key(m[0]):
+            if m[0] in anchors:
                 liurl(html, anchors[m[0]], m[1])
             else:
-                if (len(m[1]) > 1) and (m[1][-1] == '.') and (anchors.has_key(m[1][:-1])):
+                if (len(m[1]) > 1) and (m[1][-1] == '.') and (m[1][:-1] in anchors):
                     liurl(html, anchors[m[1][:-1]], m[1])
-                elif anchors.has_key(m[1]):
+                elif m[1] in anchors:
                     liurl(html, anchors[m[1]], m[1])
                 else:
-                    print "cannot find anchor for section", m[0], "or", m[1]
+                    printf ("cannot find anchor for section %s or %s\n", m[0], m[1])
         html.raw('</ul>\n')
 
 #
@@ -213,8 +222,8 @@ class menuInfo:
 def anchor (html, label):
     global anchors
 
-    if anchors.has_key(label):
-        print "node", label, "already exists"
+    if label in anchors:
+        printf ("node %s already exists\n", label)
     anchors[label] = html.getNodeLink()
     s = '<a name="' + html.getNodeAnchor() + '"></a>\n'
     html.raw(s)
