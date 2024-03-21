@@ -51,7 +51,8 @@ CONST
    DebugTrace = FALSE ;
 
 TYPE
-   SetOfColours = SET OF [0..MaxColours] ;
+   ColourRange = [0..MaxColours] ;
+   SetOfColours = SET OF ColourRange ;
 
    configDesc = POINTER TO RECORD
                               centity      : entity ;
@@ -105,8 +106,11 @@ END checkOpened ;
 *)
 
 PROCEDURE registerColour (cid: Colour; r, g, b: Fract) : Colour ;
+VAR
+   col: ColourRange ;
 BEGIN
-   IF cid IN registered
+   col := VAL (ColourRange, cid) ;
+   IF col IN registered
    THEN
       IF DebugTrace
       THEN
@@ -118,7 +122,7 @@ BEGIN
       THEN
          printf ("register colour %d\n", cid)
       END ;
-      INCL(registered, cid) ;
+      INCL (registered, col) ;
       IF DebugTrace
       THEN
          printf ("  output rc command\n")
