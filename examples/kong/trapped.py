@@ -129,7 +129,7 @@ def mouse_hit (e):
 def main ():
     global gb, sides
 
-    f = placeBall (wood_light, 0.95, 0.05, 0.1).fix ()
+    # f = placeBall (wood_light, 0.95, 0.05, 0.1).fix ()
     # l = placeBox ([0.3, 0.3], [0.3, 0.5], [0.5, 0.5], [0.5, 0.3], white)
     t1 = placeTriangle ([0.2, 0.3], [0.4, 0.3], [0.3, 0.4], white)
     t2 = placeTriangle ([0.6, 0.3], [0.8, 0.3], [0.7, 0.4], white)

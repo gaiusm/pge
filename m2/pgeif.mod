@@ -1019,16 +1019,6 @@ BEGIN
 END nofree ;
 
 
-(*
-   fps - set frames per second.
-*)
-
-PROCEDURE fps (f: REAL) ;
-BEGIN
-   twoDsim.fps (f)
-END fps ;
-
-
 BEGIN
    init
 END pgeif.

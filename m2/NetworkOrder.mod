@@ -222,15 +222,4 @@ BEGIN
 END writePoint ;
 
 
-(*
-   writePoint -
-*)
-
-PROCEDURE writePoint (file: ChanId; p: Point) ;
-BEGIN
-   writeFract (file, p.x) ;
-   writeFract (file, p.y)
-END writePoint ;
-
-
 END NetworkOrder.

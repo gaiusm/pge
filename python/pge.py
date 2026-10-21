@@ -9,7 +9,7 @@ import math
 from pygame.locals import *
 
 
-colour_t, box_t, circle_t, spring_t, fb_box_t, fb_circle_t, fb_text_t = list(range(7))
+colour_t, box_t, circle_t, spring_t, fb_box_t, fb_circle_t, fb_text_t = list (range (7))
 id2ob = {}
 ob2id = {}
 batch_d, pyg_d = list(range(2))
@@ -37,7 +37,6 @@ Black = (0, 0, 0)
 framesPerSecond = 100.0
 frame_no = 0
 slow_down_factor = 1.0
-allowed_events = [USEREVENT+1]
 id2func = {}
 idcount = 0
 _record = False
@@ -45,7 +44,10 @@ font_size = None
 font = None
 fps_text = None
 last_fps = 0
-
+allowed_events = [pygame.QUIT, pygame.KEYDOWN, pygame.KEYUP,
+                  pygame.MOUSEBUTTONDOWN, pygame.MOUSEBUTTONUP]
+blocked_events = [pygame.MOUSEMOTION]
+custom_type = None
 
 #
 #  _printf - keeps C programmers happy :-)
@@ -1200,7 +1202,11 @@ class event:
     #
     def get_timer_id (self):
         return self.__id
-
+    #
+    #  The print method.
+    #
+    def __str__ (self):
+        return "pgevent: type %d, kind %d, etime %g\n" % (self._type, self.__kind, self.__etime)
 #
 #  _get_next_event - returns a next event object which has
 #                    contains any relevant information from
@@ -1340,6 +1346,7 @@ prev_event_time = 0.0
 
 def _post_event (e, t):
     global pge_event_queue, debugging, prev_event_time
+
     if t != -1:
         t = (int) (t * 1000.0)
         _add_relative ([t, e])
@@ -1358,29 +1365,41 @@ def _post_event (e, t):
 #
 
 def _wait_for_event ():
-    global pge_event_queue, slow_down_factor, device, _record, debugging
+    global pge_event_queue, slow_down_factor, device, _record
+    global debugging, allowed_events, custom_type
+
+    result = []
 
     if debugging:
         print("_wait_for_event, pge_event_queue =")
         _display_event_queue (pge_event_queue)
-    if device == pyg_d:
-        pygame.event.set_allowed (None)
-        pygame.event.set_allowed (allowed_events)
+
+    if custom_type == None:
+        custom_type = pygame.event.custom_type ()
+    if not (custom_type in allowed_events):
+        allowed_events += [custom_type]
 
     if pge_event_queue == []:
-        return [pygame.event.wait()] + pygame.event.get()
+        result = [pygame.event.wait()] + pygame.event.get()
+    else:
+        ms = pge_event_queue[0][0]
+        if _record:
+            _record_time (ms)
+        if ms == 0:
+            # adding [None] to the list indicates an immediate pge event
+            # we obtain all pygame events to avoid starvation of input
+            result = pygame.event.get() + [None]
+        else:
+            if debugging:
+                _printf ("setting timer in pygame to %d ms\n", ms)
+            # result = pygame.event.get()
+            pygame.time.set_timer (custom_type, (int) (ms * slow_down_factor))
+            result = [pygame.event.wait()] + pygame.event.get()
+    if device == pyg_d:
+        pygame.event.set_allowed (allowed_events)
+        pygame.event.set_blocked (blocked_events)
+    return result
 
-    ms = pge_event_queue[0][0]
-    if _record:
-        _record_time (ms)
-    if ms == 0:
-        # adding [None] to the list indicates an immediate pge event
-        # we obtain all pygame events to avoid starvation of input
-        return pygame.event.get() + [None]
-
-    # _printf ("setting timer in pygame to %d ms\n", ms)
-    pygame.time.set_timer (USEREVENT+1, (int) (ms * slow_down_factor))
-    return [pygame.event.wait()] + pygame.event.get()
 
 #
 #  _finish_event - creates and returns a final_event.
@@ -1600,10 +1619,13 @@ def _init_screen ():
 #
 
 def register_handler (function, pyeventlist):
-    global pyevent2func, allowed_events
+    global pyevent2func, allowed_events, blocked_events
     for e in pyeventlist:
         pyevent2func[e] = function
+        if e in blocked_events:
+            blocked_events.remove (e)
     allowed_events += pyeventlist
+
 
 #
 #  deregister_handler - Pre-condition:  None.
@@ -1642,10 +1664,13 @@ def runpy (t=-1):
     fin = _post_event (_finish_event (), t)
     while True:
         for e in _wait_for_event ():
-            if (e == None) or (e.type == USEREVENT+1):
+            if (e == None) or (e.type == custom_type):
+                pygame.time.set_timer (custom_type, 0) # Disable timer
                 # immediate pge event pending or user event has fired
                 # take the event off queue
                 pe = pge_event_queue [0][1]
+                if debugging:
+                    print (pe)
                 pge_event_queue = pge_event_queue [1:]
                 if pe == fin:
                     # the finish event, we're done and out of here
