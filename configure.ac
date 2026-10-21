@@ -51,13 +51,16 @@ AC_ARG_ENABLE([langc],
       esac],[langc=false])
       AM_CONDITIONAL([LANGC], [test x$langc = xtrue])
 
-AC_MSG_CHECKING([checking to see that you have set a source language])
+AC_MSG_CHECKING([to see that you have set a source language])
 if test x$langc = xtrue; then
    AC_MSG_RESULT([(C)... yes])
 elif test x$langm2 = xtrue; then
    AC_MSG_RESULT([(Modula-2)... yes])
 else
-   AC_MSG_ERROR([you must specify either --enable-langc or --enable-langm2])
+   langm2=true
+   AC_MSG_CHECKING([building from using the modula-2 sources, use --enable-langc or --enable-langm2 to override])
+   AC_MSG_RESULT([(Modula-2)... yes])
+   AM_CONDITIONAL([LANGM2], [test x$langm2 = xtrue])
 fi
 
 AC_SUBST([langm2])
