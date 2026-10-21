@@ -16,7 +16,7 @@ $ ../configure
 $ make
 ```
 
-# Running
+# Running prior to install
 
 ```console
 $ ./localrun.sh ../examples/breakout/breakout.py
@@ -26,4 +26,10 @@ $ ./localrun.sh ../examples/breakout/breakout.py
 
 ```console
 $ make install
+```
+
+# Running post install
+
+```console
+$ python3 ../examples/breakout/breakout.py
 ```
