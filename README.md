@@ -7,18 +7,23 @@ of next collision rather than test for a collision every frame.
 
 # Building
 
+```console
 $ git clone https://github.com/gaiusm/pge
 $ cd pge
 $ mkdir build
 $ cd build
 $ ../configure
 $ make
+```
 
 # Running
 
+```console
 $ ./localrun.sh ../examples/breakout/breakout.py
+```
 
 # Install
 
+```console
 $ make install
-
+```
