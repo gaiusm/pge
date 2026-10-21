@@ -51,6 +51,8 @@ def printf (format, *args):
 #
 
 def hit_chair (pge_object, pge_event):
+    global total_score
+    total_score -= 1
     hit_value = pge_object.get_param ()
     if hit_value == 1:
         pge_object.rm ()
@@ -69,18 +71,18 @@ def hit_chair (pge_object, pge_event):
 
 def chair (x, y, width, height, facing_left, thickness, hits):
     if facing_left:
-        printf ("about to create leg of chair\n")
+        # printf ("about to create leg of chair\n")
         leg = pge.box (x, y, thickness, height/2, hit_colour[-1]).fix ()
-        printf ("about to create back of chair\n")
+        # printf ("about to create back of chair\n")
         back = pge.box (x+width-thickness, y, thickness, height, hit_colour[-1]).fix ()
-        printf ("about to create back of chair\n")
+        # printf ("about to create back of chair\n")
         seat = pge.box (x, y + height /2, width, thickness, hit_colour[-1]).fix ()
     else:
-        printf ("about to create leg of chair\n")
+        # printf ("about to create leg of chair\n")
         leg = pge.box (x+width-thickness, y, thickness, height/2, hit_colour[-1]).fix ()
-        printf ("about to create back of chair\n")
+        # printf ("about to create back of chair\n")
         back = pge.box (x, y, thickness, height, hit_colour[-1]).fix ()
-        printf ("about to create back of chair\n")
+        # printf ("about to create back of chair\n")
         seat = pge.box (x, y + height /2, width, thickness, hit_colour[-1]).fix ()
     seat.on_collision (hit_chair)
     seat.set_param (hits)
@@ -136,13 +138,15 @@ def removeChildren (blist):
 #
 
 def unfreezeList (blist):
+    global total_score
     todo = []
     for b in blist:
-        print("bubble", b, "should be unfixed")
+        # print("bubble", b, "should be unfixed")
         b.circle.unfix ()
         if b.circle in bubbleDict:
             todo += bubbleDict[b.circle]
             del bubbleDict[b.circle]
+            total_score += 5
         todo += b.children
         removeChildren (todo)
     return todo
@@ -155,27 +159,28 @@ def unfreezeList (blist):
 def unfreezeAll (circle):
     global bubbleDict
     print("unfreezeAll", circle)
-    dumpData ("unfreezeAll")
+    # dumpData ("unfreezeAll")
     blist = bubbleDict[circle]
     while blist != []:
         blist = unfreezeList (blist)
     currentCircle.unfix ()
-    dumpData ("finished unfreeze")
+    # dumpData ("finished unfreeze")
 
 #
 #  bubble_hits_bar - the callback for the bubble hitting the top edge.
 #
 
 def bubble_hits_bar (o, e):
-    global bubbleDict, currentCircle
-    print("bubble_hits_bar", currentCircle)
+    global bubbleDict, currentCircle, total_score
+    # print("bubble_hits_bar", currentCircle)
+    total_score -= 2
     if currentCircle != None:
         if currentCircle in bubbleDict:
             print("odd the bubble is already registered")
         else:
             initChain (currentCircle, currentColour)
     currentCircle = None
-    dumpData ("end of bubble_hits_bar")
+    # dumpData ("end of bubble_hits_bar")
 
 #
 #  initChain - create an initial bubble in a chain of one.
@@ -195,9 +200,9 @@ def updateChains (circle):
     global bubbleDict
     print("updateChains")
     blist = bubbleDict[circle]
-    print("blist", blist, "len (blist) =", len (blist))
+    # print("blist", blist, "len (blist) =", len (blist))
     blist += [bubble (currentCircle, currentColour)]
-    print("blistis now", blist, "len (blist) =", len (blist))
+    # print("blistis now", blist, "len (blist) =", len (blist))
     # and update all circle -> chain entries
     for b in blist:
         bubbleDict[b.circle] = blist
@@ -215,26 +220,27 @@ def updateChains (circle):
 
 def addBubble (circle):
     global bubbleDict
-    print("addBubble")
+    # print("addBubble")
     if circle in bubbleDict:
         blist = bubbleDict[circle]
-        print(blist, len (blist))
+        # print(blist, len (blist))
         if blist[0].colour == currentColour:
-            print("same colour", blist)
+            # print("same colour", blist)
             if len (blist) == 2:
                 unfreezeAll (circle)
                 return
             else:
-                print("not enough of the same colour bubbles to unfreeze them")
+                # print("not enough of the same colour bubbles to unfreeze them")
                 updateChains (circle)
         else:
-            print("bubble hit is a different colour")
+            # print("bubble hit is a different colour")
             b = bubble (currentCircle, currentColour)
             blist[-1].addChild (b)
             bubbleDict[currentCircle] = [b]
-        dumpData ("end of addBubble")
+        # dumpData ("end of addBubble")
     else:
-        print("addBubble - does not know about circle", circle)
+        pass
+        # print("addBubble - does not know about circle", circle)
 
 #
 #  bubble_hits_bubble - call back for a circle hitting a frozen bubble.
@@ -242,48 +248,20 @@ def addBubble (circle):
 
 def bubble_hits_bubble (o, e):
     global currentCircle
-    print("bubble hits bubble, currentCircle =", currentCircle)
+    # print("bubble hits bubble, currentCircle =", currentCircle)
     if currentCircle != None:
         b = e.collision_between ()
         for o in b:
             if o.is_fixed ():
-                print("object, o, is fixed", o)
+                # print("object, o, is fixed", o)
+                pass
             else:
-                print("object, o, is not fixed", o)
+                # print("object, o, is not fixed", o)
+                pass
             if not currentCircle.is_fixed ():
                 addBubble (o)
         currentCircle = None
-    dumpData ("end of bubble_hits_bubble")
-
-
-print("starting frozenbubble")
-pge.interactive ()
-# pge.batch ()
-pge.record ()
-
-white = pge.rgb (1.0, 1.0, 1.0)
-t = pge.rgb (1.0/2.0, 2.0/3.0, 3.0/4.0)
-wood_light = pge.rgb (166.0/256.0, 124.0/256.0, 54.0/256.0)
-wood_dark = pge.rgb (76.0/256.0, 47.0/256.0, 0.0)
-red = pge.rgb (0.65, 0.1, 0.2)
-steel = pge.rgb (0.5, 0.5, 0.5)
-copper = pge.rgb (0.5, 0.3, 0.2)
-gold = pge.rgb (0.8, 0.6, 0.15)
-ball_size = 0.02
-boarder = 0.01
-green = pge.rgb (0.1, 0.6, 0.2)
-# blue = pge.rgb (0.0, 0.0, 1.0)
-blue = pge.rgb (0.0, 100.0/255.0, 1.0)
-gap = 0.01
-previous = None
-seconds_left = None
-hit_colour = [gold, copper, steel, wood_dark, wood_light, white]
-
-slowdown = 5
-simulatedtime = 60
-colourNames = { green: "green",
-                red  : "red",
-                blue : "blue" }
+    # dumpData ("end of bubble_hits_bubble")
 
 
 def finish_game (event, param):
@@ -372,22 +350,62 @@ def createLevel ():
 
 
 def timer (e = None, f = None):
-    global seconds_left, previous
+    global seconds_left, previous_time
     if seconds_left >= 0:
         pge.at_time (1.0, timer)
         s = "%d" % seconds_left
-        if previous != None:
-            previous.rm ()
-        previous = pge.text (0.8, 0.9, s, white, 100, 1)
+        if previous_time != None:
+            previous_time.rm ()
+        previous_time = pge.text (0.8, 0.9, s, white, 100, 1)
         seconds_left -= 1
+        score ()
+    else:
+        out_of_time ()
 
 
 def out_of_time ():
-    global loser, winner
-    if not winner:
-        loser = True
-        pge.text (0.3, 0.7, "Loser", white, 100, 1)
-        pge.at_time (4.0, finish_game)
+    pge.text (0.3, 0.7, "Time up", white, 100, 1)
+    pge.at_time (4.0, finish_game)
+
+
+def score ():
+    global total_score, previous_score
+    s = "%d" % total_score
+    if previous_score != None:
+        previous_score.rm ()
+    previous_score = pge.text (0.8, 0.6, s, white, 100, 1)
+
+
+print("starting frozenbubble")
+pge.interactive ()
+# pge.batch ()
+pge.record ()
+
+white = pge.rgb (1.0, 1.0, 1.0)
+t = pge.rgb (1.0/2.0, 2.0/3.0, 3.0/4.0)
+wood_light = pge.rgb (166.0/256.0, 124.0/256.0, 54.0/256.0)
+wood_dark = pge.rgb (76.0/256.0, 47.0/256.0, 0.0)
+red = pge.rgb (0.65, 0.1, 0.2)
+steel = pge.rgb (0.5, 0.5, 0.5)
+copper = pge.rgb (0.5, 0.3, 0.2)
+gold = pge.rgb (0.8, 0.6, 0.15)
+ball_size = 0.02
+boarder = 0.01
+green = pge.rgb (0.1, 0.6, 0.2)
+# blue = pge.rgb (0.0, 0.0, 1.0)
+blue = pge.rgb (0.0, 100.0/255.0, 1.0)
+gap = 0.01
+previous_time = None
+seconds_left = None
+total_score = 100
+previous_score = None
+hit_colour = [gold, copper, steel, wood_dark, wood_light, white]
+
+slowdown = 5
+simulatedtime = 60
+colourNames = { green: "green",
+                red  : "red",
+                blue : "blue" }
 
 
 def main ():
@@ -413,11 +431,11 @@ def main ():
     pge.register_handler (myquit, [QUIT])
     pge.register_handler (key_pressed, [KEYDOWN])
     createLevel ()
-
-    seconds_left = 10 * slowdown
+    seconds_left = 20 * slowdown
     timer ()
     pge.run (simulatedtime)
-    pge.run (10.0)
+    pge.run (20.0)
+    pge.run (4.0)
     pge.finish_record ()
 
 

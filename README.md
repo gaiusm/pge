@@ -33,3 +33,9 @@ $ make install
 ```console
 $ python3 ../examples/breakout/breakout.py
 ```
+
+# Building documentation
+
+```console
+$ make pge.pdf pge.html
+```

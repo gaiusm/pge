@@ -148,14 +148,23 @@ and
 The breakout example game can be run by:
 
 @example
-$ make breakout
+$ ./localrun.sh ../examples/breakout/breakout.py
 @end example
 
 The matchsticks example game can be run by:
 
 @example
-$ make matchsticks
+$ ./localrun.sh ../examples/matchsticks/matchsticks.py
 @end example
+
+A partially complete frozenbubble example game can be run by:
+
+@example
+$ ./localrun.sh ../examples/frozenbubble/frozenbubble.py
+@end example
+
+The left mouse button fires a bubble and the distance from the bottom
+determines the velocity of the fired bubble.
 
 @node Example Games, Licence, News, (dir)
 @chapter Example Games

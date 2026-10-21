@@ -2,9 +2,9 @@
 
 Here is a very basic game of frozebubble.
 
-You control the initial projection vector of the gold ball from the
-mouse position.  If the gold ball hits any other ball in a suspended
-state it becomes free moving.
+You control the initial projection vector of the red bubble from the
+mouse position.  If the red bubble hits another stationary bubble
+which is connected to another then all three bubbles are free moving.
 
 @subsection Interesting aspects of the frozenbubble implmentation
 
