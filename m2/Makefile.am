@@ -49,7 +49,7 @@ SRC_PATH_PIM=-I$(srcdir)/pge-m2 -fm2-pathname=m2pim -I$(GM2_LIB_DIR)/m2/m2pim -f
 PROFILE =
 CHECK = -fsoft-check-all
 # CHECK =
-OPT = -O0
+OPT = -O2
 
 GM2FLAGS = $(OPT) $(PROFILE) $(CHECK) -g -fm2-g -fiso -fextended-opaque -I$(srcdir)/src-m2 -g
 
